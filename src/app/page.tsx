@@ -1,3 +1,5 @@
-export default function Home() {
-  return <main>채뜌.theme 홈</main>;
+import HomeBoard from "@/components/home/HomeBoard/HomeBoard";
+
+export default function HomePage() {
+  return <HomeBoard />;
 }
