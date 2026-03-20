@@ -6,35 +6,60 @@
 
 .boardWrap {
   position: relative;
+  isolation: isolate;
   width: min(100%, 1120px);
   margin: 0 auto;
-  padding-top: 48px;
+  padding-top: 42px;
+}
+
+/* 화이트 보드 뒤에 살짝 삐져나오는 분홍 판 */
+.backPlate {
+  position: absolute;
+  top: 20px;
+  left: -20px;
+  width: calc(100% - 120px);
+  height: 750px;
+  background: var(--color-accent);
+  z-index: 0;
 }
 
 .circleBadge {
   position: absolute;
-  top: 0;
+  top: -35px;
   left: 50%;
-  z-index: 2;
+  z-index: 3;
   transform: translateX(-50%);
+  width: 120px;
+  height: 120px;
+  border: 5px solid var(--color-accent);
+  border-radius: 999px;
+  background-color: var(--color-surface);
+  overflow: hidden;
+}
+
+.logoImage {
+  object-fit: contain;
+}
+
+.badgeText {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 96px;
-  height: 96px;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  background: var(--color-surface);
-  box-shadow: var(--shadow-soft);
+  width: 100%;
+  height: 100%;
+  color: var(--color-text);
   font-weight: 700;
 }
 
 .signaturePill {
   position: absolute;
   top: 18px;
-  right: 24px;
-  z-index: 2;
-  padding: 10px 16px;
+  right: 26px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
   border: 1px solid var(--color-border);
   border-radius: 999px;
   background: var(--color-soft);
@@ -43,33 +68,100 @@
   font-weight: 600;
 }
 
+.signaturePill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.8;
+}
+
+.boardArea {
+  position: relative;
+  z-index: 1;
+}
+
 .board {
   position: relative;
   height: 760px;
-  border: 1px solid var(--color-border);
-  border-radius: 44px;
+  padding: 20px 22px 20px 24px;
+  border-radius: 0;
   background: #fff;
   box-shadow: var(--shadow-soft);
   overflow: hidden;
 }
 
+/* 실제 스크롤 영역 */
 .boardScroll {
   height: 100%;
   overflow-y: auto;
-  padding: 88px 40px 40px;
+  padding: 56px 16px 28px 12px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .boardScroll::-webkit-scrollbar {
-  width: 10px;
+  width: 0;
+  height: 0;
 }
 
-.boardScroll::-webkit-scrollbar-thumb {
-  background: var(--color-accent-strong);
+.boardContent {
+  min-height: 100%;
+}
+
+/* 보드 바깥 오른쪽 스크롤바 */
+.outerScrollbar {
+  --knob-size: 20px;
+
+  position: absolute;
+  top: 48px;
+  right: -46px;
+  width: 28px;
+  height: calc(100% - 96px);
+  z-index: 2;
+}
+
+.outerScrollbarTrack {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+/* 세로 라인 */
+.outerScrollbarTrack::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 11px;
+  width: 6px;
+  height: 100%;
   border-radius: 999px;
+  background: var(--color-accent-strong);
+  opacity: 0.95;
 }
 
-.boardScroll::-webkit-scrollbar-track {
-  background: transparent;
+/* 동그란 손잡이 */
+.outerScrollbarKnob {
+  position: absolute;
+  top: 0;
+  left: calc((28px - var(--knob-size)) / 2);
+  width: var(--knob-size);
+  height: var(--knob-size);
+  border-radius: 999px;
+  background: var(--color-accent-strong);
+  cursor: grab;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.06s linear;
+}
+
+.dragging {
+  cursor: grabbing;
+  box-shadow:
+    0 0 0 5px rgba(222, 110, 135, 0.2),
+    0 4px 12px rgba(222, 110, 135, 0.3);
 }
 
 @media (max-width: 900px) {
@@ -81,14 +173,21 @@
     padding-top: 24px;
   }
 
+  .backPlate {
+    top: 116px;
+    left: 10px;
+    width: calc(100% - 24px);
+    height: 220px;
+  }
+
   .circleBadge {
     position: static;
     transform: none;
     margin: 0 auto 12px;
-    width: 80px;
-    height: 80px;
+    width: 76px;
+    height: 76px;
+    border-width: 3px;
   }
-
   .signaturePill {
     position: static;
     display: inline-flex;
@@ -98,12 +197,16 @@
   .board {
     height: auto;
     min-height: calc(100vh - 140px);
-    border-radius: 32px;
+    padding: 14px;
   }
 
   .boardScroll {
     height: auto;
     overflow-y: visible;
-    padding: 28px 20px 24px;
+    padding: 18px 8px 12px;
+  }
+
+  .outerScrollbar {
+    display: none;
   }
 }
