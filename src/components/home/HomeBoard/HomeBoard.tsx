@@ -6,10 +6,10 @@ import { themes } from "@/data/themes";
 
 import styles from "./HomeBoard.module.css";
 
-const freeThemes = themes.filter((theme) => theme.type === "free").slice(0, 2);
+const freeThemes = themes.filter((theme) => theme.type === "free").slice(0, 4);
 const signatureThemes = themes
   .filter((theme) => theme.type === "signature")
-  .slice(0, 2);
+  .slice(0, 4);
 
 export default function HomeBoard() {
   return (
