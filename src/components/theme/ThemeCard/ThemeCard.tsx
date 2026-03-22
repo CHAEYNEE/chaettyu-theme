@@ -14,6 +14,7 @@ type ThemeCardProps = {
 export default function ThemeCard({ theme }: ThemeCardProps) {
   const detailHref = `${ROUTES.HOME}themes/${theme.id}`;
   const hasThumbnail = Boolean(theme.thumbnail);
+  const isFree = theme.type === "free";
 
   return (
     <Link href={detailHref} className={styles.cardLink}>
@@ -25,7 +26,7 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
               alt={theme.title}
               fill
               className={styles.thumbnailImage}
-              sizes="(max-width: 640px) 100vw, (max-width: 900px) 50vw, 33vw"
+              sizes="(max-width: 640px) 100vw, (max-width: 900px) 50vw, 25vw"
               unoptimized
             />
           ) : (
@@ -33,24 +34,38 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
               <span className={styles.thumbnailText}>{theme.title}</span>
             </div>
           )}
-
-          <span className={styles.badge}>
-            {theme.type === "free" ? "FREE" : "SIGNATURE"}
-          </span>
         </div>
 
         <div className={styles.content}>
-          <div className={styles.topRow}>
-            <strong className={styles.title}>{theme.title}</strong>
-            <span className={styles.likes}>♥ {theme.likes}</span>
+          <div className={styles.chipRow}>
+            <span
+              className={`${styles.chip} ${
+                isFree ? styles.freeChip : styles.signatureChip
+              }`}
+            >
+              {isFree ? "FREE" : "SIGNATURE"}
+            </span>
+
+            <span className={`${styles.chip} ${styles.categoryChip}`}>
+              {theme.category}
+            </span>
+
+            {!isFree && theme.badge && (
+              <span className={`${styles.chip} ${styles.badgeChip}`}>
+                {theme.badge}
+              </span>
+            )}
           </div>
 
-          <p className={styles.description}>{theme.description}</p>
+          <strong className={styles.title}>{theme.title}</strong>
 
-          <div className={styles.metaRow}>
+          {isFree ? (
+            <span className={styles.metaText}>
+              다운로드 {theme.downloads ?? 0}
+            </span>
+          ) : (
             <span className={styles.price}>{formatPrice(theme.price)}</span>
-            <span className={styles.linkButton}>자세히 보기</span>
-          </div>
+          )}
         </div>
       </article>
     </Link>

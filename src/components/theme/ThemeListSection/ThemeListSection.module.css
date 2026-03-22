@@ -22,7 +22,7 @@
 .eyebrow {
   margin: 0;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--color-accent-strong);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -57,7 +57,6 @@
   background: #fff;
   color: var(--color-text);
   font-size: 13px;
-  font-weight: 600;
   cursor: pointer;
   transition:
     background 0.2s ease,
@@ -78,6 +77,7 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  row-gap: 50px;
 }
 
 @media (max-width: 900px) {
