@@ -2,12 +2,17 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { ROUTES } from "@/constants/routes";
-import type { ThemeItem } from "@/types/theme";
+import type { ThemeItem, ThemePlatform } from "@/types/theme";
 
 import styles from "./ThemeCard.module.css";
 
 type ThemeCardProps = {
   theme: ThemeItem;
+};
+
+const platformLabelMap: Record<ThemePlatform, string> = {
+  ios: "iOS",
+  android: "AND",
 };
 
 export default function ThemeCard({ theme }: ThemeCardProps) {
@@ -45,9 +50,16 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
               {isFree ? "FREE" : "SIGNATURE"}
             </span>
 
-            <span className={`${styles.chip} ${styles.categoryChip}`}>
-              {theme.category}
-            </span>
+            {theme.platforms.map((platform) => (
+              <span
+                key={platform}
+                className={`${styles.chip} ${
+                  platform === "ios" ? styles.iosChip : styles.androidChip
+                }`}
+              >
+                {platformLabelMap[platform]}
+              </span>
+            ))}
 
             {!isFree && theme.badge && (
               <span className={`${styles.chip} ${styles.badgeChip}`}>

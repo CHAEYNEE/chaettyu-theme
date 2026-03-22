@@ -1,9 +1,9 @@
-import Image from "next/image";
 import { notFound } from "next/navigation";
 
+import PreviewGallery from "@/components/theme/PreviewGallery/PreviewGallery";
 import BoardLayout from "@/components/layout/BoardLayout/BoardLayout";
 import { themes } from "@/data/themes";
-import { formatPrice } from "@/utils/formatPrice";
+import type { ThemePlatform } from "@/types/theme";
 
 import styles from "./page.module.css";
 
@@ -11,6 +11,11 @@ type ThemeDetailPageProps = {
   params: Promise<{
     id: string;
   }>;
+};
+
+const platformLabelMap: Record<ThemePlatform, string> = {
+  ios: "iOS",
+  android: "AND",
 };
 
 export function generateStaticParams() {
@@ -29,82 +34,82 @@ export default async function ThemeDetailPage({
     notFound();
   }
 
-  const mainImage = theme.previewImages[0] ?? theme.thumbnail;
+  const isFree = theme.type === "free";
 
   return (
-    <BoardLayout
-      pillText={theme.type === "free" ? "Free Theme" : "Signature Theme"}
-    >
+    <BoardLayout pillText={isFree ? "Free Theme" : "Signature Theme"}>
       <section className={styles.section}>
         <div className={styles.top}>
           <div className={styles.previewArea}>
-            <div className={styles.mainPreview}>
-              <Image
-                src={mainImage}
-                alt={theme.title}
-                fill
-                className={styles.previewImage}
-                sizes="(max-width: 900px) 100vw, 520px"
-                priority
-              />
-            </div>
-
-            <div className={styles.previewGrid}>
-              {theme.previewImages.map((image, index) => (
-                <div
-                  key={`${theme.id}-${index}`}
-                  className={styles.previewThumb}
-                >
-                  <Image
-                    src={image}
-                    alt={`${theme.title} 미리보기 ${index + 1}`}
-                    fill
-                    className={styles.previewImage}
-                    sizes="(max-width: 900px) 50vw, 240px"
-                  />
-                </div>
-              ))}
-            </div>
+            <PreviewGallery
+              title={theme.title}
+              thumbnail={theme.thumbnail}
+              previewImages={theme.previewImages}
+            />
           </div>
 
           <div className={styles.infoArea}>
             <div className={styles.metaTop}>
-              <span className={styles.typeBadge}>
-                {theme.type === "free" ? "FREE" : "SIGNATURE"}
+              <span
+                className={`${styles.chip} ${
+                  isFree ? styles.freeChip : styles.signatureChip
+                }`}
+              >
+                {isFree ? "FREE" : "SIGNATURE"}
               </span>
 
-              {theme.badge && (
-                <span className={styles.subBadge}>{theme.badge}</span>
+              {theme.platforms.map((platform) => (
+                <span
+                  key={platform}
+                  className={`${styles.chip} ${
+                    platform === "ios" ? styles.iosChip : styles.androidChip
+                  }`}
+                >
+                  {platformLabelMap[platform]}
+                </span>
+              ))}
+
+              {!isFree && theme.badge && (
+                <span className={`${styles.chip} ${styles.badgeChip}`}>
+                  {theme.badge}
+                </span>
               )}
             </div>
 
             <h1 className={styles.title}>{theme.title}</h1>
+
+            <div className={styles.priceBox}>
+              {isFree ? (
+                <strong className={styles.freeText}>무료 다운로드</strong>
+              ) : (
+                <strong className={styles.price}>
+                  <span className={styles.currency}>₩</span>
+                  {theme.price.toLocaleString()}
+                </strong>
+              )}
+            </div>
+
             <p className={styles.description}>{theme.description}</p>
 
             <dl className={styles.metaList}>
               <div className={styles.metaItem}>
-                <dt>카테고리</dt>
-                <dd>{theme.category}</dd>
-              </div>
-
-              <div className={styles.metaItem}>
-                <dt>가격</dt>
+                <dt>지원 기종</dt>
                 <dd>
-                  {theme.type === "free"
-                    ? "무료 다운로드"
-                    : formatPrice(theme.price)}
+                  {theme.platforms
+                    .map((platform) => platformLabelMap[platform])
+                    .join(" · ")}
                 </dd>
               </div>
 
               <div className={styles.metaItem}>
-                <dt>좋아요</dt>
-                <dd>♥ {theme.likes}</dd>
+                <dt>이용 방식</dt>
+                <dd>{isFree ? "무료 다운로드" : "구매 후 다운로드"}</dd>
               </div>
 
               {typeof theme.downloads === "number" && (
                 <div className={styles.metaItem}>
                   <dt>다운로드</dt>
-                  <dd>{theme.downloads}</dd>
+                  <dd>{theme.downloads.toLocaleString()}</dd>
                 </div>
               )}
             </dl>
@@ -118,18 +123,8 @@ export default async function ThemeDetailPage({
             </div>
 
             <div className={styles.buttonRow}>
-              {theme.type === "free" ? (
-                <button type="button" className={styles.primaryButton}>
-                  무료 다운로드
-                </button>
-              ) : (
-                <button type="button" className={styles.primaryButton}>
-                  구매하기
-                </button>
-              )}
-
-              <button type="button" className={styles.secondaryButton}>
-                ♥ 좋아요
+              <button type="button" className={styles.primaryButton}>
+                {isFree ? "무료 다운로드" : "구매하기"}
               </button>
             </div>
           </div>

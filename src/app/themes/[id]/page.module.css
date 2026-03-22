@@ -10,35 +10,7 @@
 }
 
 .previewArea {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.mainPreview {
-  position: relative;
-  aspect-ratio: 1 / 1;
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  background: var(--color-soft);
-}
-
-.previewGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.previewThumb {
-  position: relative;
-  aspect-ratio: 1 / 1;
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  background: var(--color-soft);
-}
-
-.previewImage {
-  object-fit: cover;
+  min-width: 0;
 }
 
 .infoArea {
@@ -55,33 +27,77 @@
   flex-wrap: wrap;
 }
 
-.typeBadge,
-.subBadge {
+.chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 7px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
+  min-height: 24px;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
-.typeBadge {
-  background: var(--color-accent-strong);
-  color: #fff;
+.freeChip {
+  background: #bed3c4;
+  color: #ffffff;
 }
 
-.subBadge {
-  background: var(--color-soft);
-  color: var(--color-text);
+.signatureChip {
+  background: #ed8687;
+  color: #ffffff;
+}
+
+.iosChip {
+  background: #ffa58a;
+  color: #ffffff;
+}
+
+.androidChip {
+  background: #ffd35b;
+  color: #ffffff;
+}
+
+.badgeChip {
+  border: 1px solid #4fbcdd;
+  background: #fff;
+  color: #4fbcdd;
 }
 
 .title {
   margin: 0;
-  font-size: 36px;
+  font-size: 30px;
   line-height: 1.2;
   color: var(--color-text);
   letter-spacing: -0.03em;
+}
+
+.priceBox {
+  display: flex;
+  align-items: center;
+}
+
+.price {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--color-accent);
+}
+
+.currency {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.freeText {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-accent-strong);
 }
 
 .description {
@@ -114,7 +130,6 @@
 .metaItem dd {
   margin: 0;
   font-size: 14px;
-  font-weight: 600;
   color: var(--color-text);
 }
 
@@ -125,7 +140,7 @@
 }
 
 .tag {
-  padding: 7px 12px;
+  padding: 5px 8px;
   border-radius: 999px;
   background: var(--color-soft);
   font-size: 12px;
@@ -139,28 +154,18 @@
   margin-top: 6px;
 }
 
-.primaryButton,
-.secondaryButton {
+.primaryButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 150px;
+  min-width: 180px;
   padding: 13px 18px;
   border: none;
-  border-radius: 999px;
+  background: var(--color-accent-strong);
+  color: #fff;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-}
-
-.primaryButton {
-  background: var(--color-accent-strong);
-  color: #fff;
-}
-
-.secondaryButton {
-  background: var(--color-soft);
-  color: var(--color-text);
 }
 
 @media (max-width: 900px) {
@@ -173,6 +178,18 @@
     font-size: 28px;
   }
 
+  .price {
+    font-size: 24px;
+  }
+
+  .currency {
+    font-size: 15px;
+  }
+
+  .freeText {
+    font-size: 20px;
+  }
+
   .metaItem {
     grid-template-columns: 72px 1fr;
   }
@@ -181,8 +198,7 @@
     flex-direction: column;
   }
 
-  .primaryButton,
-  .secondaryButton {
+  .primaryButton {
     width: 100%;
   }
 }

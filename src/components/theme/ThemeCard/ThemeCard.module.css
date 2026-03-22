@@ -68,23 +68,29 @@
 }
 
 .freeChip {
-  background: #ffa7ba;
+  background: #bed3c4;
   color: #ffffff;
 }
 
 .signatureChip {
-  background: #add4e6;
+  background: #ed8687;
   color: #ffffff;
 }
 
-.categoryChip {
-  background: #fff4d8;
-  color: #b38728;
+.iosChip {
+  background: #ffa58a;
+  color: #ffffff;
+}
+
+.androidChip {
+  background: #ffd35b;
+  color: #ffffff;
 }
 
 .badgeChip {
-  background: #e7f6eb;
-  color: #4d9961;
+  border: 1px solid #4fbcdd;
+  background: #fff;
+  color: #4fbcdd;
 }
 
 .title {
@@ -109,6 +115,7 @@
 .currency {
   color: var(--color-text);
   font-weight: 500;
+  font-size: 13px;
 }
 
 .metaText {
