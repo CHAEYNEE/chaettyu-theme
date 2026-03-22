@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 
+import SiteFooter from "@/components/layout/SiteFooter/SiteFooter";
+
 const wantedSans = localFont({
   src: "./fonts/WantedSansVariable.woff2",
   variable: "--font-main",
@@ -20,7 +22,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className={wantedSans.variable}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <SiteFooter />
+      </body>
     </html>
   );
 }

@@ -100,8 +100,15 @@
 }
 
 .price {
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-accent);
+}
+
+.currency {
   color: var(--color-text);
+  font-weight: 500;
 }
 
 .metaText {
@@ -129,7 +136,7 @@
   }
 
   .price {
-    font-size: 13px;
+    font-size: 16px;
   }
 
   .metaText {

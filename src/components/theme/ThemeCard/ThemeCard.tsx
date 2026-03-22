@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { ROUTES } from "@/constants/routes";
-import { formatPrice } from "@/utils/formatPrice";
 import type { ThemeItem } from "@/types/theme";
 
 import styles from "./ThemeCard.module.css";
@@ -64,7 +63,10 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
               다운로드 {theme.downloads ?? 0}
             </span>
           ) : (
-            <span className={styles.price}>{formatPrice(theme.price)}</span>
+            <span className={styles.price}>
+              <span className={styles.currency}>₩</span>
+              {theme.price.toLocaleString()}
+            </span>
           )}
         </div>
       </article>
