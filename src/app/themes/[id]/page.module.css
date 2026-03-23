@@ -1,6 +1,7 @@
 .section {
   display: flex;
   flex-direction: column;
+  gap: 48px;
 }
 
 .top {
@@ -66,45 +67,10 @@
 
 .title {
   margin: 0;
-  font-size: 30px;
+  font-size: 25px;
   line-height: 1.2;
   color: var(--color-text);
   letter-spacing: -0.03em;
-}
-
-.priceBox {
-  display: flex;
-  align-items: center;
-}
-
-.price {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 4px;
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1.1;
-  color: var(--color-accent);
-}
-
-.currency {
-  font-size: 20px;
-  font-weight: 500;
-  color: var(--color-text);
-}
-
-.freeText {
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--color-accent-strong);
-}
-
-.description {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.7;
-  color: var(--color-text-sub);
 }
 
 .metaList {
@@ -133,6 +99,84 @@
   color: var(--color-text);
 }
 
+.metaPriceWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metaPriceRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.metaPrice {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  color: var(--color-accent);
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.metaCurrency {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.metaGiftText {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 4px;
+  border: 1px solid var(--color-accent-strong);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-accent-strong);
+  animation: giftTextBlink 1.4s ease-in-out infinite;
+}
+
+@keyframes giftTextBlink {
+  0%,
+  100% {
+    color: var(--color-accent-strong);
+  }
+  50% {
+    color: #ed8687;
+  }
+}
+
+.metaSubInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.metaOriginalPrice {
+  font-size: 12px;
+  color: var(--color-text-sub);
+  text-decoration: line-through;
+}
+
+.metaOriginalCurrency {
+  font-size: 12px;
+}
+
+.metaDiscount {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 8px;
+  background: var(--color-soft);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-accent-strong);
+}
+
 .tagList {
   display: flex;
   flex-wrap: wrap;
@@ -142,30 +186,55 @@
 .tag {
   padding: 5px 8px;
   border-radius: 999px;
-  background: var(--color-soft);
+  background: var(--color-accent);
   font-size: 12px;
+  color: #fff;
+}
+
+.detailSection {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-top: 8px;
+}
+
+.detailTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
   color: var(--color-text);
 }
 
-.buttonRow {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 6px;
+.detailEditorContent {
+  color: var(--color-text);
+  font-size: 15px;
+  line-height: 1.9;
 }
 
-.primaryButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 180px;
-  padding: 13px 18px;
-  border: none;
-  background: var(--color-accent-strong);
-  color: #fff;
-  font-size: 14px;
+.detailEditorContent h3 {
+  margin: 0 0 12px;
+  font-size: 20px;
   font-weight: 700;
-  cursor: pointer;
+  color: var(--color-text);
+}
+
+.detailEditorContent p {
+  margin: 0 0 16px;
+}
+
+.detailEditorContent img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 0 18px;
+  background: var(--color-soft);
+}
+
+.detailEditorContent blockquote {
+  margin: 0 0 18px;
+  padding: 18px 20px;
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 @media (max-width: 900px) {
@@ -174,31 +243,27 @@
     gap: 22px;
   }
 
+  .section {
+    gap: 36px;
+  }
+
   .title {
     font-size: 28px;
-  }
-
-  .price {
-    font-size: 24px;
-  }
-
-  .currency {
-    font-size: 15px;
-  }
-
-  .freeText {
-    font-size: 20px;
   }
 
   .metaItem {
     grid-template-columns: 72px 1fr;
   }
 
-  .buttonRow {
-    flex-direction: column;
+  .detailTitle {
+    font-size: 20px;
   }
 
-  .primaryButton {
-    width: 100%;
+  .detailEditorContent {
+    font-size: 14px;
+  }
+
+  .detailEditorContent h3 {
+    font-size: 18px;
   }
 }

@@ -20,6 +20,28 @@ export const themes: ThemeItem[] = [
     downloads: 128,
     likes: 42,
     platforms: ["ios", "android"],
+    detailHtml: `
+  <h3>테마 소개</h3>
+  <p>
+    밀크 하트 테마는 부드러운 우유빛 핑크와 작은 하트 포인트를 중심으로 제작된 테마입니다.
+    채팅방, 친구목록, 더보기 화면까지 전체 톤이 자연스럽게 이어지도록 구성했습니다.
+  </p>
+
+  <img src="/images/themes/milk-heart/detail-1.png" alt="밀크 하트 상세 이미지 1" />
+
+  <h3>구성 화면</h3>
+  <p>
+    기본 버전과 하트 강조 버전 중 원하는 스타일을 선택할 수 있으며,
+    기종 및 OS 버전에 따라 일부 화면 차이가 있을 수 있습니다.
+  </p>
+
+  <img src="/images/themes/milk-heart/detail-2.png" alt="밀크 하트 상세 이미지 2" />
+  <img src="/images/themes/milk-heart/detail-3.png" alt="밀크 하트 상세 이미지 3" />
+
+  <blockquote>
+    테마 적용 전 기존 설정 백업을 권장합니다.
+  </blockquote>
+`,
   },
   {
     id: "butter-bear",
@@ -40,26 +62,58 @@ export const themes: ThemeItem[] = [
     downloads: 76,
     likes: 31,
     platforms: ["ios", "android"],
+    detailHtml: `
+  <h3>테마 소개</h3>
+  <p>
+    밀크 하트 테마는 부드러운 우유빛 핑크와 작은 하트 포인트를 중심으로 제작된 테마입니다.
+    채팅방, 친구목록, 더보기 화면까지 전체 톤이 자연스럽게 이어지도록 구성했습니다.
+  </p>
+
+  <img src="/images/themes/milk-heart/detail-1.png" alt="밀크 하트 상세 이미지 1" />
+
+  <h3>구성 화면</h3>
+  <p>
+    기본 버전과 하트 강조 버전 중 원하는 스타일을 선택할 수 있으며,
+    기종 및 OS 버전에 따라 일부 화면 차이가 있을 수 있습니다.
+  </p>
+
+  <img src="/images/themes/milk-heart/detail-2.png" alt="밀크 하트 상세 이미지 2" />
+  <img src="/images/themes/milk-heart/detail-3.png" alt="밀크 하트 상세 이미지 3" />
+
+  <blockquote>
+    테마 적용 전 기존 설정 백업을 권장합니다.
+  </blockquote>
+`,
   },
   {
     id: "milk-heart",
     title: "밀크 하트",
     type: "signature",
     price: 2500,
+    setPrice: 7500,
+    setBonusCount: 1,
     thumbnail: "/images/themes/milk-heart/thumb.gif",
     previewImages: [
       "/images/themes/milk-heart/preview-1.png",
       "/images/themes/milk-heart/preview-2.png",
-      "/images/themes/milk-heart/preview-3.png",
     ],
-    description: "하트와 우유빛 핑크 감성이 담긴 시그니처 테마",
-    tags: ["하트", "핑크", "감성"],
+    description: "말랑한 우유빛 핑크와 하트 포인트가 담긴 시그니처 테마",
+    tags: ["핑크", "하트", "러블리"],
     isPublished: true,
     downloadFileName: "milk-heart.zip",
-    createdAt: "2026-03-19",
-    badge: "추천",
-    likes: 58,
+    createdAt: "2026-03-23",
     platforms: ["ios", "android"],
+    versions: [
+      { label: "기본 버전", value: "basic" },
+      { label: "리본 버전", value: "ribbon" },
+      { label: "하트 버전", value: "heart" },
+    ],
+    detailHtml: `
+    <h3>테마 소개</h3>
+    <p>밀크 하트 테마는 부드러운 우유빛 핑크와 하트 포인트를 중심으로 제작된 테마입니다.</p>
+  `,
+    badge: "BEST",
+    likes: 12,
   },
   {
     id: "cherry-note",
@@ -79,6 +133,28 @@ export const themes: ThemeItem[] = [
     badge: "베스트",
     likes: 67,
     platforms: ["ios", "android"],
+    detailHtml: `
+  <h3>테마 소개</h3>
+  <p>
+    밀크 하트 테마는 부드러운 우유빛 핑크와 작은 하트 포인트를 중심으로 제작된 테마입니다.
+    채팅방, 친구목록, 더보기 화면까지 전체 톤이 자연스럽게 이어지도록 구성했습니다.
+  </p>
+
+  <img src="/images/themes/milk-heart/detail-1.png" alt="밀크 하트 상세 이미지 1" />
+
+  <h3>구성 화면</h3>
+  <p>
+    기본 버전과 하트 강조 버전 중 원하는 스타일을 선택할 수 있으며,
+    기종 및 OS 버전에 따라 일부 화면 차이가 있을 수 있습니다.
+  </p>
+
+  <img src="/images/themes/milk-heart/detail-2.png" alt="밀크 하트 상세 이미지 2" />
+  <img src="/images/themes/milk-heart/detail-3.png" alt="밀크 하트 상세 이미지 3" />
+
+  <blockquote>
+    테마 적용 전 기존 설정 백업을 권장합니다.
+  </blockquote>
+`,
   },
   {
     id: "cloud-bunny",
@@ -99,6 +175,28 @@ export const themes: ThemeItem[] = [
     downloads: 143,
     likes: 49,
     platforms: ["ios", "android"],
+    detailHtml: `
+  <h3>테마 소개</h3>
+  <p>
+    밀크 하트 테마는 부드러운 우유빛 핑크와 작은 하트 포인트를 중심으로 제작된 테마입니다.
+    채팅방, 친구목록, 더보기 화면까지 전체 톤이 자연스럽게 이어지도록 구성했습니다.
+  </p>
+
+  <img src="/images/themes/milk-heart/detail-1.png" alt="밀크 하트 상세 이미지 1" />
+
+  <h3>구성 화면</h3>
+  <p>
+    기본 버전과 하트 강조 버전 중 원하는 스타일을 선택할 수 있으며,
+    기종 및 OS 버전에 따라 일부 화면 차이가 있을 수 있습니다.
+  </p>
+
+  <img src="/images/themes/milk-heart/detail-2.png" alt="밀크 하트 상세 이미지 2" />
+  <img src="/images/themes/milk-heart/detail-3.png" alt="밀크 하트 상세 이미지 3" />
+
+  <blockquote>
+    테마 적용 전 기존 설정 백업을 권장합니다.
+  </blockquote>
+`,
   },
   {
     id: "peach-check",
@@ -119,6 +217,28 @@ export const themes: ThemeItem[] = [
     downloads: 92,
     likes: 27,
     platforms: ["ios", "android"],
+    detailHtml: `
+  <h3>테마 소개</h3>
+  <p>
+    밀크 하트 테마는 부드러운 우유빛 핑크와 작은 하트 포인트를 중심으로 제작된 테마입니다.
+    채팅방, 친구목록, 더보기 화면까지 전체 톤이 자연스럽게 이어지도록 구성했습니다.
+  </p>
+
+  <img src="/images/themes/milk-heart/detail-1.png" alt="밀크 하트 상세 이미지 1" />
+
+  <h3>구성 화면</h3>
+  <p>
+    기본 버전과 하트 강조 버전 중 원하는 스타일을 선택할 수 있으며,
+    기종 및 OS 버전에 따라 일부 화면 차이가 있을 수 있습니다.
+  </p>
+
+  <img src="/images/themes/milk-heart/detail-2.png" alt="밀크 하트 상세 이미지 2" />
+  <img src="/images/themes/milk-heart/detail-3.png" alt="밀크 하트 상세 이미지 3" />
+
+  <blockquote>
+    테마 적용 전 기존 설정 백업을 권장합니다.
+  </blockquote>
+`,
   },
   {
     id: "mint-rabbit",
@@ -139,6 +259,28 @@ export const themes: ThemeItem[] = [
     downloads: 65,
     likes: 24,
     platforms: ["ios", "android"],
+    detailHtml: `
+  <h3>테마 소개</h3>
+  <p>
+    밀크 하트 테마는 부드러운 우유빛 핑크와 작은 하트 포인트를 중심으로 제작된 테마입니다.
+    채팅방, 친구목록, 더보기 화면까지 전체 톤이 자연스럽게 이어지도록 구성했습니다.
+  </p>
+
+  <img src="/images/themes/milk-heart/detail-1.png" alt="밀크 하트 상세 이미지 1" />
+
+  <h3>구성 화면</h3>
+  <p>
+    기본 버전과 하트 강조 버전 중 원하는 스타일을 선택할 수 있으며,
+    기종 및 OS 버전에 따라 일부 화면 차이가 있을 수 있습니다.
+  </p>
+
+  <img src="/images/themes/milk-heart/detail-2.png" alt="밀크 하트 상세 이미지 2" />
+  <img src="/images/themes/milk-heart/detail-3.png" alt="밀크 하트 상세 이미지 3" />
+
+  <blockquote>
+    테마 적용 전 기존 설정 백업을 권장합니다.
+  </blockquote>
+`,
   },
   {
     id: "soda-cat",
@@ -159,6 +301,28 @@ export const themes: ThemeItem[] = [
     badge: "추천",
     likes: 53,
     platforms: ["ios", "android"],
+    detailHtml: `
+  <h3>테마 소개</h3>
+  <p>
+    밀크 하트 테마는 부드러운 우유빛 핑크와 작은 하트 포인트를 중심으로 제작된 테마입니다.
+    채팅방, 친구목록, 더보기 화면까지 전체 톤이 자연스럽게 이어지도록 구성했습니다.
+  </p>
+
+  <img src="/images/themes/milk-heart/detail-1.png" alt="밀크 하트 상세 이미지 1" />
+
+  <h3>구성 화면</h3>
+  <p>
+    기본 버전과 하트 강조 버전 중 원하는 스타일을 선택할 수 있으며,
+    기종 및 OS 버전에 따라 일부 화면 차이가 있을 수 있습니다.
+  </p>
+
+  <img src="/images/themes/milk-heart/detail-2.png" alt="밀크 하트 상세 이미지 2" />
+  <img src="/images/themes/milk-heart/detail-3.png" alt="밀크 하트 상세 이미지 3" />
+
+  <blockquote>
+    테마 적용 전 기존 설정 백업을 권장합니다.
+  </blockquote>
+`,
   },
   {
     id: "rose-lace",
@@ -178,6 +342,28 @@ export const themes: ThemeItem[] = [
     badge: "베스트",
     likes: 74,
     platforms: ["ios", "android"],
+    detailHtml: `
+  <h3>테마 소개</h3>
+  <p>
+    밀크 하트 테마는 부드러운 우유빛 핑크와 작은 하트 포인트를 중심으로 제작된 테마입니다.
+    채팅방, 친구목록, 더보기 화면까지 전체 톤이 자연스럽게 이어지도록 구성했습니다.
+  </p>
+
+  <img src="/images/themes/milk-heart/detail-1.png" alt="밀크 하트 상세 이미지 1" />
+
+  <h3>구성 화면</h3>
+  <p>
+    기본 버전과 하트 강조 버전 중 원하는 스타일을 선택할 수 있으며,
+    기종 및 OS 버전에 따라 일부 화면 차이가 있을 수 있습니다.
+  </p>
+
+  <img src="/images/themes/milk-heart/detail-2.png" alt="밀크 하트 상세 이미지 2" />
+  <img src="/images/themes/milk-heart/detail-3.png" alt="밀크 하트 상세 이미지 3" />
+
+  <blockquote>
+    테마 적용 전 기존 설정 백업을 권장합니다.
+  </blockquote>
+`,
   },
   {
     id: "night-jelly",
@@ -197,5 +383,27 @@ export const themes: ThemeItem[] = [
     badge: "신상",
     likes: 46,
     platforms: ["ios", "android"],
+    detailHtml: `
+  <h3>테마 소개</h3>
+  <p>
+    밀크 하트 테마는 부드러운 우유빛 핑크와 작은 하트 포인트를 중심으로 제작된 테마입니다.
+    채팅방, 친구목록, 더보기 화면까지 전체 톤이 자연스럽게 이어지도록 구성했습니다.
+  </p>
+
+  <img src="/images/themes/milk-heart/detail-1.png" alt="밀크 하트 상세 이미지 1" />
+
+  <h3>구성 화면</h3>
+  <p>
+    기본 버전과 하트 강조 버전 중 원하는 스타일을 선택할 수 있으며,
+    기종 및 OS 버전에 따라 일부 화면 차이가 있을 수 있습니다.
+  </p>
+
+  <img src="/images/themes/milk-heart/detail-2.png" alt="밀크 하트 상세 이미지 2" />
+  <img src="/images/themes/milk-heart/detail-3.png" alt="밀크 하트 상세 이미지 3" />
+
+  <blockquote>
+    테마 적용 전 기존 설정 백업을 권장합니다.
+  </blockquote>
+`,
   },
 ];

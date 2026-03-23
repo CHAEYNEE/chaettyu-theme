@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 
-import PreviewGallery from "@/components/theme/PreviewGallery/PreviewGallery";
 import BoardLayout from "@/components/layout/BoardLayout/BoardLayout";
+import PreviewGallery from "@/components/theme/PreviewGallery/PreviewGallery";
+import ThemePurchaseBox from "@/components/theme/ThemePurchaseBox/ThemePurchaseBox";
 import { themes } from "@/data/themes";
 import type { ThemePlatform } from "@/types/theme";
 
@@ -35,6 +36,24 @@ export default async function ThemeDetailPage({
   }
 
   const isFree = theme.type === "free";
+  const unitPrice = theme.price;
+  const versionCount = theme.versions?.length ?? 0;
+  const setBonusCount = theme.setBonusCount ?? 0;
+  const setPrice = theme.setPrice;
+
+  const hasSetPrice = !isFree && typeof setPrice === "number";
+
+  const originalSetPrice =
+    !isFree && hasSetPrice && versionCount > 0
+      ? unitPrice * (versionCount + setBonusCount)
+      : undefined;
+
+  const discountPercent =
+    hasSetPrice &&
+    typeof originalSetPrice === "number" &&
+    originalSetPrice > setPrice
+      ? Math.round(((originalSetPrice - setPrice) / originalSetPrice) * 100)
+      : 0;
 
   return (
     <BoardLayout pillText={isFree ? "Free Theme" : "Signature Theme"}>
@@ -78,19 +97,6 @@ export default async function ThemeDetailPage({
 
             <h1 className={styles.title}>{theme.title}</h1>
 
-            <div className={styles.priceBox}>
-              {isFree ? (
-                <strong className={styles.freeText}>무료 다운로드</strong>
-              ) : (
-                <strong className={styles.price}>
-                  <span className={styles.currency}>₩</span>
-                  {theme.price.toLocaleString()}
-                </strong>
-              )}
-            </div>
-
-            <p className={styles.description}>{theme.description}</p>
-
             <dl className={styles.metaList}>
               <div className={styles.metaItem}>
                 <dt>지원 기종</dt>
@@ -101,10 +107,58 @@ export default async function ThemeDetailPage({
                 </dd>
               </div>
 
-              <div className={styles.metaItem}>
-                <dt>이용 방식</dt>
-                <dd>{isFree ? "무료 다운로드" : "구매 후 다운로드"}</dd>
-              </div>
+              {!isFree && (
+                <div className={styles.metaItem}>
+                  <dt>개당 가격</dt>
+                  <dd>
+                    <span className={styles.metaPrice}>
+                      <span className={styles.metaCurrency}>₩</span>
+                      {unitPrice.toLocaleString()}
+                    </span>
+                  </dd>
+                </div>
+              )}
+
+              {!isFree && hasSetPrice && (
+                <div className={styles.metaItem}>
+                  <dt>세트 가격</dt>
+                  <dd>
+                    <div className={styles.metaPriceWrap}>
+                      <div className={styles.metaPriceRow}>
+                        <span className={styles.metaPrice}>
+                          <span className={styles.metaCurrency}>₩</span>
+                          {setPrice.toLocaleString()}
+                        </span>
+
+                        {versionCount > 0 && (
+                          <span className={styles.metaGiftText}>
+                            {versionCount}종 구매
+                            {setBonusCount > 0
+                              ? ` + 증정 ${setBonusCount}종`
+                              : ""}
+                          </span>
+                        )}
+                      </div>
+
+                      {typeof originalSetPrice === "number" &&
+                        originalSetPrice > setPrice && (
+                          <div className={styles.metaSubInfo}>
+                            <span className={styles.metaOriginalPrice}>
+                              <span className={styles.metaOriginalCurrency}>
+                                ₩
+                              </span>
+                              {originalSetPrice.toLocaleString()}
+                            </span>
+
+                            <span className={styles.metaDiscount}>
+                              {discountPercent}% 할인
+                            </span>
+                          </div>
+                        )}
+                    </div>
+                  </dd>
+                </div>
+              )}
 
               {typeof theme.downloads === "number" && (
                 <div className={styles.metaItem}>
@@ -122,13 +176,24 @@ export default async function ThemeDetailPage({
               ))}
             </div>
 
-            <div className={styles.buttonRow}>
-              <button type="button" className={styles.primaryButton}>
-                {isFree ? "무료 다운로드" : "구매하기"}
-              </button>
-            </div>
+            <ThemePurchaseBox
+              type={theme.type}
+              price={theme.price}
+              setPrice={theme.setPrice}
+              setBonusCount={theme.setBonusCount}
+              platforms={theme.platforms}
+              versions={theme.versions}
+            />
           </div>
         </div>
+
+        <section className={styles.detailSection}>
+          <h2 className={styles.detailTitle}>테마 상세 정보</h2>
+          <div
+            className={styles.detailEditorContent}
+            dangerouslySetInnerHTML={{ __html: theme.detailHtml }}
+          />
+        </section>
       </section>
     </BoardLayout>
   );
