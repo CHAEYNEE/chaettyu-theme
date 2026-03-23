@@ -106,7 +106,9 @@
 }
 
 .price {
-  font-size: 16px;
+  display: flex;
+  align-items: center;
+  font-size: 18px;
   font-weight: 700;
   line-height: 1.2;
   color: var(--color-accent);

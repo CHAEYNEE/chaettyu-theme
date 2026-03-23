@@ -1,0 +1,201 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.tabRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 10px;
+}
+
+.tabButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 14px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-sub);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.activeTab {
+  color: var(--color-text);
+  border-bottom: 2px solid var(--color-accent-strong);
+}
+
+.countBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  background: var(--color-soft);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-accent-strong);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detailEditorContent {
+  color: var(--color-text);
+  font-size: 15px;
+  line-height: 1.9;
+}
+
+.detailEditorContent h3 {
+  margin: 0 0 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.detailEditorContent p {
+  margin: 0 0 16px;
+}
+
+.detailEditorContent img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 0 18px;
+  background: var(--color-soft);
+}
+
+.detailEditorContent blockquote {
+  margin: 0 0 18px;
+  padding: 18px 20px;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px;
+  background: var(--color-surface);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.author {
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+.date {
+  font-size: 12px;
+  color: var(--color-text-sub);
+}
+
+.ratingRow {
+  display: flex;
+  align-items: center;
+}
+
+.rating {
+  font-size: 14px;
+  color: var(--color-accent);
+  letter-spacing: 0.08em;
+}
+
+.bodyText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--color-text);
+  white-space: pre-line;
+}
+
+.qnaBlock {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.qnaLabel {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: var(--color-soft);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-accent-strong);
+}
+
+.answerBox {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  background: #fff;
+}
+
+.emptyState {
+  padding: 28px 20px;
+  background: var(--color-surface);
+  font-size: 14px;
+  color: var(--color-text-sub);
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .tabRow {
+    gap: 8px;
+  }
+
+  .tabButton {
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+
+  .detailEditorContent {
+    font-size: 14px;
+  }
+
+  .detailEditorContent h3 {
+    font-size: 18px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .bodyText {
+    font-size: 13px;
+  }
+}

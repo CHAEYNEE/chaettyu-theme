@@ -7,6 +7,22 @@ export type ThemeVersion = {
   value: string;
 };
 
+export type ThemeReview = {
+  id: string;
+  author: string;
+  rating: number;
+  content: string;
+  createdAt: string;
+};
+
+export type ThemeQna = {
+  id: string;
+  author: string;
+  question: string;
+  answer?: string;
+  createdAt: string;
+};
+
 export type ThemeItem = {
   id: string;
   title: string;
@@ -16,7 +32,6 @@ export type ThemeItem = {
   setBonusCount?: number;
   thumbnail: string;
   previewImages: string[];
-  description: string;
   tags: string[];
   isPublished: boolean;
   downloadFileName: string;
@@ -24,6 +39,8 @@ export type ThemeItem = {
   platforms: ThemePlatform[];
   versions?: ThemeVersion[];
   detailHtml: string;
+  reviews?: ThemeReview[];
+  qnas?: ThemeQna[];
   badge?: string;
   downloads?: number;
   likes: number;

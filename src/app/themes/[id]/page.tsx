@@ -7,6 +7,7 @@ import { themes } from "@/data/themes";
 import type { ThemePlatform } from "@/types/theme";
 
 import styles from "./page.module.css";
+import ThemeDetailTabs from "@/components/theme/ThemeDetailTabs/ThemeDetailTabs";
 
 type ThemeDetailPageProps = {
   params: Promise<{
@@ -187,13 +188,11 @@ export default async function ThemeDetailPage({
           </div>
         </div>
 
-        <section className={styles.detailSection}>
-          <h2 className={styles.detailTitle}>테마 상세 정보</h2>
-          <div
-            className={styles.detailEditorContent}
-            dangerouslySetInnerHTML={{ __html: theme.detailHtml }}
-          />
-        </section>
+        <ThemeDetailTabs
+          detailHtml={theme.detailHtml}
+          reviews={theme.reviews}
+          qnas={theme.qnas}
+        />
       </section>
     </BoardLayout>
   );
