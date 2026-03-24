@@ -6,23 +6,14 @@ import { X } from "lucide-react";
 import CustomDropdown, {
   type DropdownOption,
 } from "@/components/common/CustomDropdown/CustomDropdown";
+import type { ThemePurchaseLineItem } from "@/types/themeHistory";
 import type { PurchaseMode, ThemeItem, ThemePlatform } from "@/types/theme";
 
 import styles from "./ThemePurchaseBox.module.css";
 
-type SelectedPurchaseItem = {
-  key: string;
-  platform: ThemePlatform;
-  purchaseMode: PurchaseMode;
-  title: string;
-  subtitle?: string;
-  price: number;
-  versionValue?: string;
-};
-
 type ThemePurchaseBoxProps = {
   theme: ThemeItem;
-  onPrimaryAction?: (items: SelectedPurchaseItem[]) => void;
+  onPrimaryAction?: (items: ThemePurchaseLineItem[]) => void;
 };
 
 const platformLabelMap: Record<ThemePlatform, string> = {
@@ -44,7 +35,7 @@ export default function ThemePurchaseBox({
   );
   const [purchaseMode, setPurchaseMode] = useState<PurchaseMode | "">("");
   const [selectedVersionValue, setSelectedVersionValue] = useState("");
-  const [selectedItems, setSelectedItems] = useState<SelectedPurchaseItem[]>(
+  const [selectedItems, setSelectedItems] = useState<ThemePurchaseLineItem[]>(
     [],
   );
 
@@ -74,7 +65,7 @@ export default function ThemePurchaseBox({
     value: version.value,
   }));
 
-  const createSetItem = (platform: ThemePlatform): SelectedPurchaseItem => {
+  const createSetItem = (platform: ThemePlatform): ThemePurchaseLineItem => {
     const subtitle =
       versions.length > 0
         ? `${versions.length}종 구매${
@@ -199,7 +190,7 @@ export default function ThemePurchaseBox({
       return;
     }
 
-    const nextItem: SelectedPurchaseItem = {
+    const nextItem: ThemePurchaseLineItem = {
       key: itemKey,
       platform: selectedPlatform,
       purchaseMode: "single",
