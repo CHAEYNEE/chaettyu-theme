@@ -1,3 +1,7 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
 import ThemeCard from "@/components/theme/ThemeCard/ThemeCard";
 import type { ThemeItem } from "@/types/theme";
 
@@ -10,12 +14,38 @@ type ThemeListSectionProps = {
   items: ThemeItem[];
 };
 
+type SortOption = "latest" | "popular";
+
+function getLatestTimestamp(item: ThemeItem) {
+  return new Date(item.createdAt).getTime();
+}
+
+function getPopularityScore(item: ThemeItem) {
+  if (item.type === "free") {
+    return item.downloadCount ?? 0;
+  }
+
+  return item.purchaseCount ?? 0;
+}
+
 export default function ThemeListSection({
   title,
   description,
   type,
   items,
 }: ThemeListSectionProps) {
+  const [sortOption, setSortOption] = useState<SortOption>("latest");
+
+  const sortedItems = useMemo(() => {
+    return [...items].sort((a, b) => {
+      if (sortOption === "latest") {
+        return getLatestTimestamp(b) - getLatestTimestamp(a);
+      }
+
+      return getPopularityScore(b) - getPopularityScore(a);
+    });
+  }, [items, sortOption]);
+
   return (
     <section className={styles.section}>
       <header className={styles.header}>
@@ -27,24 +57,33 @@ export default function ThemeListSection({
           <p className={styles.description}>{description}</p>
         </div>
 
-        <div className={styles.filterGroup} aria-label="테마 필터">
+        <div className={styles.filterGroup} aria-label="테마 정렬">
           <button
             type="button"
-            className={`${styles.filterButton} ${styles.activeFilter}`}
+            className={`${styles.filterButton} ${
+              sortOption === "latest" ? styles.activeFilter : ""
+            }`}
+            onClick={() => setSortOption("latest")}
+            aria-pressed={sortOption === "latest"}
           >
-            전체
-          </button>
-          <button type="button" className={styles.filterButton}>
             최신순
           </button>
-          <button type="button" className={styles.filterButton}>
+
+          <button
+            type="button"
+            className={`${styles.filterButton} ${
+              sortOption === "popular" ? styles.activeFilter : ""
+            }`}
+            onClick={() => setSortOption("popular")}
+            aria-pressed={sortOption === "popular"}
+          >
             인기순
           </button>
         </div>
       </header>
 
       <div className={styles.grid}>
-        {items.map((item, index) => (
+        {sortedItems.map((item, index) => (
           <ThemeCard key={item.id} theme={item} eager={index === 0} />
         ))}
       </div>

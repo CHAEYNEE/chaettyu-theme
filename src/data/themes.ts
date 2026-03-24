@@ -16,8 +16,7 @@ export const themes: ThemeItem[] = [
     downloadFileName: "strawberry-ribbon.zip",
     createdAt: "2026-03-19",
     badge: "인기",
-    downloads: 128,
-    likes: 42,
+    downloadCount: 128,
     platforms: ["ios", "android"],
     detailHtml: `
   <h3>테마 소개</h3>
@@ -57,8 +56,7 @@ export const themes: ThemeItem[] = [
     downloadFileName: "butter-bear.zip",
     createdAt: "2026-03-19",
     badge: "신상",
-    downloads: 76,
-    likes: 31,
+    downloadCount: 76,
     platforms: ["ios", "android"],
     detailHtml: `
   <h3>테마 소개</h3>
@@ -100,6 +98,7 @@ export const themes: ThemeItem[] = [
     isPublished: true,
     downloadFileName: "milk-heart.zip",
     createdAt: "2026-03-23",
+    purchaseCount: 148,
     platforms: ["ios", "android"],
     versions: [
       { label: "기본 버전", value: "basic" },
@@ -140,7 +139,6 @@ export const themes: ThemeItem[] = [
   <br>
 `,
     badge: "BEST",
-    likes: 12,
     reviews: [
       {
         id: "review-1",
@@ -355,6 +353,7 @@ export const themes: ThemeItem[] = [
     title: "체리 노트",
     type: "signature",
     price: 3200,
+    purchaseCount: 116,
     thumbnail: "/images/themes/cherry-note/thumb.gif",
     previewImages: [
       "/images/themes/cherry-note/preview-1.png",
@@ -365,7 +364,6 @@ export const themes: ThemeItem[] = [
     downloadFileName: "cherry-note.zip",
     createdAt: "2026-03-19",
     badge: "베스트",
-    likes: 67,
     platforms: ["ios", "android"],
     detailHtml: `
   <h3>테마 소개</h3>
@@ -405,8 +403,7 @@ export const themes: ThemeItem[] = [
     downloadFileName: "cloud-bunny.zip",
     createdAt: "2026-03-20",
     badge: "인기",
-    downloads: 143,
-    likes: 49,
+    downloadCount: 143,
     platforms: ["ios", "android"],
     detailHtml: `
   <h3>테마 소개</h3>
@@ -446,8 +443,7 @@ export const themes: ThemeItem[] = [
     downloadFileName: "peach-check.zip",
     createdAt: "2026-03-20",
     badge: "신상",
-    downloads: 92,
-    likes: 27,
+    downloadCount: 92,
     platforms: ["ios", "android"],
     detailHtml: `
   <h3>테마 소개</h3>
@@ -487,8 +483,7 @@ export const themes: ThemeItem[] = [
     downloadFileName: "mint-rabbit.zip",
     createdAt: "2026-03-21",
     badge: "추천",
-    downloads: 65,
-    likes: 24,
+    downloadCount: 65,
     platforms: ["ios", "android"],
     detailHtml: `
   <h3>테마 소개</h3>
@@ -518,6 +513,7 @@ export const themes: ThemeItem[] = [
     title: "소다 캣",
     type: "signature",
     price: 2900,
+    purchaseCount: 57,
     thumbnail: "/images/themes/soda-cat/thumb.gif",
     previewImages: [
       "/images/themes/soda-cat/preview-1.png",
@@ -528,7 +524,6 @@ export const themes: ThemeItem[] = [
     downloadFileName: "soda-cat.zip",
     createdAt: "2026-03-20",
     badge: "추천",
-    likes: 53,
     platforms: ["ios", "android"],
     detailHtml: `
   <h3>테마 소개</h3>
@@ -558,6 +553,7 @@ export const themes: ThemeItem[] = [
     title: "로즈 레이스",
     type: "signature",
     price: 3500,
+    purchaseCount: 89,
     thumbnail: "/images/themes/rose-lace/thumb.gif",
     previewImages: [
       "/images/themes/rose-lace/preview-1.png",
@@ -568,7 +564,6 @@ export const themes: ThemeItem[] = [
     downloadFileName: "rose-lace.zip",
     createdAt: "2026-03-21",
     badge: "베스트",
-    likes: 74,
     platforms: ["ios", "android"],
     detailHtml: `
   <h3>테마 소개</h3>
@@ -598,6 +593,7 @@ export const themes: ThemeItem[] = [
     title: "나이트 젤리",
     type: "signature",
     price: 3300,
+    purchaseCount: 73,
     thumbnail: "/images/themes/night-jelly/thumb.gif",
     previewImages: [
       "/images/themes/night-jelly/preview-1.png",
@@ -608,7 +604,6 @@ export const themes: ThemeItem[] = [
     downloadFileName: "night-jelly.zip",
     createdAt: "2026-03-21",
     badge: "신상",
-    likes: 46,
     platforms: ["ios", "android"],
     detailHtml: `
   <h3>테마 소개</h3>

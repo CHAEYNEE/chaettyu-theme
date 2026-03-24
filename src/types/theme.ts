@@ -43,6 +43,6 @@ export type ThemeItem = {
   reviews?: ThemeReview[];
   qnas?: ThemeQna[];
   badge?: string;
-  downloads?: number;
-  likes: number;
+  downloadCount?: number;
+  purchaseCount?: number;
 };

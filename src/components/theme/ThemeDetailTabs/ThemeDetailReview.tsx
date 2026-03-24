@@ -114,7 +114,7 @@ export default function ThemeDetailReview({ reviews }: ThemeDetailReviewProps) {
               className={styles.moreButton}
               onClick={handleLoadMore}
             >
-              더보기
+              리뷰 더보기
             </button>
           </div>
         )}

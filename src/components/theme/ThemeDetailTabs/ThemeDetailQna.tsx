@@ -29,7 +29,6 @@ export default function ThemeDetailQna({ qnas }: ThemeDetailQnaProps) {
 
   const visibleQnas = qnas.slice(0, visibleCount);
   const hasMoreQnas = visibleCount < qnas.length;
-  const remainingCount = qnas.length - visibleQnas.length;
 
   return (
     <div className={styles.qnaWrap}>
@@ -101,7 +100,7 @@ export default function ThemeDetailQna({ qnas }: ThemeDetailQnaProps) {
             className={styles.moreButton}
             onClick={() => setVisibleCount((prev) => prev + LOAD_COUNT)}
           >
-            문의 더보기 ({Math.min(LOAD_COUNT, remainingCount)}개)
+            Q&A 더보기
           </button>
         </div>
       )}

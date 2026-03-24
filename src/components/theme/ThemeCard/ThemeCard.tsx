@@ -74,7 +74,7 @@ export default function ThemeCard({ theme, eager = false }: ThemeCardProps) {
 
           {isFree ? (
             <span className={styles.metaText}>
-              다운로드 {theme.downloads ?? 0}
+              다운로드 {theme.downloadCount ?? 0}
             </span>
           ) : (
             <span className={styles.price}>
