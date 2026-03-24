@@ -6,6 +6,12 @@
   text-align: center;
 }
 
+.reviewWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .list {
   display: flex;
   flex-direction: column;
@@ -89,6 +95,37 @@
 
 .reviewImageButton:hover .reviewImage {
   transform: scale(1.04);
+}
+
+.moreButtonRow {
+  display: flex;
+  justify-content: center;
+}
+
+.moreButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 18px;
+  border: 1px solid var(--color-border);
+  background: #fff;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.moreButton:hover {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  transform: translateY(-1px);
+  color: white;
 }
 
 .lightboxOverlay {

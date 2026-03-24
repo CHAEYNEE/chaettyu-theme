@@ -204,10 +204,64 @@ export const themes: ThemeItem[] = [
       },
       {
         id: "review-6",
-        author: "채뜌러버",
+        author: "째요니",
         rating: 5,
-        content:
-          "색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!",
+        content: "너무 이쁘고 이뻐용",
+        createdAt: "2026.03.24",
+        images: [
+          "/images/themes/milk-heart/review-1.png",
+          "/images/themes/milk-heart/review-2.png",
+        ],
+      },
+      {
+        id: "review-7",
+        author: "째요니",
+        rating: 5,
+        content: "너무 이쁘고 이뻐용",
+        createdAt: "2026.03.24",
+        images: [
+          "/images/themes/milk-heart/review-1.png",
+          "/images/themes/milk-heart/review-2.png",
+        ],
+      },
+      {
+        id: "review-8",
+        author: "째요니",
+        rating: 5,
+        content: "너무 이쁘고 이뻐용",
+        createdAt: "2026.03.24",
+        images: [
+          "/images/themes/milk-heart/review-1.png",
+          "/images/themes/milk-heart/review-2.png",
+        ],
+      },
+      {
+        id: "review-9",
+        author: "째요니",
+        rating: 5,
+        content: "너무 이쁘고 이뻐용",
+        createdAt: "2026.03.24",
+        images: [
+          "/images/themes/milk-heart/review-1.png",
+          "/images/themes/milk-heart/review-2.png",
+        ],
+      },
+      {
+        id: "review-10",
+        author: "째요니",
+        rating: 5,
+        content: "너무 이쁘고 이뻐용",
+        createdAt: "2026.03.24",
+        images: [
+          "/images/themes/milk-heart/review-1.png",
+          "/images/themes/milk-heart/review-2.png",
+        ],
+      },
+      {
+        id: "review-11",
+        author: "예지니",
+        rating: 5,
+        content: "굿굿 아름다워요 존예",
         createdAt: "2026.03.24",
         images: [
           "/images/themes/milk-heart/review-1.png",

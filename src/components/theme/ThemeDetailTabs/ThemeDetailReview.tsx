@@ -13,9 +13,12 @@ type ThemeDetailReviewProps = {
   reviews: ThemeReview[];
 };
 
+const LOAD_COUNT = 5;
+
 export default function ThemeDetailReview({ reviews }: ThemeDetailReviewProps) {
   const [selectedImages, setSelectedImages] = useState<string[] | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(LOAD_COUNT);
 
   const handleOpenImage = (images: string[], index: number) => {
     setSelectedImages(images);
@@ -43,56 +46,79 @@ export default function ThemeDetailReview({ reviews }: ThemeDetailReviewProps) {
     );
   };
 
+  const handleLoadMore = () => {
+    setVisibleCount((prev) => prev + LOAD_COUNT);
+  };
+
   if (reviews.length === 0) {
     return <div className={styles.emptyState}>아직 등록된 리뷰가 없어요.</div>;
   }
 
+  const visibleReviews = reviews.slice(0, visibleCount);
+  const hasMoreReviews = visibleCount < reviews.length;
+
   return (
     <>
-      <ul className={styles.list}>
-        {reviews.map((review) => (
-          <li key={review.id} className={styles.card}>
-            <div className={styles.cardTop}>
-              <strong className={styles.author}>{review.author}</strong>
-              <span className={styles.date}>{review.createdAt}</span>
-            </div>
-
-            <div className={styles.ratingRow}>
-              <span className={styles.rating}>
-                {"★".repeat(review.rating)}
-                {"☆".repeat(5 - review.rating)}
-              </span>
-            </div>
-
-            <p className={styles.bodyText}>{review.content}</p>
-
-            {review.images && review.images.length > 0 && (
-              <div className={styles.reviewImageGrid}>
-                {review.images.map((imageSrc, index) => (
-                  <button
-                    key={`${review.id}-${imageSrc}-${index}`}
-                    type="button"
-                    className={styles.reviewImageButton}
-                    onClick={() => handleOpenImage(review.images ?? [], index)}
-                    aria-label={`${review.author} 리뷰 이미지 ${index + 1} 크게 보기`}
-                  >
-                    <div className={styles.reviewImageItem}>
-                      <Image
-                        src={imageSrc}
-                        alt={`${review.author} 리뷰 이미지 ${index + 1}`}
-                        fill
-                        className={styles.reviewImage}
-                        sizes="(max-width: 640px) 33vw, 120px"
-                        unoptimized
-                      />
-                    </div>
-                  </button>
-                ))}
+      <div className={styles.reviewWrap}>
+        <ul className={styles.list}>
+          {visibleReviews.map((review) => (
+            <li key={review.id} className={styles.card}>
+              <div className={styles.cardTop}>
+                <strong className={styles.author}>{review.author}</strong>
+                <span className={styles.date}>{review.createdAt}</span>
               </div>
-            )}
-          </li>
-        ))}
-      </ul>
+
+              <div className={styles.ratingRow}>
+                <span className={styles.rating}>
+                  {"★".repeat(review.rating)}
+                  {"☆".repeat(5 - review.rating)}
+                </span>
+              </div>
+
+              <p className={styles.bodyText}>{review.content}</p>
+
+              {review.images && review.images.length > 0 && (
+                <div className={styles.reviewImageGrid}>
+                  {review.images.map((imageSrc, index) => (
+                    <button
+                      key={`${review.id}-${imageSrc}-${index}`}
+                      type="button"
+                      className={styles.reviewImageButton}
+                      onClick={() =>
+                        handleOpenImage(review.images ?? [], index)
+                      }
+                      aria-label={`${review.author} 리뷰 이미지 ${index + 1} 크게 보기`}
+                    >
+                      <div className={styles.reviewImageItem}>
+                        <Image
+                          src={imageSrc}
+                          alt={`${review.author} 리뷰 이미지 ${index + 1}`}
+                          fill
+                          className={styles.reviewImage}
+                          sizes="(max-width: 640px) 33vw, 120px"
+                          unoptimized
+                        />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        {hasMoreReviews && (
+          <div className={styles.moreButtonRow}>
+            <button
+              type="button"
+              className={styles.moreButton}
+              onClick={handleLoadMore}
+            >
+              더보기
+            </button>
+          </div>
+        )}
+      </div>
 
       {selectedImages &&
         selectedImages.length > 0 &&
