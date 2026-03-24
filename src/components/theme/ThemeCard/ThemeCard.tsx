@@ -8,6 +8,7 @@ import styles from "./ThemeCard.module.css";
 
 type ThemeCardProps = {
   theme: ThemeItem;
+  eager?: boolean;
 };
 
 const platformLabelMap: Record<ThemePlatform, string> = {
@@ -15,7 +16,7 @@ const platformLabelMap: Record<ThemePlatform, string> = {
   android: "AND",
 };
 
-export default function ThemeCard({ theme }: ThemeCardProps) {
+export default function ThemeCard({ theme, eager = false }: ThemeCardProps) {
   const detailHref = `${ROUTES.HOME}themes/${theme.id}`;
   const hasThumbnail = Boolean(theme.thumbnail);
   const isFree = theme.type === "free";
@@ -32,6 +33,7 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
               className={styles.thumbnailImage}
               sizes="(max-width: 640px) 100vw, (max-width: 900px) 50vw, 25vw"
               unoptimized
+              loading={eager ? "eager" : "lazy"}
             />
           ) : (
             <div className={styles.thumbnailFallback}>

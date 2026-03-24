@@ -78,6 +78,7 @@
   color: var(--color-text);
   font-size: 15px;
   line-height: 1.9;
+  text-align: center;
 }
 
 .detailEditorContent h3 {
@@ -93,10 +94,10 @@
 
 .detailEditorContent img {
   display: block;
-  width: 100%;
+  width: auto;
+  max-width: 100%;
   height: auto;
-  margin: 0 0 18px;
-  background: var(--color-soft);
+  margin: 0 auto;
 }
 
 .detailEditorContent blockquote {

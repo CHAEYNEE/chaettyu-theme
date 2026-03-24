@@ -1,9 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import type { ThemeQna, ThemeReview } from "@/types/theme";
 
+import ThemeDetailContent from "./ThemeDetailContent";
+import ThemeDetailQna from "./ThemeDetailQna";
+import ThemeDetailReview from "./ThemeDetailReview";
 import styles from "./ThemeDetailTabs.module.css";
 
 type TabKey = "detail" | "review" | "qna";
@@ -29,78 +32,6 @@ export default function ThemeDetailTabs({
 
   const reviewCount = reviews.length;
   const qnaCount = qnas.length;
-
-  const activeContent = useMemo(() => {
-    if (activeTab === "detail") {
-      return (
-        <div
-          className={styles.detailEditorContent}
-          dangerouslySetInnerHTML={{ __html: detailHtml }}
-        />
-      );
-    }
-
-    if (activeTab === "review") {
-      if (reviewCount === 0) {
-        return (
-          <div className={styles.emptyState}>아직 등록된 리뷰가 없어요.</div>
-        );
-      }
-
-      return (
-        <ul className={styles.list}>
-          {reviews.map((review) => (
-            <li key={review.id} className={styles.card}>
-              <div className={styles.cardTop}>
-                <strong className={styles.author}>{review.author}</strong>
-                <span className={styles.date}>{review.createdAt}</span>
-              </div>
-
-              <div className={styles.ratingRow}>
-                <span className={styles.rating}>
-                  {"★".repeat(review.rating)}
-                  {"☆".repeat(5 - review.rating)}
-                </span>
-              </div>
-
-              <p className={styles.bodyText}>{review.content}</p>
-            </li>
-          ))}
-        </ul>
-      );
-    }
-
-    if (qnaCount === 0) {
-      return (
-        <div className={styles.emptyState}>아직 등록된 문의가 없어요.</div>
-      );
-    }
-
-    return (
-      <ul className={styles.list}>
-        {qnas.map((item) => (
-          <li key={item.id} className={styles.card}>
-            <div className={styles.cardTop}>
-              <strong className={styles.author}>{item.author}</strong>
-              <span className={styles.date}>{item.createdAt}</span>
-            </div>
-
-            <div className={styles.qnaBlock}>
-              <span className={styles.qnaLabel}>Q</span>
-              <p className={styles.bodyText}>{item.question}</p>
-            </div>
-
-            {item.answer && (
-              <div className={styles.answerBox}>
-                <span className={styles.qnaLabel}>A</span>
-                <p className={styles.bodyText}>{item.answer}</p>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
-    );
-  }, [activeTab, detailHtml, qnaCount, qnas, reviewCount, reviews]);
 
   return (
     <section className={styles.section}>
@@ -142,7 +73,15 @@ export default function ThemeDetailTabs({
         </button>
       </div>
 
-      <div className={styles.panel}>{activeContent}</div>
+      <div className={styles.panel}>
+        {activeTab === "detail" && (
+          <ThemeDetailContent detailHtml={detailHtml} />
+        )}
+
+        {activeTab === "review" && <ThemeDetailReview reviews={reviews} />}
+
+        {activeTab === "qna" && <ThemeDetailQna qnas={qnas} />}
+      </div>
     </section>
   );
 }

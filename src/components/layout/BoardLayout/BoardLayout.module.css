@@ -109,6 +109,19 @@
   min-height: 100%;
 }
 
+/* TOP 버튼 위치 */
+.topButtonArea {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.topButtonArea > * {
+  pointer-events: auto;
+}
+
 /* 보드 바깥 오른쪽 스크롤바 */
 .outerScrollbar {
   --knob-size: 20px;
@@ -187,6 +200,7 @@
     height: 76px;
     border-width: 3px;
   }
+
   .signaturePill {
     position: static;
     display: inline-flex;
@@ -203,6 +217,11 @@
     height: auto;
     overflow-y: visible;
     padding: 18px 8px 12px;
+  }
+
+  .topButtonArea {
+    right: 16px;
+    bottom: 16px;
   }
 
   .outerScrollbar {

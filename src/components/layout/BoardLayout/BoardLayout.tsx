@@ -3,6 +3,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import Image from "next/image";
 
+import ScrollToTopButton from "@/components/common/ScrollToTopButton/ScrollToTopButton";
 import SideTabs from "@/components/layout/SideTabs/SideTabs";
 import useOuterScrollbar from "./useOuterScrollbar";
 import styles from "./BoardLayout.module.css";
@@ -64,11 +65,19 @@ export default function BoardLayout({
 
         <div className={styles.boardArea}>
           <div className={styles.board}>
-            <div ref={scrollRef} className={styles.boardScroll}>
+            <div
+              ref={scrollRef}
+              className={styles.boardScroll}
+              data-board-scroll
+            >
               <div ref={contentRef} className={styles.boardContent}>
                 {children}
               </div>
             </div>
+          </div>
+
+          <div className={styles.topButtonArea}>
+            <ScrollToTopButton />
           </div>
 
           <div className={styles.outerScrollbar} style={scrollbarStyle}>

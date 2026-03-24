@@ -94,6 +94,7 @@ export const themes: ThemeItem[] = [
     previewImages: [
       "/images/themes/milk-heart/preview-1.png",
       "/images/themes/milk-heart/preview-2.png",
+      "/images/themes/milk-heart/preview-3.png",
     ],
     tags: ["핑크", "하트", "러블리"],
     isPublished: true,
@@ -106,9 +107,38 @@ export const themes: ThemeItem[] = [
       { label: "하트 버전", value: "heart" },
     ],
     detailHtml: `
-    <h3>테마 소개</h3>
-    <p>밀크 하트 테마는 부드러운 우유빛 핑크와 하트 포인트를 중심으로 제작된 테마입니다.</p>
-  `,
+  <h3>AND</h3>
+  <img src="/images/themes/milk-heart/detail-1.png" alt="밀크 하트 상세 이미지 1" />
+  <br>
+   <p>
+┃적용화면┃
+  </p>
+  <br>
+  <img src="/images/themes/milk-heart/detail-2.png" alt="밀크 하트 상세 이미지 2" />
+   <br>
+   <p>
+┃채팅목록┃
+  </p>
+  <br>
+  <img src="/images/themes/milk-heart/detail-3.png" alt="밀크 하트 상세 이미지 3" />
+  <br>
+   <p>
+┃말풍선_초코비┃
+  </p>
+  <br>
+  <img src="/images/themes/milk-heart/detail-4.png" alt="밀크 하트 상세 이미지 4" />
+  <br>
+   <p>
+┃말풍선_푸딩┃
+  </p>
+  <br>
+  <img src="/images/themes/milk-heart/detail-5.png" alt="밀크 하트 상세 이미지 5" />
+  <br>
+   <p>
+┃말풍선_흰둥라이스┃
+  </p>
+  <br>
+`,
     badge: "BEST",
     likes: 12,
     reviews: [

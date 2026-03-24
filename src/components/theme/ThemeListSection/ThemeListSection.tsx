@@ -44,8 +44,8 @@ export default function ThemeListSection({
       </header>
 
       <div className={styles.grid}>
-        {items.map((item) => (
-          <ThemeCard key={item.id} theme={item} />
+        {items.map((item, index) => (
+          <ThemeCard key={item.id} theme={item} eager={index === 0} />
         ))}
       </div>
     </section>
