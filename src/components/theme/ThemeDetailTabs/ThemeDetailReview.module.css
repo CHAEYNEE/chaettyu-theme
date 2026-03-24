@@ -20,7 +20,7 @@
   flex-direction: column;
   gap: 10px;
   padding: 18px 20px;
-  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .cardTop {
@@ -61,14 +61,22 @@
 }
 
 .reviewImageGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   margin-top: 4px;
 }
 
+.reviewImageButton {
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
 .reviewImageItem {
   position: relative;
+  width: 92px;
   aspect-ratio: 1 / 1;
   overflow: hidden;
   background: var(--color-soft);
@@ -76,6 +84,56 @@
 
 .reviewImage {
   object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+.reviewImageButton:hover .reviewImage {
+  transform: scale(1.04);
+}
+
+.lightboxOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.lightboxContent {
+  position: relative;
+  width: min(92vw, 720px);
+  padding: 16px;
+  background: #fff;
+}
+
+.lightboxClose {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.lightboxImageWrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+}
+
+.lightboxImage {
+  object-fit: contain;
 }
 
 @media (max-width: 900px) {
@@ -86,10 +144,17 @@
   .bodyText {
     font-size: 13px;
   }
-}
 
-@media (max-width: 640px) {
-  .reviewImageGrid {
-    grid-template-columns: 1fr;
+  .reviewImageItem {
+    width: 80px;
+  }
+
+  .lightboxOverlay {
+    padding: 16px;
+  }
+
+  .lightboxContent {
+    width: 100%;
+    padding: 12px;
   }
 }
