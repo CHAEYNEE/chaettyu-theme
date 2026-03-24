@@ -147,7 +147,7 @@ export const themes: ThemeItem[] = [
         author: "채뜌러버",
         rating: 5,
         content:
-          "색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!",
+          "색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!",
         createdAt: "2026.03.24",
         images: [
           "/images/themes/milk-heart/review-1.png",
@@ -161,6 +161,58 @@ export const themes: ThemeItem[] = [
         content:
           "말풍선 버전 선택할 수 있어서 좋았어요. 디테일이 꽤 섬세한 느낌!",
         createdAt: "2026.03.23",
+        images: [
+          "/images/themes/milk-heart/review-1.png",
+          "/images/themes/milk-heart/review-2.png",
+        ],
+      },
+      {
+        id: "review-3",
+        author: "채뜌러버",
+        rating: 5,
+        content:
+          "색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!",
+        createdAt: "2026.03.24",
+        images: [
+          "/images/themes/milk-heart/review-1.png",
+          "/images/themes/milk-heart/review-2.png",
+        ],
+      },
+      {
+        id: "review-4",
+        author: "채뜌러버",
+        rating: 5,
+        content:
+          "색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!",
+        createdAt: "2026.03.24",
+        images: [
+          "/images/themes/milk-heart/review-1.png",
+          "/images/themes/milk-heart/review-2.png",
+        ],
+      },
+      {
+        id: "review-5",
+        author: "채뜌러버",
+        rating: 5,
+        content:
+          "색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!",
+        createdAt: "2026.03.24",
+        images: [
+          "/images/themes/milk-heart/review-1.png",
+          "/images/themes/milk-heart/review-2.png",
+        ],
+      },
+      {
+        id: "review-6",
+        author: "채뜌러버",
+        rating: 5,
+        content:
+          "색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!",
+        createdAt: "2026.03.24",
+        images: [
+          "/images/themes/milk-heart/review-1.png",
+          "/images/themes/milk-heart/review-2.png",
+        ],
       },
     ],
     qnas: [

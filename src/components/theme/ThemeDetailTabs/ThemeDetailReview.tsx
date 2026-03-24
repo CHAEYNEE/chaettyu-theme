@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
-import { X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 import type { ThemeReview } from "@/types/theme";
 
@@ -14,14 +14,33 @@ type ThemeDetailReviewProps = {
 };
 
 export default function ThemeDetailReview({ reviews }: ThemeDetailReviewProps) {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImages, setSelectedImages] = useState<string[] | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const handleOpenImage = (imageSrc: string) => {
-    setSelectedImage(imageSrc);
+  const handleOpenImage = (images: string[], index: number) => {
+    setSelectedImages(images);
+    setSelectedIndex(index);
   };
 
   const handleCloseImage = () => {
-    setSelectedImage(null);
+    setSelectedImages(null);
+    setSelectedIndex(0);
+  };
+
+  const handlePrevImage = () => {
+    if (!selectedImages || selectedImages.length === 0) return;
+
+    setSelectedIndex((prev) =>
+      prev === 0 ? selectedImages.length - 1 : prev - 1,
+    );
+  };
+
+  const handleNextImage = () => {
+    if (!selectedImages || selectedImages.length === 0) return;
+
+    setSelectedIndex((prev) =>
+      prev === selectedImages.length - 1 ? 0 : prev + 1,
+    );
   };
 
   if (reviews.length === 0) {
@@ -54,7 +73,7 @@ export default function ThemeDetailReview({ reviews }: ThemeDetailReviewProps) {
                     key={`${review.id}-${imageSrc}-${index}`}
                     type="button"
                     className={styles.reviewImageButton}
-                    onClick={() => handleOpenImage(imageSrc)}
+                    onClick={() => handleOpenImage(review.images ?? [], index)}
                     aria-label={`${review.author} 리뷰 이미지 ${index + 1} 크게 보기`}
                   >
                     <div className={styles.reviewImageItem}>
@@ -75,7 +94,8 @@ export default function ThemeDetailReview({ reviews }: ThemeDetailReviewProps) {
         ))}
       </ul>
 
-      {selectedImage &&
+      {selectedImages &&
+        selectedImages.length > 0 &&
         typeof document !== "undefined" &&
         createPortal(
           <div
@@ -98,16 +118,44 @@ export default function ThemeDetailReview({ reviews }: ThemeDetailReviewProps) {
                 <X size={18} />
               </button>
 
+              {selectedImages.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    className={`${styles.navButton} ${styles.prevButton}`}
+                    onClick={handlePrevImage}
+                    aria-label="이전 이미지"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`${styles.navButton} ${styles.nextButton}`}
+                    onClick={handleNextImage}
+                    aria-label="다음 이미지"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </>
+              )}
+
               <div className={styles.lightboxImageWrap}>
                 <Image
-                  src={selectedImage}
-                  alt="선택된 리뷰 이미지"
+                  src={selectedImages[selectedIndex]}
+                  alt={`리뷰 이미지 ${selectedIndex + 1}`}
                   fill
                   className={styles.lightboxImage}
                   sizes="90vw"
                   unoptimized
                 />
               </div>
+
+              {selectedImages.length > 1 && (
+                <div className={styles.imageCounter}>
+                  {selectedIndex + 1} / {selectedImages.length}
+                </div>
+              )}
             </div>
           </div>,
           document.body,

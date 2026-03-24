@@ -113,7 +113,7 @@
   position: absolute;
   top: 10px;
   right: 10px;
-  z-index: 2;
+  z-index: 4;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -136,6 +136,38 @@
   object-fit: contain;
 }
 
+.navButton {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--color-text);
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.prevButton {
+  left: 12px;
+}
+
+.nextButton {
+  right: 12px;
+}
+
+.imageCounter {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--color-text-sub);
+}
+
 @media (max-width: 900px) {
   .card {
     padding: 16px;
@@ -156,5 +188,18 @@
   .lightboxContent {
     width: 100%;
     padding: 12px;
+  }
+
+  .navButton {
+    width: 36px;
+    height: 36px;
+  }
+
+  .prevButton {
+    left: 8px;
+  }
+
+  .nextButton {
+    right: 8px;
   }
 }
