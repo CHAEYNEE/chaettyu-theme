@@ -76,8 +76,10 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
             </span>
           ) : (
             <span className={styles.price}>
-              <span className={styles.currency}>₩</span>
-              {theme.price.toLocaleString()}
+              <span className={styles.priceValue}>
+                {theme.price.toLocaleString()}
+              </span>
+              <span className={styles.priceUnit}>원</span>
             </span>
           )}
         </div>

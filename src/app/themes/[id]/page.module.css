@@ -116,15 +116,20 @@
   display: inline-flex;
   align-items: baseline;
   gap: 3px;
-  color: var(--color-accent);
-  font-weight: 700;
-  font-size: 18px;
 }
 
-.metaCurrency {
+.metaPriceValue {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-accent);
+  line-height: 1;
+}
+
+.metaPriceUnit {
   font-size: 12px;
   font-weight: 500;
   color: var(--color-text);
+  line-height: 1;
 }
 
 .metaGiftText {
@@ -157,13 +162,20 @@
 }
 
 .metaOriginalPrice {
-  font-size: 12px;
-  color: var(--color-text-sub);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
   text-decoration: line-through;
 }
 
-.metaOriginalCurrency {
+.metaOriginalPriceValue {
   font-size: 12px;
+  color: var(--color-text-sub);
+}
+
+.metaOriginalPriceUnit {
+  font-size: 12px;
+  color: var(--color-text-sub);
 }
 
 .metaDiscount {
@@ -207,5 +219,15 @@
 
   .metaItem {
     grid-template-columns: 72px 1fr;
+  }
+
+  .metaPriceValue {
+    font-size: 17px;
+  }
+
+  .metaPriceUnit,
+  .metaOriginalPriceValue,
+  .metaOriginalPriceUnit {
+    font-size: 11px;
   }
 }

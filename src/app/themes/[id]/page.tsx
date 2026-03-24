@@ -1,13 +1,13 @@
 import { notFound } from "next/navigation";
 
 import BoardLayout from "@/components/layout/BoardLayout/BoardLayout";
+import ThemeDetailTabs from "@/components/theme/ThemeDetailTabs/ThemeDetailTabs";
 import PreviewGallery from "@/components/theme/PreviewGallery/PreviewGallery";
 import ThemePurchaseBox from "@/components/theme/ThemePurchaseBox/ThemePurchaseBox";
 import { themes } from "@/data/themes";
 import type { ThemePlatform } from "@/types/theme";
 
 import styles from "./page.module.css";
-import ThemeDetailTabs from "@/components/theme/ThemeDetailTabs/ThemeDetailTabs";
 
 type ThemeDetailPageProps = {
   params: Promise<{
@@ -113,8 +113,10 @@ export default async function ThemeDetailPage({
                   <dt>개당 가격</dt>
                   <dd>
                     <span className={styles.metaPrice}>
-                      <span className={styles.metaCurrency}>₩</span>
-                      {unitPrice.toLocaleString()}
+                      <span className={styles.metaPriceValue}>
+                        {unitPrice.toLocaleString()}
+                      </span>
+                      <span className={styles.metaPriceUnit}>원</span>
                     </span>
                   </dd>
                 </div>
@@ -127,8 +129,10 @@ export default async function ThemeDetailPage({
                     <div className={styles.metaPriceWrap}>
                       <div className={styles.metaPriceRow}>
                         <span className={styles.metaPrice}>
-                          <span className={styles.metaCurrency}>₩</span>
-                          {setPrice.toLocaleString()}
+                          <span className={styles.metaPriceValue}>
+                            {setPrice.toLocaleString()}
+                          </span>
+                          <span className={styles.metaPriceUnit}>원</span>
                         </span>
 
                         {versionCount > 0 && (
@@ -145,10 +149,12 @@ export default async function ThemeDetailPage({
                         originalSetPrice > setPrice && (
                           <div className={styles.metaSubInfo}>
                             <span className={styles.metaOriginalPrice}>
-                              <span className={styles.metaOriginalCurrency}>
-                                ₩
+                              <span className={styles.metaOriginalPriceValue}>
+                                {originalSetPrice.toLocaleString()}
                               </span>
-                              {originalSetPrice.toLocaleString()}
+                              <span className={styles.metaOriginalPriceUnit}>
+                                원
+                              </span>
                             </span>
 
                             <span className={styles.metaDiscount}>
@@ -177,14 +183,7 @@ export default async function ThemeDetailPage({
               ))}
             </div>
 
-            <ThemePurchaseBox
-              type={theme.type}
-              price={theme.price}
-              setPrice={theme.setPrice}
-              setBonusCount={theme.setBonusCount}
-              platforms={theme.platforms}
-              versions={theme.versions}
-            />
+            <ThemePurchaseBox theme={theme} />
           </div>
         </div>
 

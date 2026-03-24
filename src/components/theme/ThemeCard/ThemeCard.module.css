@@ -106,18 +106,23 @@
 }
 
 .price {
-  display: flex;
-  align-items: center;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.priceValue {
   font-size: 18px;
   font-weight: 700;
   line-height: 1.2;
   color: var(--color-accent);
 }
 
-.currency {
-  color: var(--color-text);
-  font-weight: 500;
+.priceUnit {
   font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  line-height: 1;
 }
 
 .metaText {
@@ -144,8 +149,12 @@
     font-size: 14px;
   }
 
-  .price {
+  .priceValue {
     font-size: 16px;
+  }
+
+  .priceUnit {
+    font-size: 12px;
   }
 
   .metaText {

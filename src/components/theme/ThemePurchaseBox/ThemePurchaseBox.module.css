@@ -41,8 +41,9 @@
 .selectedListBox {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   padding: 16px 18px;
+  border-top: 1px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -58,7 +59,6 @@
 .selectedItem {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   padding-bottom: 10px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
@@ -73,42 +73,66 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .selectedItemName {
   font-size: 14px;
+  font-weight: 600;
   color: var(--color-text);
+  word-break: keep-all;
 }
 
 .selectedItemSub {
   font-size: 12px;
   color: var(--color-text-sub);
+  word-break: keep-all;
 }
 
 .selectedItemPrice {
   display: inline-flex;
   align-items: baseline;
   gap: 3px;
-  font-size: 14px;
-  color: var(--color-accent);
+  margin-left: auto;
+  white-space: nowrap;
 }
 
-.itemCurrency {
+.selectedItemPriceValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-accent);
+  line-height: 1;
+}
+
+.selectedItemPriceUnit {
   font-size: 11px;
   font-weight: 500;
   color: var(--color-text);
+  line-height: 1;
 }
 
 .removeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 28px;
   height: 28px;
   border: none;
   border-radius: 999px;
+  background: transparent;
   color: var(--color-text);
-  font-size: 18px;
-  line-height: 1;
   cursor: pointer;
   flex-shrink: 0;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.removeButton:hover {
+  background: var(--color-surface);
+  color: var(--color-accent-strong);
+  transform: scale(1.03);
 }
 
 .priceRow {
@@ -121,16 +145,20 @@
   display: inline-flex;
   align-items: baseline;
   gap: 4px;
+}
+
+.priceValue {
   font-size: 28px;
   font-weight: 700;
   line-height: 1.1;
   color: var(--color-accent);
 }
 
-.currency {
+.priceUnit {
   font-size: 18px;
   font-weight: 500;
   color: var(--color-text);
+  line-height: 1;
 }
 
 .freeText {
@@ -153,6 +181,13 @@
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.primaryButton:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 .primaryButton:disabled {
@@ -161,11 +196,28 @@
 }
 
 @media (max-width: 900px) {
-  .price {
+  .selectedListBox {
+    padding: 14px 16px;
+  }
+
+  .selectedItem {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .selectedItemPrice {
+    margin-left: 0;
+  }
+
+  .removeButton {
+    margin-left: auto;
+  }
+
+  .priceValue {
     font-size: 24px;
   }
 
-  .currency {
+  .priceUnit {
     font-size: 15px;
   }
 
