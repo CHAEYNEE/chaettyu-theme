@@ -144,18 +144,23 @@ export const themes: ThemeItem[] = [
     reviews: [
       {
         id: "review-1",
-        author: "째여니",
+        author: "채뜌러버",
         rating: 5,
         content:
-          "색감이 진짜 예쁘고 말랑해서 너무 만족했어요. 적용도 어렵지 않았어요!",
-        createdAt: "2026.03.23",
+          "색감이 진짜 너무 부드럽고 귀여워요. 채팅방 볼 때마다 기분이 좋아져요!",
+        createdAt: "2026.03.24",
+        images: [
+          "/images/themes/milk-heart/review-1.png",
+          "/images/themes/milk-heart/review-2.png",
+        ],
       },
       {
         id: "review-2",
-        author: "하트유저",
+        author: "우유핑크조아",
         rating: 4,
-        content: "전체적으로 귀엽고 깔끔해요. 세트 구성도 만족스러웠어요.",
-        createdAt: "2026.03.24",
+        content:
+          "말풍선 버전 선택할 수 있어서 좋았어요. 디테일이 꽤 섬세한 느낌!",
+        createdAt: "2026.03.23",
       },
     ],
     qnas: [

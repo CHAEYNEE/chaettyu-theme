@@ -1,4 +1,4 @@
-import styles from "./ThemeDetailTabs.module.css";
+import styles from "./ThemeDetailContent.module.css";
 
 type ThemeDetailContentProps = {
   detailHtml: string;

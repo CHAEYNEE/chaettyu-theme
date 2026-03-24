@@ -13,6 +13,7 @@ export type ThemeReview = {
   rating: number;
   content: string;
   createdAt: string;
+  images?: string[];
 };
 
 export type ThemeQna = {

@@ -1,0 +1,42 @@
+.detailEditorContent {
+  color: var(--color-text);
+  font-size: 15px;
+  line-height: 1.9;
+  text-align: center;
+}
+
+.detailEditorContent h3 {
+  margin: 0 0 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.detailEditorContent p {
+  margin: 0 0 16px;
+}
+
+.detailEditorContent img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.detailEditorContent blockquote {
+  margin: 0 0 18px;
+  padding: 18px 20px;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+@media (max-width: 900px) {
+  .detailEditorContent {
+    font-size: 14px;
+  }
+
+  .detailEditorContent h3 {
+    font-size: 18px;
+  }
+}

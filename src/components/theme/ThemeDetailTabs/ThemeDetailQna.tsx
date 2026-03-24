@@ -1,6 +1,6 @@
 import type { ThemeQna } from "@/types/theme";
 
-import styles from "./ThemeDetailTabs.module.css";
+import styles from "./ThemeDetailQna.module.css";
 
 type ThemeDetailQnaProps = {
   qnas: ThemeQna[];
