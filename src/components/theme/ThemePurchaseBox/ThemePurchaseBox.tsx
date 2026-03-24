@@ -1,8 +1,11 @@
 "use client";
 
-import { type ChangeEvent, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { X } from "lucide-react";
 
+import CustomDropdown, {
+  type DropdownOption,
+} from "@/components/common/CustomDropdown/CustomDropdown";
 import type { PurchaseMode, ThemeItem, ThemePlatform } from "@/types/theme";
 
 import styles from "./ThemePurchaseBox.module.css";
@@ -25,6 +28,11 @@ type ThemePurchaseBoxProps = {
 const platformLabelMap: Record<ThemePlatform, string> = {
   ios: "iOS",
   android: "AND",
+};
+
+const purchaseModeLabelMap: Record<PurchaseMode, string> = {
+  single: "개별 구매",
+  set: "세트 구매",
 };
 
 export default function ThemePurchaseBox({
@@ -51,6 +59,21 @@ export default function ThemePurchaseBox({
     return selectedItems.reduce((sum, item) => sum + item.price, 0);
   }, [selectedItems]);
 
+  const platformOptions: DropdownOption[] = theme.platforms.map((platform) => ({
+    label: platformLabelMap[platform],
+    value: platform,
+  }));
+
+  const purchaseModeOptions: DropdownOption[] = [
+    { label: purchaseModeLabelMap.single, value: "single" },
+    ...(hasSet ? [{ label: purchaseModeLabelMap.set, value: "set" }] : []),
+  ];
+
+  const versionOptions: DropdownOption[] = versions.map((version) => ({
+    label: version.label,
+    value: version.value,
+  }));
+
   const createSetItem = (platform: ThemePlatform): SelectedPurchaseItem => {
     const subtitle =
       versions.length > 0
@@ -69,19 +92,19 @@ export default function ThemePurchaseBox({
     };
   };
 
-  const handlePlatformChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const value = event.target.value as ThemePlatform | "";
+  const handlePlatformChange = (value: string) => {
+    const nextPlatform = value as ThemePlatform | "";
 
-    setSelectedPlatform(value);
+    setSelectedPlatform(nextPlatform);
     setPurchaseMode("");
     setSelectedVersionValue("");
   };
 
-  const handlePurchaseModeChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const value = event.target.value as PurchaseMode | "";
+  const handlePurchaseModeChange = (value: string) => {
+    const nextMode = value as PurchaseMode | "";
 
-    if (!selectedPlatform || !value) {
-      setPurchaseMode(value);
+    if (!selectedPlatform || !nextMode) {
+      setPurchaseMode(nextMode);
       setSelectedVersionValue("");
       return;
     }
@@ -91,7 +114,7 @@ export default function ThemePurchaseBox({
         item.platform === selectedPlatform && item.purchaseMode === "set",
     );
 
-    if (value === "single" && hasSetItemForPlatform) {
+    if (nextMode === "single" && hasSetItemForPlatform) {
       window.alert(
         "이미 해당 기종의 세트 상품이 담겨 있어 개별 구매는 선택할 수 없어요!",
       );
@@ -100,17 +123,15 @@ export default function ThemePurchaseBox({
       return;
     }
 
-    setPurchaseMode(value);
+    setPurchaseMode(nextMode);
     setSelectedVersionValue("");
 
-    if (value === "set") {
+    if (nextMode === "set") {
       handleAddSetItem(selectedPlatform);
     }
   };
 
-  const handleVersionChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const value = event.target.value;
-
+  const handleVersionChange = (value: string) => {
     setSelectedVersionValue(value);
 
     if (!value) {
@@ -242,50 +263,29 @@ export default function ThemePurchaseBox({
       {theme.type === "signature" ? (
         <>
           <div className={styles.selectArea}>
-            <select
-              className={`${styles.select} ${
-                !selectedPlatform ? styles.placeholderSelect : ""
-              }`}
+            <CustomDropdown
               value={selectedPlatform}
+              placeholder="사용 기종"
+              options={platformOptions}
               onChange={handlePlatformChange}
-            >
-              <option value="">사용 기종</option>
-              {theme.platforms.map((platform) => (
-                <option key={platform} value={platform}>
-                  {platformLabelMap[platform]}
-                </option>
-              ))}
-            </select>
+            />
 
-            <select
-              className={`${styles.select} ${
-                !purchaseMode ? styles.placeholderSelect : ""
-              }`}
+            <CustomDropdown
               value={purchaseMode}
+              placeholder="구매 방식"
+              options={purchaseModeOptions}
               onChange={handlePurchaseModeChange}
               disabled={!selectedPlatform}
-            >
-              <option value="">구매 방식</option>
-              <option value="single">개별 구매</option>
-              {hasSet && <option value="set">세트 구매</option>}
-            </select>
+            />
 
             {purchaseMode === "single" && (
-              <select
-                className={`${styles.select} ${
-                  !selectedVersionValue ? styles.placeholderSelect : ""
-                }`}
+              <CustomDropdown
                 value={selectedVersionValue}
+                placeholder="버전 선택"
+                options={versionOptions}
                 onChange={handleVersionChange}
                 disabled={!selectedPlatform}
-              >
-                <option value="">버전 선택</option>
-                {versions.map((version) => (
-                  <option key={version.value} value={version.value}>
-                    {version.label}
-                  </option>
-                ))}
-              </select>
+              />
             )}
           </div>
 
