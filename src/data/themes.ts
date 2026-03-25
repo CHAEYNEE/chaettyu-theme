@@ -12,6 +12,11 @@ export const themes: ThemeItem[] = [
       "/images/themes/strawberry-ribbon/preview-2.png",
     ],
     tags: ["핑크", "리본", "러블리"],
+    versions: [
+      { label: "기본 버전", value: "basic" },
+      { label: "리본 버전", value: "ribbon" },
+      { label: "하트 버전", value: "heart" },
+    ],
     isPublished: true,
     downloadFileName: "strawberry-ribbon.zip",
     createdAt: "2026-03-19",

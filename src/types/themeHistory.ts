@@ -30,4 +30,5 @@ export type ThemeDownloadRecord = {
   themeThumbnail: string;
   downloadFileName: string;
   downloadedAt: string;
+  items: ThemePurchaseLineItem[];
 };

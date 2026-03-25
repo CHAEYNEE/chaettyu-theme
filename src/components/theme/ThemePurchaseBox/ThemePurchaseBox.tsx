@@ -7,7 +7,12 @@ import CustomDropdown, {
   type DropdownOption,
 } from "@/components/common/CustomDropdown/CustomDropdown";
 import type { ThemePurchaseLineItem } from "@/types/themeHistory";
-import type { PurchaseMode, ThemeItem, ThemePlatform } from "@/types/theme";
+import type {
+  PurchaseMode,
+  ThemeItem,
+  ThemePlatform,
+  ThemeVersion,
+} from "@/types/theme";
 
 import styles from "./ThemePurchaseBox.module.css";
 
@@ -19,11 +24,6 @@ type ThemePurchaseBoxProps = {
 const platformLabelMap: Record<ThemePlatform, string> = {
   ios: "iOS",
   android: "AND",
-};
-
-const purchaseModeLabelMap: Record<PurchaseMode, string> = {
-  single: "개별 구매",
-  set: "세트 구매",
 };
 
 export default function ThemePurchaseBox({
@@ -39,16 +39,30 @@ export default function ThemePurchaseBox({
     [],
   );
 
-  const versions = theme.versions ?? [];
+  const resolvedVersions: ThemeVersion[] =
+    theme.versions && theme.versions.length > 0
+      ? theme.versions
+      : [{ label: "기본 버전", value: "default" }];
+
+  const isFree = theme.type === "free";
 
   const hasSet =
-    theme.type === "signature" &&
-    typeof theme.setPrice === "number" &&
-    versions.length > 0;
+    resolvedVersions.length > 1 &&
+    (isFree || typeof theme.setPrice === "number");
 
   const totalPrice = useMemo(() => {
     return selectedItems.reduce((sum, item) => sum + item.price, 0);
   }, [selectedItems]);
+
+  const modeLabelMap: Record<PurchaseMode, string> = isFree
+    ? {
+        single: "개별 다운로드",
+        set: "세트 다운로드",
+      }
+    : {
+        single: "개별 구매",
+        set: "세트 구매",
+      };
 
   const platformOptions: DropdownOption[] = theme.platforms.map((platform) => ({
     label: platformLabelMap[platform],
@@ -56,30 +70,29 @@ export default function ThemePurchaseBox({
   }));
 
   const purchaseModeOptions: DropdownOption[] = [
-    { label: purchaseModeLabelMap.single, value: "single" },
-    ...(hasSet ? [{ label: purchaseModeLabelMap.set, value: "set" }] : []),
+    { label: modeLabelMap.single, value: "single" },
+    ...(hasSet ? [{ label: modeLabelMap.set, value: "set" }] : []),
   ];
 
-  const versionOptions: DropdownOption[] = versions.map((version) => ({
+  const versionOptions: DropdownOption[] = resolvedVersions.map((version) => ({
     label: version.label,
     value: version.value,
   }));
 
   const createSetItem = (platform: ThemePlatform): ThemePurchaseLineItem => {
-    const subtitle =
-      versions.length > 0
-        ? `${versions.length}종 구매${
-            theme.setBonusCount ? ` + 증정 ${theme.setBonusCount}종` : ""
-          }`
-        : undefined;
+    const subtitle = isFree
+      ? `${resolvedVersions.length}종 전체 다운로드`
+      : `${resolvedVersions.length}종 구매${
+          theme.setBonusCount ? ` + 증정 ${theme.setBonusCount}종` : ""
+        }`;
 
     return {
       key: `${platform}-set`,
       platform,
       purchaseMode: "set",
-      title: `[${platformLabelMap[platform]}] 세트 구매`,
+      title: `[${platformLabelMap[platform]}] ${modeLabelMap.set}`,
       subtitle,
-      price: theme.setPrice as number,
+      price: isFree ? 0 : (theme.setPrice as number),
     };
   };
 
@@ -107,7 +120,7 @@ export default function ThemePurchaseBox({
 
     if (nextMode === "single" && hasSetItemForPlatform) {
       window.alert(
-        "이미 해당 기종의 세트 상품이 담겨 있어 개별 구매는 선택할 수 없어요!",
+        `이미 해당 기종의 ${modeLabelMap.set} 항목이 담겨 있어 ${modeLabelMap.single}은 선택할 수 없어요!`,
       );
       setPurchaseMode("");
       setSelectedVersionValue("");
@@ -133,16 +146,14 @@ export default function ThemePurchaseBox({
   };
 
   const handleAddSetItem = (platform: ThemePlatform) => {
-    if (!hasSet || typeof theme.setPrice !== "number") {
-      return;
-    }
-
     const itemKey = `${platform}-set`;
 
     const alreadyAdded = selectedItems.some((item) => item.key === itemKey);
 
     if (alreadyAdded) {
-      window.alert("이미 선택한 기종의 세트 상품이 담겨 있어요!");
+      window.alert(
+        `이미 선택한 기종의 ${modeLabelMap.set} 항목이 담겨 있어요!`,
+      );
       return;
     }
 
@@ -160,7 +171,9 @@ export default function ThemePurchaseBox({
       return;
     }
 
-    const pickedVersion = versions.find((version) => version.value === value);
+    const pickedVersion = resolvedVersions.find(
+      (version) => version.value === value,
+    );
 
     if (!pickedVersion) {
       setSelectedVersionValue("");
@@ -174,7 +187,7 @@ export default function ThemePurchaseBox({
 
     if (hasSetItemForPlatform) {
       window.alert(
-        "이미 해당 기종의 세트 상품이 담겨 있어 단품은 추가할 수 없어요!",
+        `이미 해당 기종의 ${modeLabelMap.set} 항목이 담겨 있어 ${modeLabelMap.single}은 추가할 수 없어요!`,
       );
       setSelectedVersionValue("");
       return;
@@ -195,8 +208,8 @@ export default function ThemePurchaseBox({
       platform: selectedPlatform,
       purchaseMode: "single",
       title: `[${platformLabelMap[selectedPlatform]}] ${pickedVersion.label}`,
-      subtitle: "개별 구매",
-      price: theme.price,
+      subtitle: modeLabelMap.single,
+      price: isFree ? 0 : theme.price,
       versionValue: pickedVersion.value,
     };
 
@@ -208,10 +221,7 @@ export default function ThemePurchaseBox({
     );
 
     const shouldConvertToSet =
-      hasSet &&
-      typeof theme.setPrice === "number" &&
-      versions.length > 0 &&
-      singleItemsForPlatform.length === versions.length;
+      hasSet && singleItemsForPlatform.length === resolvedVersions.length;
 
     if (shouldConvertToSet) {
       const filteredItems = nextItems.filter(
@@ -224,7 +234,12 @@ export default function ThemePurchaseBox({
       setSelectedItems([...filteredItems, createSetItem(selectedPlatform)]);
       setPurchaseMode("set");
       setSelectedVersionValue("");
-      window.alert("전 버전을 선택해서 세트 구매로 자동 전환됐어요!");
+
+      window.alert(
+        isFree
+          ? "전 버전을 선택해서 세트 다운로드로 자동 전환됐어요!"
+          : "전 버전을 선택해서 세트 구매로 자동 전환됐어요!",
+      );
       return;
     }
 
@@ -237,11 +252,6 @@ export default function ThemePurchaseBox({
   };
 
   const handlePrimaryAction = () => {
-    if (theme.type === "free") {
-      onPrimaryAction?.([]);
-      return;
-    }
-
     if (selectedItems.length === 0) {
       return;
     }
@@ -251,85 +261,87 @@ export default function ThemePurchaseBox({
 
   return (
     <div className={styles.box}>
-      {theme.type === "signature" ? (
-        <>
-          <div className={styles.selectArea}>
-            <CustomDropdown
-              value={selectedPlatform}
-              placeholder="사용 기종"
-              options={platformOptions}
-              onChange={handlePlatformChange}
-            />
+      <div className={styles.selectArea}>
+        <CustomDropdown
+          value={selectedPlatform}
+          placeholder="사용 기종"
+          options={platformOptions}
+          onChange={handlePlatformChange}
+        />
 
-            <CustomDropdown
-              value={purchaseMode}
-              placeholder="구매 방식"
-              options={purchaseModeOptions}
-              onChange={handlePurchaseModeChange}
-              disabled={!selectedPlatform}
-            />
+        <CustomDropdown
+          value={purchaseMode}
+          placeholder={isFree ? "다운로드 방식" : "구매 방식"}
+          options={purchaseModeOptions}
+          onChange={handlePurchaseModeChange}
+          disabled={!selectedPlatform}
+        />
 
-            {purchaseMode === "single" && (
-              <CustomDropdown
-                value={selectedVersionValue}
-                placeholder="버전 선택"
-                options={versionOptions}
-                onChange={handleVersionChange}
-                disabled={!selectedPlatform}
-              />
+        {purchaseMode === "single" && (
+          <CustomDropdown
+            value={selectedVersionValue}
+            placeholder={isFree ? "다운로드할 버전 선택" : "버전 선택"}
+            options={versionOptions}
+            onChange={handleVersionChange}
+            disabled={!selectedPlatform}
+          />
+        )}
+      </div>
+
+      {selectedItems.length > 0 && (
+        <div className={styles.selectedListBox}>
+          <ul className={styles.selectedList}>
+            {selectedItems.map((item) => (
+              <li key={item.key} className={styles.selectedItem}>
+                <div className={styles.selectedItemInfo}>
+                  <strong className={styles.selectedItemName}>
+                    {item.title}
+                  </strong>
+
+                  {item.subtitle && (
+                    <span className={styles.selectedItemSub}>
+                      {item.subtitle}
+                    </span>
+                  )}
+                </div>
+
+                {isFree ? (
+                  <span className={styles.freeItemBadge}>FREE</span>
+                ) : (
+                  <div className={styles.selectedItemPrice}>
+                    <span className={styles.selectedItemPriceValue}>
+                      {item.price.toLocaleString()}
+                    </span>
+                    <span className={styles.selectedItemPriceUnit}>원</span>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  className={styles.removeButton}
+                  onClick={() => handleRemoveItem(item.key)}
+                  aria-label={`${item.title} 삭제`}
+                >
+                  <X size={16} />
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          <div className={styles.priceRow}>
+            {isFree ? (
+              <strong className={styles.freeSummaryText}>
+                {selectedItems.length}개 선택됨
+              </strong>
+            ) : (
+              <strong className={styles.price}>
+                <span className={styles.priceValue}>
+                  {totalPrice.toLocaleString()}
+                </span>
+                <span className={styles.priceUnit}>원</span>
+              </strong>
             )}
           </div>
-
-          {selectedItems.length > 0 && (
-            <div className={styles.selectedListBox}>
-              <ul className={styles.selectedList}>
-                {selectedItems.map((item) => (
-                  <li key={item.key} className={styles.selectedItem}>
-                    <div className={styles.selectedItemInfo}>
-                      <strong className={styles.selectedItemName}>
-                        {item.title}
-                      </strong>
-
-                      {item.subtitle && (
-                        <span className={styles.selectedItemSub}>
-                          {item.subtitle}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className={styles.selectedItemPrice}>
-                      <span className={styles.selectedItemPriceValue}>
-                        {item.price.toLocaleString()}
-                      </span>
-                      <span className={styles.selectedItemPriceUnit}>원</span>
-                    </div>
-
-                    <button
-                      type="button"
-                      className={styles.removeButton}
-                      onClick={() => handleRemoveItem(item.key)}
-                      aria-label={`${item.title} 삭제`}
-                    >
-                      <X size={16} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-
-              <div className={styles.priceRow}>
-                <strong className={styles.price}>
-                  <span className={styles.priceValue}>
-                    {totalPrice.toLocaleString()}
-                  </span>
-                  <span className={styles.priceUnit}>원</span>
-                </strong>
-              </div>
-            </div>
-          )}
-        </>
-      ) : (
-        <div className={styles.priceRow}>
-          <strong className={styles.freeText}>무료 다운로드</strong>
         </div>
       )}
 
@@ -337,9 +349,9 @@ export default function ThemePurchaseBox({
         type="button"
         className={styles.primaryButton}
         onClick={handlePrimaryAction}
-        disabled={theme.type === "signature" && selectedItems.length === 0}
+        disabled={selectedItems.length === 0}
       >
-        {theme.type === "free" ? "무료 다운로드" : "구매하기"}
+        {isFree ? "다운로드" : "구매하기"}
       </button>
     </div>
   );

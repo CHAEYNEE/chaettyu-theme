@@ -94,20 +94,12 @@ export function getUserThemePurchasesByTheme(userId: string, themeId: string) {
   );
 }
 
-/**
- * "이 테마를 한 번이라도 구매한 적 있는지" 확인할 때 사용
- * 상세 페이지에서 다운로드 버튼 분기 같은 데 쓸 수 있음
- */
 export function hasUserPurchasedTheme(userId: string, themeId: string) {
   return getThemePurchases().some(
     (record) => record.userId === userId && record.themeId === themeId,
   );
 }
 
-/**
- * 특정 테마에서 유저가 구매한 line item 전체를 평탄화해서 가져옴
- * 나중에 "이미 산 버전 표시" 같은 데 쓰기 좋음
- */
 export function getUserPurchasedLineItems(userId: string, themeId: string) {
   return getUserThemePurchasesByTheme(userId, themeId).flatMap(
     (record) => record.items,
@@ -160,27 +152,36 @@ export function getUserThemeDownloads(userId: string) {
   return getThemeDownloads().filter((record) => record.userId === userId);
 }
 
+export function getUserThemeDownloadsByTheme(userId: string, themeId: string) {
+  return getThemeDownloads().filter(
+    (record) => record.userId === userId && record.themeId === themeId,
+  );
+}
+
 export function hasUserDownloadedTheme(userId: string, themeId: string) {
   return getThemeDownloads().some(
     (record) => record.userId === userId && record.themeId === themeId,
   );
 }
 
+export function getUserDownloadedLineItems(userId: string, themeId: string) {
+  return getUserThemeDownloadsByTheme(userId, themeId).flatMap(
+    (record) => record.items,
+  );
+}
+
 type AddThemeDownloadParams = {
   userId: string;
   theme: ThemeItem;
+  items: ThemePurchaseLineItem[];
 };
 
-export function addThemeDownload({ userId, theme }: AddThemeDownloadParams) {
+export function addThemeDownload({
+  userId,
+  theme,
+  items,
+}: AddThemeDownloadParams) {
   const records = getThemeDownloads();
-
-  const existingRecord = records.find(
-    (record) => record.userId === userId && record.themeId === theme.id,
-  );
-
-  if (existingRecord) {
-    return existingRecord;
-  }
 
   const nextRecord: ThemeDownloadRecord = {
     id: generateId("download"),
@@ -190,6 +191,7 @@ export function addThemeDownload({ userId, theme }: AddThemeDownloadParams) {
     themeThumbnail: theme.thumbnail,
     downloadFileName: theme.downloadFileName,
     downloadedAt: new Date().toISOString(),
+    items,
   };
 
   setThemeDownloads([nextRecord, ...records]);

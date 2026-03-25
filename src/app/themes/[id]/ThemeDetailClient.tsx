@@ -26,10 +26,11 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
         addThemeDownload({
           userId: user.id,
           theme,
+          items,
         });
       }
 
-      window.alert("무료 다운로드가 시작되었어요!");
+      window.alert("다운로드가 시작되었어요!");
       return;
     }
 
