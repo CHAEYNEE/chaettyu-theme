@@ -2,16 +2,19 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import Image from "next/image";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { LogIn, LogOut, ShoppingCart, UserRound } from "lucide-react";
 
 import ScrollToTopButton from "@/components/common/ScrollToTopButton/ScrollToTopButton";
 import SideTabs from "@/components/layout/SideTabs/SideTabs";
+import useMockUser from "@/hooks/useMockUser";
+import { clearMockUser } from "@/lib/auth/mockAuthStorage";
 import useOuterScrollbar from "./useOuterScrollbar";
 import styles from "./BoardLayout.module.css";
 
 type BoardLayoutProps = {
   children: ReactNode;
   badgeText?: string;
-  pillText?: string;
   profileSrc?: string;
   profileAlt?: string;
 };
@@ -21,10 +24,14 @@ const KNOB_SIZE = 18;
 export default function BoardLayout({
   children,
   badgeText = "채뜌",
-  pillText = "Signature Theme",
   profileSrc = "/images/profile.jpg",
   profileAlt = "프로필",
 }: BoardLayoutProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const user = useMockUser();
+
   const {
     scrollRef,
     railRef,
@@ -39,27 +46,88 @@ export default function BoardLayout({
     "--knob-size": `${KNOB_SIZE}px`,
   } as CSSProperties;
 
+  const resolvedProfileSrc = user?.profileImage || profileSrc;
+  const resolvedProfileAlt = user?.nickname
+    ? `${user.nickname} 프로필`
+    : profileAlt;
+
+  const resolvedBadgeText = user?.nickname?.slice(0, 2) || badgeText;
+
+  const queryString = searchParams?.toString();
+  const currentPath = queryString ? `${pathname}?${queryString}` : pathname;
+
+  const handleLoginClick = () => {
+    router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
+  };
+
+  const handleMypageClick = () => {
+    router.push("/mypage");
+  };
+
+  const handleCartClick = () => {
+    router.push("/cart");
+  };
+
+  const handleLogoutClick = () => {
+    clearMockUser();
+    router.refresh();
+  };
+
   return (
     <section className={styles.section}>
       <div className={styles.boardWrap}>
         <div className={styles.backPlate} aria-hidden="true" />
 
         <div className={styles.circleBadge}>
-          {profileSrc ? (
+          {resolvedProfileSrc ? (
             <Image
-              src={profileSrc}
-              alt={profileAlt}
+              src={resolvedProfileSrc}
+              alt={resolvedProfileAlt}
               fill
-              className={styles.logoImage}
+              className={styles.profileImage}
               sizes="(max-width: 900px) 76px, 120px"
               priority
             />
           ) : (
-            <span className={styles.badgeText}>{badgeText}</span>
+            <span className={styles.badgeText}>{resolvedBadgeText}</span>
           )}
         </div>
 
-        <div className={styles.signaturePill}>{pillText}</div>
+        <div className={styles.signaturePill}>
+          <button
+            type="button"
+            className={styles.pillIconButton}
+            onClick={user ? handleLogoutClick : handleLoginClick}
+            aria-label={user ? "로그아웃" : "로그인"}
+            title={user ? "로그아웃" : "로그인"}
+          >
+            {user ? (
+              <LogOut className={styles.menuIconSvg} aria-hidden="true" />
+            ) : (
+              <LogIn className={styles.menuIconSvg} aria-hidden="true" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            className={styles.pillIconButton}
+            onClick={handleMypageClick}
+            aria-label="마이페이지"
+            title="마이페이지"
+          >
+            <UserRound className={styles.menuIconSvg} aria-hidden="true" />
+          </button>
+
+          <button
+            type="button"
+            className={styles.pillIconButton}
+            onClick={handleCartClick}
+            aria-label="장바구니"
+            title="장바구니"
+          >
+            <ShoppingCart className={styles.menuIconSvg} aria-hidden="true" />
+          </button>
+        </div>
 
         <SideTabs />
 

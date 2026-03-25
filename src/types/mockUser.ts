@@ -1,7 +1,9 @@
 export type MockUser = {
   id: string;
-  nickname: string;
+  loginId: string;
   email: string;
+  nickname: string;
   provider: "mock";
   createdAt: string;
+  profileImage?: string;
 };

@@ -66,10 +66,12 @@ export default function LoginPageClient({ redirect }: LoginPageClientProps) {
 
     const nextUser: MockUser = {
       id: "mock-user-1",
+      loginId: MOCK_LOGIN_ID,
       email: "chae@example.com",
       nickname: "채뜌",
       provider: "mock",
       createdAt: new Date().toISOString(),
+      profileImage: "/images/mock_profile.jpg",
     };
 
     setMockUser(nextUser);
@@ -83,7 +85,7 @@ export default function LoginPageClient({ redirect }: LoginPageClientProps) {
           <div className={styles.cardHeader}>
             <span className={styles.formBadge}>LOGIN</span>
             <p className={styles.testAccount}>
-              테스트 계정 · ID : chaettyu / PW : 1234
+              테스트 계정 · ID : {MOCK_LOGIN_ID} / PW : {MOCK_LOGIN_PASSWORD}
             </p>
           </div>
 

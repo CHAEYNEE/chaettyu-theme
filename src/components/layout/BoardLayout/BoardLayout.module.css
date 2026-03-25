@@ -37,8 +37,8 @@
   overflow: hidden;
 }
 
-.logoImage {
-  object-fit: contain;
+.profileImage {
+  object-fit: cover;
 }
 
 .badgeText {
@@ -53,28 +53,44 @@
 
 .signaturePill {
   position: absolute;
-  top: 18px;
-  right: 26px;
-  z-index: 3;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  border: 1px solid var(--color-border);
+  top: 0px;
+  right: 150px;
+  z-index: 4;
+  width: 156px;
+  height: 52px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding: 6px;
   border-radius: 999px;
   background: var(--color-soft);
-  box-shadow: var(--shadow-card);
-  font-size: 13px;
-  font-weight: 600;
 }
 
-.signaturePill::before {
-  content: "";
-  width: 6px;
-  height: 6px;
+.pillIconButton {
+  min-width: 0;
+  height: 100%;
+  border: none;
   border-radius: 999px;
-  background: currentColor;
-  opacity: 0.8;
+  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.pillIconButton:hover {
+  transform: translateY(-1px);
+}
+
+.menuIconSvg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  stroke-width: 2.2;
 }
 
 .boardArea {
@@ -203,8 +219,10 @@
 
   .signaturePill {
     position: static;
-    display: inline-flex;
     margin: 0 auto 12px;
+    right: auto;
+    top: auto;
+    width: 156px;
   }
 
   .board {
