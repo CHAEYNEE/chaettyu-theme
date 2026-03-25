@@ -2,8 +2,8 @@ import { notFound } from "next/navigation";
 
 import BoardLayout from "@/components/layout/BoardLayout/BoardLayout";
 import PreviewGallery from "@/components/theme/PreviewGallery/PreviewGallery";
+import ThemeDetailClient from "./ThemeDetailClient";
 import ThemeDetailTabs from "@/components/theme/ThemeDetailTabs/ThemeDetailTabs";
-import ThemePurchaseBox from "@/components/theme/ThemePurchaseBox/ThemePurchaseBox";
 import { themes } from "@/data/themes";
 import type { ThemePlatform } from "@/types/theme";
 
@@ -183,7 +183,7 @@ export default async function ThemeDetailPage({
               ))}
             </div>
 
-            <ThemePurchaseBox theme={theme} />
+            <ThemeDetailClient theme={theme} />
           </div>
         </div>
 
