@@ -19,20 +19,24 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
   const router = useRouter();
 
   const handlePrimaryAction = (items: ThemePurchaseLineItem[]) => {
+    if (theme.type === "free") {
+      const user = getMockUser();
+
+      if (user) {
+        addThemeDownload({
+          userId: user.id,
+          theme,
+        });
+      }
+
+      window.alert("무료 다운로드가 시작되었어요!");
+      return;
+    }
+
     const user = getMockUser();
 
     if (!user) {
       router.push(`/login?redirect=/themes/${theme.id}`);
-      return;
-    }
-
-    if (theme.type === "free") {
-      addThemeDownload({
-        userId: user.id,
-        theme,
-      });
-
-      window.alert("무료 다운로드가 시작되었어요!");
       return;
     }
 
