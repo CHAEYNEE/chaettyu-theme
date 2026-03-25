@@ -1,0 +1,143 @@
+.section {
+  min-height: 55vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.inner {
+  width: 100%;
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.pixelBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  height: 38px;
+  padding: 0 16px;
+  border: 2px solid var(--color-text);
+  background: var(--color-accent);
+  box-shadow: 4px 4px 0 rgba(95, 40, 40, 0.18);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: 0.08em;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-accent-strong);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+  color: var(--color-text);
+  word-break: keep-all;
+}
+
+.description {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.8;
+  color: var(--color-text-sub);
+  word-break: keep-all;
+}
+
+.buttonRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 160px;
+  padding: 13px 18px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.primaryButton {
+  border: none;
+  background: #b7d6aa;
+  color: #fff;
+}
+
+.primaryButton:hover {
+  transform: translateY(-1px);
+}
+
+.secondaryButton {
+  border: 1px solid #b7d6aa;
+  background: #fff;
+  color: #b7d6aa;
+}
+
+.secondaryButton:hover {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 900px) {
+  .section {
+    min-height: 60vh;
+    padding: 32px 16px;
+  }
+
+  .title {
+    font-size: 32px;
+  }
+
+  .description {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 640px) {
+  .inner {
+    gap: 16px;
+  }
+
+  .title {
+    font-size: 28px;
+  }
+
+  .buttonRow {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    width: 100%;
+  }
+}
