@@ -1,7 +1,4 @@
-"use client";
-
 import { STORAGE_KEYS } from "@/constants/storageKeys";
-import type { MockUser } from "@/types/mockUser";
 import type {
   ThemeDownloadRecord,
   ThemePurchaseLineItem,
@@ -58,20 +55,6 @@ export function clearStorage(key: string) {
   }
 
   window.localStorage.removeItem(key);
-}
-
-/* -------------------- mock user -------------------- */
-
-export function getMockUser() {
-  return readStorage<MockUser | null>(STORAGE_KEYS.MOCK_USER, null);
-}
-
-export function setMockUser(user: MockUser) {
-  writeStorage(STORAGE_KEYS.MOCK_USER, user);
-}
-
-export function clearMockUser() {
-  clearStorage(STORAGE_KEYS.MOCK_USER);
 }
 
 /* -------------------- purchases -------------------- */
