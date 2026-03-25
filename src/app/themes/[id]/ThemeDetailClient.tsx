@@ -3,11 +3,8 @@
 import { useRouter } from "next/navigation";
 
 import ThemePurchaseBox from "@/components/theme/ThemePurchaseBox/ThemePurchaseBox";
-import {
-  addThemeDownload,
-  addThemePurchase,
-  getMockUser,
-} from "@/lib/storage/themeStorage";
+import { getMockUser } from "@/lib/auth/mockAuthStorage";
+import { addThemeDownload, addThemePurchase } from "@/lib/storage/themeStorage";
 import type { ThemeItem } from "@/types/theme";
 import type { ThemePurchaseLineItem } from "@/types/themeHistory";
 
@@ -19,9 +16,9 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
   const router = useRouter();
 
   const handlePrimaryAction = (items: ThemePurchaseLineItem[]) => {
-    if (theme.type === "free") {
-      const user = getMockUser();
+    const user = getMockUser();
 
+    if (theme.type === "free") {
       if (user) {
         addThemeDownload({
           userId: user.id,
@@ -34,10 +31,10 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
       return;
     }
 
-    const user = getMockUser();
-
     if (!user) {
-      router.push(`/login?redirect=/themes/${theme.id}`);
+      router.push(
+        `/login?redirect=${encodeURIComponent(`/themes/${theme.id}`)}`,
+      );
       return;
     }
 
