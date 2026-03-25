@@ -8,7 +8,7 @@ export default function SiteFooter() {
       <div className={styles.inner}>
         <div className={styles.avatar}>
           <Image
-            src="/images/logo.png"
+            src="/images/profile.jpg"
             alt="채뜌 로고"
             fill
             className={styles.avatarImage}

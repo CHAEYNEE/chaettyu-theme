@@ -12,8 +12,8 @@ type BoardLayoutProps = {
   children: ReactNode;
   badgeText?: string;
   pillText?: string;
-  logoSrc?: string;
-  logoAlt?: string;
+  profileSrc?: string;
+  profileAlt?: string;
 };
 
 const KNOB_SIZE = 18;
@@ -22,8 +22,8 @@ export default function BoardLayout({
   children,
   badgeText = "채뜌",
   pillText = "Signature Theme",
-  logoSrc = "/images/logo.png",
-  logoAlt = "채뜌 로고",
+  profileSrc = "/images/profile.jpg",
+  profileAlt = "프로필",
 }: BoardLayoutProps) {
   const {
     scrollRef,
@@ -45,10 +45,10 @@ export default function BoardLayout({
         <div className={styles.backPlate} aria-hidden="true" />
 
         <div className={styles.circleBadge}>
-          {logoSrc ? (
+          {profileSrc ? (
             <Image
-              src={logoSrc}
-              alt={logoAlt}
+              src={profileSrc}
+              alt={profileAlt}
               fill
               className={styles.logoImage}
               sizes="(max-width: 900px) 76px, 120px"
