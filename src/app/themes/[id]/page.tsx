@@ -167,10 +167,10 @@ export default async function ThemeDetailPage({
                 </div>
               )}
 
-              {typeof theme.downloads === "number" && (
+              {typeof theme.downloadCount === "number" && (
                 <div className={styles.metaItem}>
                   <dt>다운로드</dt>
-                  <dd>{theme.downloads.toLocaleString()}</dd>
+                  <dd>{theme.downloadCount.toLocaleString()}</dd>
                 </div>
               )}
             </dl>

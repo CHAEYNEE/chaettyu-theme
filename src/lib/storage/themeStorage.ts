@@ -88,9 +88,29 @@ export function getUserThemePurchases(userId: string) {
   return getThemePurchases().filter((record) => record.userId === userId);
 }
 
+export function getUserThemePurchasesByTheme(userId: string, themeId: string) {
+  return getThemePurchases().filter(
+    (record) => record.userId === userId && record.themeId === themeId,
+  );
+}
+
+/**
+ * "이 테마를 한 번이라도 구매한 적 있는지" 확인할 때 사용
+ * 상세 페이지에서 다운로드 버튼 분기 같은 데 쓸 수 있음
+ */
 export function hasUserPurchasedTheme(userId: string, themeId: string) {
   return getThemePurchases().some(
     (record) => record.userId === userId && record.themeId === themeId,
+  );
+}
+
+/**
+ * 특정 테마에서 유저가 구매한 line item 전체를 평탄화해서 가져옴
+ * 나중에 "이미 산 버전 표시" 같은 데 쓰기 좋음
+ */
+export function getUserPurchasedLineItems(userId: string, themeId: string) {
+  return getUserThemePurchasesByTheme(userId, themeId).flatMap(
+    (record) => record.items,
   );
 }
 
@@ -106,17 +126,6 @@ export function addThemePurchase({
   items,
 }: AddThemePurchaseParams) {
   const records = getThemePurchases();
-
-  const existingRecord = records.find(
-    (record) => record.userId === userId && record.themeId === theme.id,
-  );
-
-  if (existingRecord) {
-    return {
-      created: false,
-      record: existingRecord,
-    };
-  }
 
   const totalPrice = items.reduce((sum, item) => sum + item.price, 0);
 
@@ -134,10 +143,7 @@ export function addThemePurchase({
 
   setThemePurchases([nextRecord, ...records]);
 
-  return {
-    created: true,
-    record: nextRecord,
-  };
+  return nextRecord;
 }
 
 /* -------------------- downloads -------------------- */
@@ -173,10 +179,7 @@ export function addThemeDownload({ userId, theme }: AddThemeDownloadParams) {
   );
 
   if (existingRecord) {
-    return {
-      created: false,
-      record: existingRecord,
-    };
+    return existingRecord;
   }
 
   const nextRecord: ThemeDownloadRecord = {
@@ -191,8 +194,5 @@ export function addThemeDownload({ userId, theme }: AddThemeDownloadParams) {
 
   setThemeDownloads([nextRecord, ...records]);
 
-  return {
-    created: true,
-    record: nextRecord,
-  };
+  return nextRecord;
 }
