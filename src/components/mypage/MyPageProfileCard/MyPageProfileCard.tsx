@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 
+import { clearMockUser } from "@/lib/auth/mockAuthStorage";
 import type { MockUser } from "@/types/mockUser";
 
 import styles from "./MyPageProfileCard.module.css";
@@ -27,9 +30,23 @@ export default function MyPageProfileCard({
   downloadCount,
   latestActivity,
 }: MyPageProfileCardProps) {
+  const handleLogout = () => {
+    clearMockUser();
+  };
+
   return (
     <section className={styles.card}>
-      <div className={styles.sticker}>MY</div>
+      <div className={styles.topActions}>
+        <div className={styles.sticker}>MY</div>
+
+        <button
+          type="button"
+          className={styles.logoutButton}
+          onClick={handleLogout}
+        >
+          로그아웃
+        </button>
+      </div>
 
       <div className={styles.profileRow}>
         <div className={styles.imageWrap}>

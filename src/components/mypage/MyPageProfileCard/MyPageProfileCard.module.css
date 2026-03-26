@@ -9,10 +9,16 @@
   box-shadow: 8px 8px 0 var(--color-accent);
 }
 
-.sticker {
+.topActions {
   position: absolute;
   top: 18px;
   right: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sticker {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -26,6 +32,25 @@
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
+}
+
+.logoutButton {
+  min-width: 74px;
+  height: 36px;
+  padding: 0 10px;
+  border: 2px solid #83615c;
+  background: #fff3df;
+  color: #83615c;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 rgba(131, 97, 92, 0.18);
+  transition: transform 0.15s ease;
+}
+
+.logoutButton:hover {
+  transform: translate(-1px, -1px);
 }
 
 .profileRow {
@@ -123,6 +148,12 @@
   .card {
     padding: 20px 18px;
     box-shadow: 5px 5px 0 var(--color-accent);
+  }
+
+  .topActions {
+    top: 14px;
+    right: 14px;
+    gap: 6px;
   }
 
   .sticker {
