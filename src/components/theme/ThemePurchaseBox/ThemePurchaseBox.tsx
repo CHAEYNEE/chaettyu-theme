@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { X } from "lucide-react";
 
+import { useToast } from "@/components/common/Toast/ToastProvider";
 import CustomDropdown, {
   type DropdownOption,
 } from "@/components/common/CustomDropdown/CustomDropdown";
@@ -18,7 +19,7 @@ import styles from "./ThemePurchaseBox.module.css";
 
 type ThemePurchaseBoxProps = {
   theme: ThemeItem;
-  onPrimaryAction?: (items: ThemePurchaseLineItem[]) => void;
+  onPrimaryAction?: (items: ThemePurchaseLineItem[]) => boolean;
   purchasedItemKeys?: string[];
   downloadedItemKeys?: string[];
 };
@@ -34,6 +35,8 @@ export default function ThemePurchaseBox({
   purchasedItemKeys = [],
   downloadedItemKeys = [],
 }: ThemePurchaseBoxProps) {
+  const { showToast } = useToast();
+
   const [selectedPlatform, setSelectedPlatform] = useState<ThemePlatform | "">(
     "",
   );
@@ -198,6 +201,13 @@ export default function ThemePurchaseBox({
     };
   };
 
+  const resetSelections = () => {
+    setSelectedPlatform("");
+    setPurchaseMode("");
+    setSelectedVersionValue("");
+    setSelectedItems([]);
+  };
+
   const handlePlatformChange = (value: string) => {
     const nextPlatform = value as ThemePlatform | "";
 
@@ -221,8 +231,11 @@ export default function ThemePurchaseBox({
     );
 
     if (nextMode === "single" && hasSetItemForPlatform) {
-      window.alert(
+      showToast(
         `이미 해당 기종의 ${modeLabelMap.set} 항목이 담겨 있어 ${modeLabelMap.single}은 선택할 수 없어요!`,
+        {
+          type: "info",
+        },
       );
       setPurchaseMode("");
       setSelectedVersionValue("");
@@ -253,23 +266,27 @@ export default function ThemePurchaseBox({
     const alreadyPurchasedSet = !isFree && purchasedKeySet.has(itemKey);
 
     if (alreadyPurchasedSet) {
-      window.alert("이미 해당 기종 세트를 보유 중이에요!");
+      showToast("이미 해당 기종 세트를 보유 중이에요!", {
+        type: "info",
+      });
       return;
     }
 
     const alreadyDownloadedSet = isFree && downloadedKeySet.has(itemKey);
 
     if (alreadyDownloadedSet) {
-      window.alert("이미 받은 세트 구성이에요!");
+      showToast("이미 받은 세트 구성이에요!", {
+        type: "info",
+      });
       return;
     }
 
     const alreadyAdded = selectedItems.some((item) => item.key === itemKey);
 
     if (alreadyAdded) {
-      window.alert(
-        `이미 선택한 기종의 ${modeLabelMap.set} 항목이 담겨 있어요!`,
-      );
+      showToast(`이미 선택한 기종의 ${modeLabelMap.set} 항목이 담겨 있어요!`, {
+        type: "info",
+      });
       return;
     }
 
@@ -302,8 +319,11 @@ export default function ThemePurchaseBox({
     );
 
     if (hasSetItemForPlatform) {
-      window.alert(
+      showToast(
         `이미 해당 기종의 ${modeLabelMap.set} 항목이 담겨 있어 ${modeLabelMap.single}은 추가할 수 없어요!`,
+        {
+          type: "info",
+        },
       );
       setSelectedVersionValue("");
       return;
@@ -317,8 +337,11 @@ export default function ThemePurchaseBox({
         purchasedKeySet.has(`${selectedPlatform}-set`));
 
     if (alreadyPurchasedSingle) {
-      window.alert(
+      showToast(
         "이미 해당 기종 세트를 보유 중이거나, 이미 구매한 버전이에요!",
+        {
+          type: "info",
+        },
       );
       setSelectedVersionValue("");
       return;
@@ -330,7 +353,9 @@ export default function ThemePurchaseBox({
         downloadedKeySet.has(`${selectedPlatform}-set`));
 
     if (alreadyDownloadedSingle) {
-      window.alert("이미 받은 구성이에요!");
+      showToast("이미 받은 구성이에요!", {
+        type: "info",
+      });
       setSelectedVersionValue("");
       return;
     }
@@ -338,7 +363,9 @@ export default function ThemePurchaseBox({
     const alreadyAdded = selectedItems.some((item) => item.key === itemKey);
 
     if (alreadyAdded) {
-      window.alert("이미 선택한 버전이에요!");
+      showToast("이미 선택한 버전이에요!", {
+        type: "info",
+      });
       setSelectedVersionValue("");
       return;
     }
@@ -375,10 +402,13 @@ export default function ThemePurchaseBox({
       setPurchaseMode("set");
       setSelectedVersionValue("");
 
-      window.alert(
+      showToast(
         isFree
           ? "전 버전을 선택해서 세트 다운로드로 자동 전환됐어요!"
           : "전 버전을 선택해서 세트 구매로 자동 전환됐어요!",
+        {
+          type: "success",
+        },
       );
       return;
     }
@@ -396,7 +426,11 @@ export default function ThemePurchaseBox({
       return;
     }
 
-    onPrimaryAction?.(selectedItems);
+    const isSuccess = onPrimaryAction?.(selectedItems);
+
+    if (isSuccess) {
+      resetSelections();
+    }
   };
 
   return (

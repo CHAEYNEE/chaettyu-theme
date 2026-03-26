@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 
 import SiteFooter from "@/components/layout/SiteFooter/SiteFooter";
+import Providers from "./providers";
 
 const wantedSans = localFont({
   src: "./fonts/WantedSansVariable.woff2",
@@ -23,8 +24,10 @@ export default function RootLayout({
   return (
     <html lang="ko" className={wantedSans.variable}>
       <body>
-        {children}
-        <SiteFooter />
+        <Providers>
+          {children}
+          <SiteFooter />
+        </Providers>
       </body>
     </html>
   );

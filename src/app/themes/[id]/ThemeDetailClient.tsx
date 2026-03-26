@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 
+import { useToast } from "@/components/common/Toast/ToastProvider";
 import ThemePurchaseBox from "@/components/theme/ThemePurchaseBox/ThemePurchaseBox";
 import useMockUser from "@/hooks/useMockUser";
 import {
@@ -24,6 +25,7 @@ type ThemeDetailClientProps = {
 export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
   const router = useRouter();
   const { user } = useMockUser();
+  const { showToast } = useToast();
 
   const purchasedItemKeys = useMemo(() => {
     if (!user) {
@@ -45,14 +47,18 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
 
   const handlePrimaryAction = (items: ThemePurchaseLineItem[]) => {
     if (items.length === 0) {
-      window.alert("구성을 먼저 선택해 주세요!");
-      return;
+      showToast("구성을 먼저 선택해 주세요!", {
+        type: "error",
+      });
+      return false;
     }
 
     if (theme.type === "free") {
       if (!user) {
-        window.alert("다운로드가 시작되었어요!");
-        return;
+        showToast("다운로드가 시작되었어요!", {
+          type: "success",
+        });
+        return true;
       }
 
       const isRedownload = hasDownloadedAllSelectedItems(
@@ -67,28 +73,35 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
         items,
       });
 
-      window.alert(
+      showToast(
         isRedownload
           ? "이미 받은 구성이에요. 다시 다운로드했어요!"
           : "다운로드가 완료되었어요!",
+        {
+          type: "success",
+        },
       );
-      return;
+
+      return true;
     }
 
     if (!user) {
       router.push(
         `/login?redirect=${encodeURIComponent(`/themes/${theme.id}`)}`,
       );
-      return;
+      return false;
     }
 
     const alreadyOwned = hasPurchasedAllSelectedItems(user.id, theme.id, items);
 
     if (alreadyOwned) {
-      window.alert(
+      showToast(
         "선택한 구성은 이미 보유 중이에요. 다운로드로 다시 받을 수 있어요.",
+        {
+          type: "info",
+        },
       );
-      return;
+      return false;
     }
 
     const purchasableItems = getNewPurchaseItems(user.id, theme.id, items);
@@ -101,17 +114,25 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
     });
 
     if (!purchaseResult) {
-      window.alert(
+      showToast(
         "선택한 구성은 이미 보유 중이에요. 다운로드로 다시 받을 수 있어요.",
+        {
+          type: "info",
+        },
       );
-      return;
+      return false;
     }
 
-    window.alert(
+    showToast(
       hasMixedSelection
         ? "이미 가진 구성을 제외한 새 구성만 구매했어요!"
         : "구매가 완료되었어요!",
+      {
+        type: "success",
+      },
     );
+
+    return true;
   };
 
   return (
