@@ -49,6 +49,36 @@ function writeStorage<T>(key: string, value: T) {
   }
 }
 
+function getLineItemKeySet(items: ThemePurchaseLineItem[]) {
+  return new Set(items.map((item) => item.key));
+}
+
+function filterNewLineItems(
+  selectedItems: ThemePurchaseLineItem[],
+  ownedItems: ThemePurchaseLineItem[],
+) {
+  const ownedKeys = getLineItemKeySet(ownedItems);
+
+  return selectedItems.filter((item) => !ownedKeys.has(item.key));
+}
+
+function mergeUniqueLineItems(
+  baseItems: ThemePurchaseLineItem[],
+  nextItems: ThemePurchaseLineItem[],
+) {
+  const itemMap = new Map<string, ThemePurchaseLineItem>();
+
+  [...baseItems, ...nextItems].forEach((item) => {
+    itemMap.set(item.key, item);
+  });
+
+  return Array.from(itemMap.values());
+}
+
+function uniqueLineItems(items: ThemePurchaseLineItem[]) {
+  return mergeUniqueLineItems([], items);
+}
+
 export function clearStorage(key: string) {
   if (!isBrowser()) {
     return;
@@ -84,9 +114,44 @@ export function hasUserPurchasedTheme(userId: string, themeId: string) {
 }
 
 export function getUserPurchasedLineItems(userId: string, themeId: string) {
-  return getUserThemePurchasesByTheme(userId, themeId).flatMap(
+  const items = getUserThemePurchasesByTheme(userId, themeId).flatMap(
     (record) => record.items,
   );
+
+  return uniqueLineItems(items);
+}
+
+export function getOwnedPurchaseItems(
+  userId: string,
+  themeId: string,
+  selectedItems: ThemePurchaseLineItem[],
+) {
+  const ownedItems = getUserPurchasedLineItems(userId, themeId);
+  const ownedKeys = getLineItemKeySet(ownedItems);
+
+  return selectedItems.filter((item) => ownedKeys.has(item.key));
+}
+
+export function getNewPurchaseItems(
+  userId: string,
+  themeId: string,
+  selectedItems: ThemePurchaseLineItem[],
+) {
+  const ownedItems = getUserPurchasedLineItems(userId, themeId);
+
+  return filterNewLineItems(selectedItems, ownedItems);
+}
+
+export function hasPurchasedAllSelectedItems(
+  userId: string,
+  themeId: string,
+  selectedItems: ThemePurchaseLineItem[],
+) {
+  if (selectedItems.length === 0) {
+    return false;
+  }
+
+  return getNewPurchaseItems(userId, themeId, selectedItems).length === 0;
 }
 
 type AddThemePurchaseParams = {
@@ -99,10 +164,16 @@ export function addThemePurchase({
   userId,
   theme,
   items,
-}: AddThemePurchaseParams) {
+}: AddThemePurchaseParams): ThemePurchaseRecord | null {
   const records = getThemePurchases();
+  const ownedItems = getUserPurchasedLineItems(userId, theme.id);
+  const newItems = filterNewLineItems(items, ownedItems);
 
-  const totalPrice = items.reduce((sum, item) => sum + item.price, 0);
+  if (newItems.length === 0) {
+    return null;
+  }
+
+  const totalPrice = newItems.reduce((sum, item) => sum + item.price, 0);
 
   const nextRecord: ThemePurchaseRecord = {
     id: generateId("purchase"),
@@ -113,7 +184,7 @@ export function addThemePurchase({
     downloadFileName: theme.downloadFileName,
     purchasedAt: new Date().toISOString(),
     totalPrice,
-    items,
+    items: newItems,
   };
 
   setThemePurchases([nextRecord, ...records]);
@@ -148,9 +219,44 @@ export function hasUserDownloadedTheme(userId: string, themeId: string) {
 }
 
 export function getUserDownloadedLineItems(userId: string, themeId: string) {
-  return getUserThemeDownloadsByTheme(userId, themeId).flatMap(
+  const items = getUserThemeDownloadsByTheme(userId, themeId).flatMap(
     (record) => record.items,
   );
+
+  return uniqueLineItems(items);
+}
+
+export function getOwnedDownloadItems(
+  userId: string,
+  themeId: string,
+  selectedItems: ThemePurchaseLineItem[],
+) {
+  const ownedItems = getUserDownloadedLineItems(userId, themeId);
+  const ownedKeys = getLineItemKeySet(ownedItems);
+
+  return selectedItems.filter((item) => ownedKeys.has(item.key));
+}
+
+export function getNewDownloadItems(
+  userId: string,
+  themeId: string,
+  selectedItems: ThemePurchaseLineItem[],
+) {
+  const ownedItems = getUserDownloadedLineItems(userId, themeId);
+
+  return filterNewLineItems(selectedItems, ownedItems);
+}
+
+export function hasDownloadedAllSelectedItems(
+  userId: string,
+  themeId: string,
+  selectedItems: ThemePurchaseLineItem[],
+) {
+  if (selectedItems.length === 0) {
+    return false;
+  }
+
+  return getNewDownloadItems(userId, themeId, selectedItems).length === 0;
 }
 
 type AddThemeDownloadParams = {
@@ -165,19 +271,50 @@ export function addThemeDownload({
   items,
 }: AddThemeDownloadParams) {
   const records = getThemeDownloads();
+  const now = new Date().toISOString();
 
-  const nextRecord: ThemeDownloadRecord = {
-    id: generateId("download"),
-    userId,
-    themeId: theme.id,
+  const sameThemeRecords = records.filter(
+    (record) => record.userId === userId && record.themeId === theme.id,
+  );
+
+  if (sameThemeRecords.length === 0) {
+    const nextRecord: ThemeDownloadRecord = {
+      id: generateId("download"),
+      userId,
+      themeId: theme.id,
+      themeTitle: theme.title,
+      themeThumbnail: theme.thumbnail,
+      downloadFileName: theme.downloadFileName,
+      downloadedAt: now,
+      items: uniqueLineItems(items),
+    };
+
+    setThemeDownloads([nextRecord, ...records]);
+
+    return nextRecord;
+  }
+
+  const mergedExistingItems = uniqueLineItems(
+    sameThemeRecords.flatMap((record) => record.items),
+  );
+
+  const mergedItems = mergeUniqueLineItems(mergedExistingItems, items);
+  const baseRecord = sameThemeRecords[0];
+
+  const updatedRecord: ThemeDownloadRecord = {
+    ...baseRecord,
     themeTitle: theme.title,
     themeThumbnail: theme.thumbnail,
     downloadFileName: theme.downloadFileName,
-    downloadedAt: new Date().toISOString(),
-    items,
+    items: mergedItems,
+    downloadedAt: now,
   };
 
-  setThemeDownloads([nextRecord, ...records]);
+  const nextRecords = records.filter(
+    (record) => !(record.userId === userId && record.themeId === theme.id),
+  );
 
-  return nextRecord;
+  setThemeDownloads([updatedRecord, ...nextRecords]);
+
+  return updatedRecord;
 }
