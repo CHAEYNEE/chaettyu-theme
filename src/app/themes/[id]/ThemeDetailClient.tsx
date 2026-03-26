@@ -22,6 +22,75 @@ type ThemeDetailClientProps = {
   theme: ThemeItem;
 };
 
+type DownloadTarget = {
+  fileName: string;
+  fileUrl: string;
+};
+
+function getDownloadTargets(
+  theme: ThemeItem,
+  items: ThemePurchaseLineItem[],
+): DownloadTarget[] {
+  const downloadFiles = theme.downloadFiles;
+
+  if (!downloadFiles || downloadFiles.length === 0) {
+    return [];
+  }
+
+  const fileMap = new Map<string, DownloadTarget>();
+
+  items.forEach((item) => {
+    if (item.purchaseMode === "set") {
+      const matchedSetFile = downloadFiles.find(
+        (file) =>
+          file.platform === item.platform && file.purchaseMode === "set",
+      );
+
+      if (matchedSetFile) {
+        fileMap.set(`${matchedSetFile.platform}-set`, {
+          fileName: matchedSetFile.fileName,
+          fileUrl: matchedSetFile.fileUrl,
+        });
+      }
+
+      return;
+    }
+
+    const matchedSingleFile = downloadFiles.find(
+      (file) =>
+        file.platform === item.platform &&
+        file.purchaseMode === "single" &&
+        file.versionValue === item.versionValue,
+    );
+
+    if (matchedSingleFile) {
+      fileMap.set(
+        `${matchedSingleFile.platform}-${matchedSingleFile.versionValue}`,
+        {
+          fileName: matchedSingleFile.fileName,
+          fileUrl: matchedSingleFile.fileUrl,
+        },
+      );
+    }
+  });
+
+  return Array.from(fileMap.values());
+}
+
+function startDownloads(files: DownloadTarget[]) {
+  files.forEach((file, index) => {
+    window.setTimeout(() => {
+      const link = document.createElement("a");
+      link.href = file.fileUrl;
+      link.download = file.fileName;
+      link.rel = "noopener";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }, index * 120);
+  });
+}
+
 export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
   const router = useRouter();
   const { user } = useMockUser();
@@ -45,6 +114,49 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
     );
   }, [theme.id, user]);
 
+  const handleDownload = (items: ThemePurchaseLineItem[]) => {
+    const files = getDownloadTargets(theme, items);
+
+    if (files.length === 0) {
+      showToast("다운로드할 파일이 아직 연결되지 않았어요!", {
+        type: "error",
+      });
+      return false;
+    }
+
+    startDownloads(files);
+
+    if (!user) {
+      showToast("다운로드가 시작되었어요!", {
+        type: "success",
+      });
+      return true;
+    }
+
+    const isRedownload = hasDownloadedAllSelectedItems(
+      user.id,
+      theme.id,
+      items,
+    );
+
+    addThemeDownload({
+      userId: user.id,
+      theme,
+      items,
+    });
+
+    showToast(
+      isRedownload
+        ? "이미 받은 구성이에요. 다시 다운로드했어요!"
+        : "다운로드가 완료되었어요!",
+      {
+        type: "success",
+      },
+    );
+
+    return true;
+  };
+
   const handlePrimaryAction = (items: ThemePurchaseLineItem[]) => {
     if (items.length === 0) {
       showToast("구성을 먼저 선택해 주세요!", {
@@ -54,35 +166,7 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
     }
 
     if (theme.type === "free") {
-      if (!user) {
-        showToast("다운로드가 시작되었어요!", {
-          type: "success",
-        });
-        return true;
-      }
-
-      const isRedownload = hasDownloadedAllSelectedItems(
-        user.id,
-        theme.id,
-        items,
-      );
-
-      addThemeDownload({
-        userId: user.id,
-        theme,
-        items,
-      });
-
-      showToast(
-        isRedownload
-          ? "이미 받은 구성이에요. 다시 다운로드했어요!"
-          : "다운로드가 완료되었어요!",
-        {
-          type: "success",
-        },
-      );
-
-      return true;
+      return handleDownload(items);
     }
 
     if (!user) {
@@ -95,13 +179,7 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
     const alreadyOwned = hasPurchasedAllSelectedItems(user.id, theme.id, items);
 
     if (alreadyOwned) {
-      showToast(
-        "선택한 구성은 이미 보유 중이에요. 다운로드로 다시 받을 수 있어요.",
-        {
-          type: "info",
-        },
-      );
-      return false;
+      return handleDownload(items);
     }
 
     const purchasableItems = getNewPurchaseItems(user.id, theme.id, items);

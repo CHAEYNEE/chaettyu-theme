@@ -97,6 +97,55 @@ function uniqueLineItems(items: ThemePurchaseLineItem[]) {
   return mergeUniqueLineItems([], items);
 }
 
+function getFallbackDownloadFileNames(theme: ThemeItem) {
+  return theme.downloadFileName ? [theme.downloadFileName] : [];
+}
+
+function getDownloadFileNamesByItems(
+  theme: ThemeItem,
+  items: ThemePurchaseLineItem[],
+) {
+  const downloadFiles = theme.downloadFiles;
+
+  if (!downloadFiles || downloadFiles.length === 0) {
+    return getFallbackDownloadFileNames(theme);
+  }
+
+  const fileNameSet = new Set<string>();
+
+  items.forEach((item) => {
+    if (item.purchaseMode === "set") {
+      const matchedSetFile = downloadFiles.find(
+        (file) =>
+          file.platform === item.platform && file.purchaseMode === "set",
+      );
+
+      if (matchedSetFile) {
+        fileNameSet.add(matchedSetFile.fileName);
+      }
+
+      return;
+    }
+
+    const matchedSingleFile = downloadFiles.find(
+      (file) =>
+        file.platform === item.platform &&
+        file.purchaseMode === "single" &&
+        file.versionValue === item.versionValue,
+    );
+
+    if (matchedSingleFile) {
+      fileNameSet.add(matchedSingleFile.fileName);
+    }
+  });
+
+  const nextFileNames = Array.from(fileNameSet);
+
+  return nextFileNames.length > 0
+    ? nextFileNames
+    : getFallbackDownloadFileNames(theme);
+}
+
 export function clearStorage(key: string) {
   if (!isBrowser()) {
     return;
@@ -191,6 +240,7 @@ export function addThemePurchase({
   }
 
   const totalPrice = newItems.reduce((sum, item) => sum + item.price, 0);
+  const downloadFileNames = getDownloadFileNamesByItems(theme, newItems);
 
   const nextRecord: ThemePurchaseRecord = {
     id: generateId("purchase"),
@@ -198,7 +248,8 @@ export function addThemePurchase({
     themeId: theme.id,
     themeTitle: theme.title,
     themeThumbnail: theme.thumbnail,
-    downloadFileName: theme.downloadFileName,
+    downloadFileName: downloadFileNames[0],
+    downloadFileNames,
     purchasedAt: new Date().toISOString(),
     totalPrice,
     items: newItems,
@@ -294,15 +345,19 @@ export function addThemeDownload({
   );
 
   if (sameThemeRecords.length === 0) {
+    const nextItems = uniqueLineItems(items);
+    const downloadFileNames = getDownloadFileNamesByItems(theme, nextItems);
+
     const nextRecord: ThemeDownloadRecord = {
       id: generateId("download"),
       userId,
       themeId: theme.id,
       themeTitle: theme.title,
       themeThumbnail: theme.thumbnail,
-      downloadFileName: theme.downloadFileName,
+      downloadFileName: downloadFileNames[0],
+      downloadFileNames,
       downloadedAt: now,
-      items: uniqueLineItems(items),
+      items: nextItems,
     };
 
     setThemeDownloads([nextRecord, ...records]);
@@ -315,13 +370,15 @@ export function addThemeDownload({
   );
 
   const mergedItems = mergeUniqueLineItems(mergedExistingItems, items);
+  const downloadFileNames = getDownloadFileNamesByItems(theme, mergedItems);
   const baseRecord = sameThemeRecords[0];
 
   const updatedRecord: ThemeDownloadRecord = {
     ...baseRecord,
     themeTitle: theme.title,
     themeThumbnail: theme.thumbnail,
-    downloadFileName: theme.downloadFileName,
+    downloadFileName: downloadFileNames[0],
+    downloadFileNames,
     items: mergedItems,
     downloadedAt: now,
   };

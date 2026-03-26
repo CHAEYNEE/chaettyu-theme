@@ -7,6 +7,22 @@ export type ThemeVersion = {
   value: string;
 };
 
+export type ThemeDownloadFile =
+  | {
+      platform: ThemePlatform;
+      purchaseMode: "single";
+      versionValue: string;
+      fileName: string;
+      fileUrl: string;
+    }
+  | {
+      platform: ThemePlatform;
+      purchaseMode: "set";
+      fileName: string;
+      fileUrl: string;
+      versionValue?: never;
+    };
+
 export type ThemeReview = {
   id: string;
   author: string;
@@ -35,7 +51,8 @@ export type ThemeItem = {
   previewImages: string[];
   tags: string[];
   isPublished: boolean;
-  downloadFileName: string;
+  downloadFileName?: string;
+  downloadFiles?: ThemeDownloadFile[];
   createdAt: string;
   platforms: ThemePlatform[];
   versions?: ThemeVersion[];

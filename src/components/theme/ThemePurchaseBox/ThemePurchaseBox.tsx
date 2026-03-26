@@ -141,12 +141,10 @@ export default function ThemePurchaseBox({
     !allSelectedPurchased;
 
   const allSelectedDownloaded =
-    isFree &&
     selectedItems.length > 0 &&
     selectedItems.every((item) => isDownloadedItem(item));
 
   const someSelectedDownloaded =
-    isFree &&
     selectedItems.length > 0 &&
     selectedItems.some((item) => isDownloadedItem(item)) &&
     !allSelectedDownloaded;
@@ -165,7 +163,7 @@ export default function ThemePurchaseBox({
     }
 
     if (allSelectedPurchased) {
-      return "이미 보유한 구성";
+      return allSelectedDownloaded ? "다시 다운로드" : "다운로드";
     }
 
     if (someSelectedPurchased) {
@@ -181,8 +179,7 @@ export default function ThemePurchaseBox({
     someSelectedPurchased,
   ]);
 
-  const isPrimaryDisabled =
-    selectedItems.length === 0 || (!isFree && allSelectedPurchased);
+  const isPrimaryDisabled = selectedItems.length === 0;
 
   const createSetItem = (platform: ThemePlatform): ThemePurchaseLineItem => {
     const subtitle = isFree
@@ -263,24 +260,6 @@ export default function ThemePurchaseBox({
   const handleAddSetItem = (platform: ThemePlatform) => {
     const itemKey = `${platform}-set`;
 
-    const alreadyPurchasedSet = !isFree && purchasedKeySet.has(itemKey);
-
-    if (alreadyPurchasedSet) {
-      showToast("이미 해당 기종 세트를 보유 중이에요!", {
-        type: "info",
-      });
-      return;
-    }
-
-    const alreadyDownloadedSet = isFree && downloadedKeySet.has(itemKey);
-
-    if (alreadyDownloadedSet) {
-      showToast("이미 받은 세트 구성이에요!", {
-        type: "info",
-      });
-      return;
-    }
-
     const alreadyAdded = selectedItems.some((item) => item.key === itemKey);
 
     if (alreadyAdded) {
@@ -330,35 +309,6 @@ export default function ThemePurchaseBox({
     }
 
     const itemKey = `${selectedPlatform}-single-${pickedVersion.value}`;
-
-    const alreadyPurchasedSingle =
-      !isFree &&
-      (purchasedKeySet.has(itemKey) ||
-        purchasedKeySet.has(`${selectedPlatform}-set`));
-
-    if (alreadyPurchasedSingle) {
-      showToast(
-        "이미 해당 기종 세트를 보유 중이거나, 이미 구매한 버전이에요!",
-        {
-          type: "info",
-        },
-      );
-      setSelectedVersionValue("");
-      return;
-    }
-
-    const alreadyDownloadedSingle =
-      isFree &&
-      (downloadedKeySet.has(itemKey) ||
-        downloadedKeySet.has(`${selectedPlatform}-set`));
-
-    if (alreadyDownloadedSingle) {
-      showToast("이미 받은 구성이에요!", {
-        type: "info",
-      });
-      setSelectedVersionValue("");
-      return;
-    }
 
     const alreadyAdded = selectedItems.some((item) => item.key === itemKey);
 
@@ -487,7 +437,7 @@ export default function ThemePurchaseBox({
                         <span className={styles.ownedBadge}>보유 중</span>
                       ) : null}
 
-                      {isFree && isDownloaded ? (
+                      {isDownloaded ? (
                         <span className={styles.downloadedBadge}>
                           다운로드 완료
                         </span>
@@ -504,7 +454,13 @@ export default function ThemePurchaseBox({
                       <span className={styles.freeItemBadge}>FREE</span>
                     )
                   ) : isPurchased ? (
-                    <span className={styles.ownedText}>이미 보유</span>
+                    isDownloaded ? (
+                      <span className={styles.downloadedText}>
+                        다시 받을 수 있어요
+                      </span>
+                    ) : (
+                      <span className={styles.ownedText}>다운로드 가능</span>
+                    )
                   ) : (
                     <div className={styles.selectedItemPrice}>
                       <span className={styles.selectedItemPriceValue}>
@@ -555,7 +511,9 @@ export default function ThemePurchaseBox({
 
                 {allSelectedPurchased ? (
                   <p className={styles.helperText}>
-                    선택한 구성은 모두 이미 보유 중이에요.
+                    {allSelectedDownloaded
+                      ? "이미 다운로드한 구성이라 다시 받을 수 있어요."
+                      : "선택한 구성은 모두 이미 보유 중이라 다운로드할 수 있어요."}
                   </p>
                 ) : someSelectedPurchased ? (
                   <p className={styles.helperText}>

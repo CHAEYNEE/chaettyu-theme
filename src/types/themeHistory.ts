@@ -16,7 +16,8 @@ export type ThemePurchaseRecord = {
   themeId: string;
   themeTitle: string;
   themeThumbnail: string;
-  downloadFileName: string;
+  downloadFileName?: string;
+  downloadFileNames?: string[];
   purchasedAt: string;
   totalPrice: number;
   items: ThemePurchaseLineItem[];
@@ -28,7 +29,8 @@ export type ThemeDownloadRecord = {
   themeId: string;
   themeTitle: string;
   themeThumbnail: string;
-  downloadFileName: string;
+  downloadFileName?: string;
+  downloadFileNames?: string[];
   downloadedAt: string;
   items: ThemePurchaseLineItem[];
 };
