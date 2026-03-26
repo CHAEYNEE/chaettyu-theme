@@ -10,7 +10,7 @@ import styles from "./MyPageProfileCard.module.css";
 type MyPageProfileCardProps = {
   user: MockUser;
   purchaseCount: number;
-  downloadCount: number;
+  ownedThemeCount: number;
   latestActivity: string | null;
 };
 
@@ -27,7 +27,7 @@ function formatDate(dateString: string) {
 export default function MyPageProfileCard({
   user,
   purchaseCount,
-  downloadCount,
+  ownedThemeCount,
   latestActivity,
 }: MyPageProfileCardProps) {
   const handleLogout = () => {
@@ -73,13 +73,13 @@ export default function MyPageProfileCard({
 
       <div className={styles.statGrid}>
         <div className={styles.statChip}>
-          <span className={styles.statLabel}>구매</span>
+          <span className={styles.statLabel}>구매 횟수</span>
           <strong className={styles.statValue}>{purchaseCount}</strong>
         </div>
 
         <div className={styles.statChip}>
-          <span className={styles.statLabel}>다운로드</span>
-          <strong className={styles.statValue}>{downloadCount}</strong>
+          <span className={styles.statLabel}>보유 테마</span>
+          <strong className={styles.statValue}>{ownedThemeCount}</strong>
         </div>
 
         <div className={styles.statChip}>

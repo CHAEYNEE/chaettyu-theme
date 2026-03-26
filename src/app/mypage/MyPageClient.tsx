@@ -71,6 +71,15 @@ export default function MyPageClient() {
     );
   }, [themeTypeMap, user]);
 
+  const ownedThemeCount = useMemo(() => {
+    const ownedThemeIds = new Set([
+      ...purchases.map((record) => record.themeId),
+      ...downloads.map((record) => record.themeId),
+    ]);
+
+    return ownedThemeIds.size;
+  }, [downloads, purchases]);
+
   if (!isLoaded || !user) {
     return null;
   }
@@ -90,7 +99,7 @@ export default function MyPageClient() {
         <MyPageProfileCard
           user={user}
           purchaseCount={purchases.length}
-          downloadCount={downloads.length}
+          ownedThemeCount={ownedThemeCount}
           latestActivity={latestActivity}
         />
 
@@ -121,7 +130,7 @@ export default function MyPageClient() {
                   }`}
                   onClick={() => setSelectedTab("download")}
                 >
-                  <span>무료 테마</span>
+                  <span>다운로드한 테마</span>
                   <strong>{downloads.length}</strong>
                 </button>
               </div>
