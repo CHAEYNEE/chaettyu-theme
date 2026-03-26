@@ -7,10 +7,12 @@ import { getMockUser, MOCK_AUTH_EVENT } from "@/lib/auth/mockAuthStorage";
 
 export default function useMockUser() {
   const [user, setUser] = useState<MockUser | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const syncUser = () => {
       setUser(getMockUser());
+      setIsLoaded(true);
     };
 
     syncUser();
@@ -24,5 +26,8 @@ export default function useMockUser() {
     };
   }, []);
 
-  return user;
+  return {
+    user,
+    isLoaded,
+  };
 }

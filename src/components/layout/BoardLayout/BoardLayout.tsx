@@ -30,7 +30,7 @@ export default function BoardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const user = useMockUser();
+  const { user } = useMockUser();
 
   const {
     scrollRef,
