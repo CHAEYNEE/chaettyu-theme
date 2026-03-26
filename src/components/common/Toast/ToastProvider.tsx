@@ -47,11 +47,12 @@ export default function ToastProvider({ children }: ToastProviderProps) {
   const showToast = useCallback(
     (message: string, options?: ToastOptions) => {
       const id = ++idRef.current;
+
       const nextToast: ToastItem = {
         id,
         type: options?.type ?? "info",
         message,
-        duration: options?.duration ?? 2400,
+        duration: options?.duration ?? 2200,
       };
 
       setToasts((prev) => [...prev, nextToast]);
@@ -74,32 +75,34 @@ export default function ToastProvider({ children }: ToastProviderProps) {
     <ToastContext.Provider value={value}>
       {children}
 
-      <div className={styles.viewport} aria-live="polite" aria-atomic="true">
-        {toasts.map((toast) => (
-          <div
-            key={toast.id}
-            className={`${styles.toast} ${styles[toast.type]}`}
-            role="status"
-          >
-            <div className={styles.icon} aria-hidden="true">
-              {toast.type === "success" && "✓"}
-              {toast.type === "error" && "!"}
-              {toast.type === "info" && "i"}
-            </div>
-
-            <p className={styles.message}>{toast.message}</p>
-
-            <button
-              type="button"
-              className={styles.closeButton}
-              onClick={() => removeToast(toast.id)}
-              aria-label="토스트 닫기"
+      {toasts.length > 0 ? (
+        <div className={styles.viewport} aria-live="polite" aria-atomic="true">
+          {toasts.map((toast) => (
+            <div
+              key={toast.id}
+              className={`${styles.toast} ${styles[toast.type]}`}
+              role="status"
             >
-              ×
-            </button>
-          </div>
-        ))}
-      </div>
+              <div className={styles.icon} aria-hidden="true">
+                {toast.type === "success" && "✓"}
+                {toast.type === "error" && "!"}
+                {toast.type === "info" && "i"}
+              </div>
+
+              <p className={styles.message}>{toast.message}</p>
+
+              <button
+                type="button"
+                className={styles.closeButton}
+                onClick={() => removeToast(toast.id)}
+                aria-label="토스트 닫기"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </ToastContext.Provider>
   );
 }
