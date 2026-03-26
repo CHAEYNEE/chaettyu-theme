@@ -62,6 +62,7 @@
   overflow: hidden;
   border: 3px solid #83615c;
   background: #fffdf6;
+  flex-shrink: 0;
 }
 
 .thumbnail {
@@ -124,6 +125,13 @@
   justify-content: flex-end;
 }
 
+.sideStack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
 .priceText {
   margin: 0;
   color: #83615c;
@@ -135,6 +143,7 @@
 .freePill {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: 34px;
   padding: 0 12px;
   border: 2px solid #83615c;
@@ -143,6 +152,45 @@
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.actionButton {
+  min-width: 116px;
+  height: 38px;
+  padding: 0 14px;
+  border: 2px solid #83615c;
+  background: #fbd2cc;
+  color: #83615c;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.actionButton:hover {
+  transform: translate(-1px, -1px);
+  background: #fcc7b3;
+}
+
+.actionButton:active {
+  transform: translate(0, 0);
+}
+
+.actionButtonDisabled {
+  background: #f3e7d9;
+  color: #9a756e;
+  cursor: default;
+  opacity: 0.78;
+}
+
+.actionButtonDisabled:hover {
+  transform: none;
+  background: #f3e7d9;
 }
 
 .emptyBox {
@@ -169,11 +217,24 @@
 }
 
 @media (max-width: 768px) {
+  .recordCard {
+    padding: 16px;
+  }
+
   .recordBody {
     grid-template-columns: 1fr;
   }
 
   .recordSide {
     justify-content: flex-start;
+  }
+
+  .sideStack {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .actionButton {
+    min-width: 120px;
   }
 }

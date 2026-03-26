@@ -1,6 +1,16 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { useToast } from "@/components/common/Toast/ToastProvider";
+import { themes } from "@/data/themes"; // 실제 경로에 맞게 수정
+import {
+  addThemeDownload,
+  getUserDownloadedLineItems,
+} from "@/lib/storage/themeStorage";
+import type { ThemeItem } from "@/types/theme";
 import type {
   ThemeDownloadRecord,
   ThemePurchaseLineItem,
@@ -17,6 +27,11 @@ type MyPageHistorySectionProps = {
   emptyText: string;
 };
 
+type DownloadTarget = {
+  fileName: string;
+  fileUrl: string;
+};
+
 function formatDate(dateString: string) {
   return new Intl.DateTimeFormat("ko-KR", {
     year: "numeric",
@@ -27,6 +42,108 @@ function formatDate(dateString: string) {
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("ko-KR").format(price);
+}
+
+function isOwnedLineItem(
+  targetItem: ThemePurchaseLineItem,
+  ownedItems: ThemePurchaseLineItem[],
+) {
+  return ownedItems.some((ownedItem) => {
+    if (ownedItem.key === targetItem.key) {
+      return true;
+    }
+
+    if (ownedItem.platform !== targetItem.platform) {
+      return false;
+    }
+
+    if (
+      ownedItem.purchaseMode === "set" &&
+      targetItem.purchaseMode === "single"
+    ) {
+      return true;
+    }
+
+    return false;
+  });
+}
+
+function hasDownloadedAllItems(
+  userId: string,
+  themeId: string,
+  items: ThemePurchaseLineItem[],
+) {
+  if (items.length === 0) {
+    return false;
+  }
+
+  const downloadedItems = getUserDownloadedLineItems(userId, themeId);
+
+  return items.every((item) => isOwnedLineItem(item, downloadedItems));
+}
+
+function getDownloadTargets(
+  theme: ThemeItem,
+  items: ThemePurchaseLineItem[],
+): DownloadTarget[] {
+  const downloadFiles = theme.downloadFiles;
+
+  if (!downloadFiles || downloadFiles.length === 0) {
+    return [];
+  }
+
+  const fileMap = new Map<string, DownloadTarget>();
+
+  items.forEach((item) => {
+    if (item.purchaseMode === "set") {
+      const matchedSetFile = downloadFiles.find(
+        (file) =>
+          file.platform === item.platform && file.purchaseMode === "set",
+      );
+
+      if (matchedSetFile) {
+        fileMap.set(`${matchedSetFile.platform}-set`, {
+          fileName: matchedSetFile.fileName,
+          fileUrl: matchedSetFile.fileUrl,
+        });
+      }
+
+      return;
+    }
+
+    const matchedSingleFile = downloadFiles.find(
+      (file) =>
+        file.platform === item.platform &&
+        file.purchaseMode === "single" &&
+        file.versionValue === item.versionValue,
+    );
+
+    if (matchedSingleFile) {
+      fileMap.set(
+        `${matchedSingleFile.platform}-${matchedSingleFile.versionValue}`,
+        {
+          fileName: matchedSingleFile.fileName,
+          fileUrl: matchedSingleFile.fileUrl,
+        },
+      );
+    }
+  });
+
+  return Array.from(fileMap.values());
+}
+
+function startDownloads(files: DownloadTarget[]) {
+  files.forEach((file, index) => {
+    window.setTimeout(() => {
+      const link = document.createElement("a");
+      link.href = file.fileUrl;
+      link.download = file.fileName;
+      link.rel = "noopener";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }, index * 120);
+  });
 }
 
 function HistoryItemChips({ items }: { items: ThemePurchaseLineItem[] }) {
@@ -54,6 +171,69 @@ export default function MyPageHistorySection({
   records,
   emptyText,
 }: MyPageHistorySectionProps) {
+  const { showToast } = useToast();
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [downloadingRecordId, setDownloadingRecordId] = useState<string | null>(
+    null,
+  );
+
+  const themeMap = useMemo(
+    () => new Map(themes.map((theme) => [theme.id, theme])),
+    [],
+  );
+
+  const handleRecordDownload = (record: MyPageRecord) => {
+    const theme = themeMap.get(record.themeId);
+
+    if (!theme || !theme.downloadFiles || theme.downloadFiles.length === 0) {
+      showToast("이 테마는 아직 마이페이지 다운로드가 준비되지 않았어요!", {
+        type: "info",
+      });
+      return;
+    }
+
+    const files = getDownloadTargets(theme, record.items);
+
+    if (files.length === 0) {
+      showToast("다운로드할 파일을 찾지 못했어요.", {
+        type: "error",
+      });
+      return;
+    }
+
+    const wasRedownload = hasDownloadedAllItems(
+      record.userId,
+      record.themeId,
+      record.items,
+    );
+
+    setDownloadingRecordId(record.id);
+    startDownloads(files);
+
+    addThemeDownload({
+      userId: record.userId,
+      theme,
+      items: record.items,
+    });
+
+    showToast(
+      wasRedownload
+        ? "이미 받은 구성이에요. 다시 다운로드했어요!"
+        : "다운로드가 완료되었어요!",
+      {
+        type: "success",
+      },
+    );
+
+    window.setTimeout(
+      () => {
+        setDownloadingRecordId(null);
+        setRefreshKey((prev) => prev + 1);
+      },
+      files.length * 120 + 200,
+    );
+  };
+
   if (records.length === 0) {
     return (
       <div className={styles.emptyBox}>
@@ -74,9 +254,23 @@ export default function MyPageHistorySection({
         const dateText = formatDate(
           isPurchase ? record.purchasedAt : record.downloadedAt,
         );
+        const theme = themeMap.get(record.themeId);
+        const canDownloadFromMyPage = Boolean(theme?.downloadFiles?.length);
+        const isRedownload = hasDownloadedAllItems(
+          record.userId,
+          record.themeId,
+          record.items,
+        );
+        const isDownloading = downloadingRecordId === record.id;
+
+        const actionLabel = !canDownloadFromMyPage
+          ? "준비 중"
+          : isRedownload
+            ? "다시 다운로드"
+            : "다운로드";
 
         return (
-          <li key={record.id}>
+          <li key={`${record.id}-${refreshKey}`}>
             <article className={styles.recordCard}>
               <div className={styles.recordTop}>
                 <span className={styles.statusBadge}>
@@ -109,11 +303,41 @@ export default function MyPageHistorySection({
 
                 <div className={styles.recordSide}>
                   {isPurchase ? (
-                    <p className={styles.priceText}>
-                      {formatPrice(record.totalPrice)}원
-                    </p>
+                    <div className={styles.sideStack}>
+                      <p className={styles.priceText}>
+                        {formatPrice(record.totalPrice)}원
+                      </p>
+
+                      <button
+                        type="button"
+                        className={`${styles.actionButton} ${
+                          !canDownloadFromMyPage
+                            ? styles.actionButtonDisabled
+                            : ""
+                        }`}
+                        onClick={() => handleRecordDownload(record)}
+                        disabled={!canDownloadFromMyPage || isDownloading}
+                      >
+                        {isDownloading ? "다운로드 중..." : actionLabel}
+                      </button>
+                    </div>
                   ) : (
-                    <span className={styles.freePill}>보관 완료</span>
+                    <div className={styles.sideStack}>
+                      <span className={styles.freePill}>보관 완료</span>
+
+                      <button
+                        type="button"
+                        className={`${styles.actionButton} ${
+                          !canDownloadFromMyPage
+                            ? styles.actionButtonDisabled
+                            : ""
+                        }`}
+                        onClick={() => handleRecordDownload(record)}
+                        disabled={!canDownloadFromMyPage || isDownloading}
+                      >
+                        {isDownloading ? "다운로드 중..." : actionLabel}
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>

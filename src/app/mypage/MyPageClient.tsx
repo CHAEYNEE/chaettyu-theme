@@ -8,6 +8,7 @@ import MyPageEmptyState from "@/components/mypage/MyPageEmptyState/MyPageEmptySt
 import MyPageHistorySection from "@/components/mypage/MyPageHistorySection/MyPageHistorySection";
 import MyPageProfileCard from "@/components/mypage/MyPageProfileCard/MyPageProfileCard";
 import useMockUser from "@/hooks/useMockUser";
+import { themes } from "@/data/themes";
 import {
   getUserThemeDownloads,
   getUserThemePurchases,
@@ -52,6 +53,11 @@ export default function MyPageClient() {
     }
   }, [isLoaded, router, user]);
 
+  const themeTypeMap = useMemo(
+    () => new Map(themes.map((theme) => [theme.id, theme.type])),
+    [],
+  );
+
   const purchases = useMemo(() => {
     if (!user) return [];
     return getUserThemePurchases(user.id);
@@ -59,8 +65,11 @@ export default function MyPageClient() {
 
   const downloads = useMemo(() => {
     if (!user) return [];
-    return getUserThemeDownloads(user.id);
-  }, [user]);
+
+    return getUserThemeDownloads(user.id).filter(
+      (record) => themeTypeMap.get(record.themeId) === "free",
+    );
+  }, [themeTypeMap, user]);
 
   if (!isLoaded || !user) {
     return null;
@@ -112,7 +121,7 @@ export default function MyPageClient() {
                   }`}
                   onClick={() => setSelectedTab("download")}
                 >
-                  <span>다운로드한 테마</span>
+                  <span>무료 테마</span>
                   <strong>{downloads.length}</strong>
                 </button>
               </div>
