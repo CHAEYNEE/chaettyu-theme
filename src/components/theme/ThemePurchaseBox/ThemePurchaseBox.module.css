@@ -43,6 +43,7 @@
 
 .selectedItemInfo {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
@@ -59,6 +60,38 @@
   font-size: 12px;
   color: var(--color-text-sub);
   word-break: keep-all;
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.ownedBadge,
+.downloadedBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  padding: 0 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.ownedBadge {
+  background: #fff3df;
+  color: #83615c;
+  border: 1px solid #83615c;
+}
+
+.downloadedBadge {
+  background: #fbd2cc;
+  color: #83615c;
+  border: 1px solid #83615c;
 }
 
 .selectedItemPrice {
@@ -81,6 +114,15 @@
   font-weight: 500;
   color: var(--color-text);
   line-height: 1;
+}
+
+.ownedText,
+.downloadedText {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-sub);
+  white-space: nowrap;
 }
 
 .removeButton {
@@ -113,6 +155,13 @@
   justify-content: flex-end;
 }
 
+.summaryBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
 .price {
   display: inline-flex;
   align-items: baseline;
@@ -131,6 +180,14 @@
   font-weight: 500;
   color: var(--color-text);
   line-height: 1;
+}
+
+.helperText {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-sub);
+  text-align: right;
 }
 
 .primaryButton {
@@ -196,8 +253,21 @@
     margin-left: 0;
   }
 
+  .ownedText,
+  .downloadedText {
+    margin-left: 0;
+  }
+
   .removeButton {
     margin-left: auto;
+  }
+
+  .priceRow {
+    justify-content: flex-start;
+  }
+
+  .summaryBox {
+    align-items: flex-start;
   }
 
   .priceValue {
@@ -206,6 +276,10 @@
 
   .priceUnit {
     font-size: 15px;
+  }
+
+  .helperText {
+    text-align: left;
   }
 
   .primaryButton {

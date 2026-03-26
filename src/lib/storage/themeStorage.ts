@@ -49,17 +49,35 @@ function writeStorage<T>(key: string, value: T) {
   }
 }
 
-function getLineItemKeySet(items: ThemePurchaseLineItem[]) {
-  return new Set(items.map((item) => item.key));
+function isOwnedLineItem(
+  targetItem: ThemePurchaseLineItem,
+  ownedItems: ThemePurchaseLineItem[],
+) {
+  return ownedItems.some((ownedItem) => {
+    if (ownedItem.key === targetItem.key) {
+      return true;
+    }
+
+    if (ownedItem.platform !== targetItem.platform) {
+      return false;
+    }
+
+    if (
+      ownedItem.purchaseMode === "set" &&
+      targetItem.purchaseMode === "single"
+    ) {
+      return true;
+    }
+
+    return false;
+  });
 }
 
 function filterNewLineItems(
   selectedItems: ThemePurchaseLineItem[],
   ownedItems: ThemePurchaseLineItem[],
 ) {
-  const ownedKeys = getLineItemKeySet(ownedItems);
-
-  return selectedItems.filter((item) => !ownedKeys.has(item.key));
+  return selectedItems.filter((item) => !isOwnedLineItem(item, ownedItems));
 }
 
 function mergeUniqueLineItems(
@@ -127,9 +145,8 @@ export function getOwnedPurchaseItems(
   selectedItems: ThemePurchaseLineItem[],
 ) {
   const ownedItems = getUserPurchasedLineItems(userId, themeId);
-  const ownedKeys = getLineItemKeySet(ownedItems);
 
-  return selectedItems.filter((item) => ownedKeys.has(item.key));
+  return selectedItems.filter((item) => isOwnedLineItem(item, ownedItems));
 }
 
 export function getNewPurchaseItems(
@@ -232,9 +249,8 @@ export function getOwnedDownloadItems(
   selectedItems: ThemePurchaseLineItem[],
 ) {
   const ownedItems = getUserDownloadedLineItems(userId, themeId);
-  const ownedKeys = getLineItemKeySet(ownedItems);
 
-  return selectedItems.filter((item) => ownedKeys.has(item.key));
+  return selectedItems.filter((item) => isOwnedLineItem(item, ownedItems));
 }
 
 export function getNewDownloadItems(

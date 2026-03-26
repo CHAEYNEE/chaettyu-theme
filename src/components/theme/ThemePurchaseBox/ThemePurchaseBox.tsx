@@ -19,6 +19,8 @@ import styles from "./ThemePurchaseBox.module.css";
 type ThemePurchaseBoxProps = {
   theme: ThemeItem;
   onPrimaryAction?: (items: ThemePurchaseLineItem[]) => void;
+  purchasedItemKeys?: string[];
+  downloadedItemKeys?: string[];
 };
 
 const platformLabelMap: Record<ThemePlatform, string> = {
@@ -29,6 +31,8 @@ const platformLabelMap: Record<ThemePlatform, string> = {
 export default function ThemePurchaseBox({
   theme,
   onPrimaryAction,
+  purchasedItemKeys = [],
+  downloadedItemKeys = [],
 }: ThemePurchaseBoxProps) {
   const [selectedPlatform, setSelectedPlatform] = useState<ThemePlatform | "">(
     "",
@@ -38,6 +42,45 @@ export default function ThemePurchaseBox({
   const [selectedItems, setSelectedItems] = useState<ThemePurchaseLineItem[]>(
     [],
   );
+
+  const purchasedKeySet = useMemo(
+    () => new Set(purchasedItemKeys),
+    [purchasedItemKeys],
+  );
+  const downloadedKeySet = useMemo(
+    () => new Set(downloadedItemKeys),
+    [downloadedItemKeys],
+  );
+
+  const isPurchasedItem = (item: ThemePurchaseLineItem) => {
+    if (purchasedKeySet.has(item.key)) {
+      return true;
+    }
+
+    if (
+      item.purchaseMode === "single" &&
+      purchasedKeySet.has(`${item.platform}-set`)
+    ) {
+      return true;
+    }
+
+    return false;
+  };
+
+  const isDownloadedItem = (item: ThemePurchaseLineItem) => {
+    if (downloadedKeySet.has(item.key)) {
+      return true;
+    }
+
+    if (
+      item.purchaseMode === "single" &&
+      downloadedKeySet.has(`${item.platform}-set`)
+    ) {
+      return true;
+    }
+
+    return false;
+  };
 
   const resolvedVersions: ThemeVersion[] =
     theme.versions && theme.versions.length > 0
@@ -50,9 +93,13 @@ export default function ThemePurchaseBox({
     resolvedVersions.length > 1 &&
     (isFree || typeof theme.setPrice === "number");
 
+  const payableItems = isFree
+    ? selectedItems
+    : selectedItems.filter((item) => !isPurchasedItem(item));
+
   const totalPrice = useMemo(() => {
-    return selectedItems.reduce((sum, item) => sum + item.price, 0);
-  }, [selectedItems]);
+    return payableItems.reduce((sum, item) => sum + item.price, 0);
+  }, [payableItems]);
 
   const modeLabelMap: Record<PurchaseMode, string> = isFree
     ? {
@@ -78,6 +125,61 @@ export default function ThemePurchaseBox({
     label: version.label,
     value: version.value,
   }));
+
+  const allSelectedPurchased =
+    !isFree &&
+    selectedItems.length > 0 &&
+    selectedItems.every((item) => isPurchasedItem(item));
+
+  const someSelectedPurchased =
+    !isFree &&
+    selectedItems.length > 0 &&
+    selectedItems.some((item) => isPurchasedItem(item)) &&
+    !allSelectedPurchased;
+
+  const allSelectedDownloaded =
+    isFree &&
+    selectedItems.length > 0 &&
+    selectedItems.every((item) => isDownloadedItem(item));
+
+  const someSelectedDownloaded =
+    isFree &&
+    selectedItems.length > 0 &&
+    selectedItems.some((item) => isDownloadedItem(item)) &&
+    !allSelectedDownloaded;
+
+  const primaryButtonLabel = useMemo(() => {
+    if (isFree) {
+      if (allSelectedDownloaded) {
+        return "다시 다운로드";
+      }
+
+      if (someSelectedDownloaded) {
+        return "선택한 구성 다운로드";
+      }
+
+      return "다운로드";
+    }
+
+    if (allSelectedPurchased) {
+      return "이미 보유한 구성";
+    }
+
+    if (someSelectedPurchased) {
+      return "새 구성만 구매하기";
+    }
+
+    return "구매하기";
+  }, [
+    allSelectedDownloaded,
+    allSelectedPurchased,
+    isFree,
+    someSelectedDownloaded,
+    someSelectedPurchased,
+  ]);
+
+  const isPrimaryDisabled =
+    selectedItems.length === 0 || (!isFree && allSelectedPurchased);
 
   const createSetItem = (platform: ThemePlatform): ThemePurchaseLineItem => {
     const subtitle = isFree
@@ -148,6 +250,20 @@ export default function ThemePurchaseBox({
   const handleAddSetItem = (platform: ThemePlatform) => {
     const itemKey = `${platform}-set`;
 
+    const alreadyPurchasedSet = !isFree && purchasedKeySet.has(itemKey);
+
+    if (alreadyPurchasedSet) {
+      window.alert("이미 해당 기종 세트를 보유 중이에요!");
+      return;
+    }
+
+    const alreadyDownloadedSet = isFree && downloadedKeySet.has(itemKey);
+
+    if (alreadyDownloadedSet) {
+      window.alert("이미 받은 세트 구성이에요!");
+      return;
+    }
+
     const alreadyAdded = selectedItems.some((item) => item.key === itemKey);
 
     if (alreadyAdded) {
@@ -194,6 +310,30 @@ export default function ThemePurchaseBox({
     }
 
     const itemKey = `${selectedPlatform}-single-${pickedVersion.value}`;
+
+    const alreadyPurchasedSingle =
+      !isFree &&
+      (purchasedKeySet.has(itemKey) ||
+        purchasedKeySet.has(`${selectedPlatform}-set`));
+
+    if (alreadyPurchasedSingle) {
+      window.alert(
+        "이미 해당 기종 세트를 보유 중이거나, 이미 구매한 버전이에요!",
+      );
+      setSelectedVersionValue("");
+      return;
+    }
+
+    const alreadyDownloadedSingle =
+      isFree &&
+      (downloadedKeySet.has(itemKey) ||
+        downloadedKeySet.has(`${selectedPlatform}-set`));
+
+    if (alreadyDownloadedSingle) {
+      window.alert("이미 받은 구성이에요!");
+      setSelectedVersionValue("");
+      return;
+    }
 
     const alreadyAdded = selectedItems.some((item) => item.key === itemKey);
 
@@ -252,7 +392,7 @@ export default function ThemePurchaseBox({
   };
 
   const handlePrimaryAction = () => {
-    if (selectedItems.length === 0) {
+    if (isPrimaryDisabled) {
       return;
     }
 
@@ -291,55 +431,104 @@ export default function ThemePurchaseBox({
       {selectedItems.length > 0 && (
         <div className={styles.selectedListBox}>
           <ul className={styles.selectedList}>
-            {selectedItems.map((item) => (
-              <li key={item.key} className={styles.selectedItem}>
-                <div className={styles.selectedItemInfo}>
-                  <strong className={styles.selectedItemName}>
-                    {item.title}
-                  </strong>
+            {selectedItems.map((item) => {
+              const isPurchased = isPurchasedItem(item);
+              const isDownloaded = isDownloadedItem(item);
 
-                  {item.subtitle && (
-                    <span className={styles.selectedItemSub}>
-                      {item.subtitle}
-                    </span>
-                  )}
-                </div>
+              return (
+                <li key={item.key} className={styles.selectedItem}>
+                  <div className={styles.selectedItemInfo}>
+                    <strong className={styles.selectedItemName}>
+                      {item.title}
+                    </strong>
 
-                {isFree ? (
-                  <span className={styles.freeItemBadge}>FREE</span>
-                ) : (
-                  <div className={styles.selectedItemPrice}>
-                    <span className={styles.selectedItemPriceValue}>
-                      {item.price.toLocaleString()}
-                    </span>
-                    <span className={styles.selectedItemPriceUnit}>원</span>
+                    {item.subtitle && (
+                      <span className={styles.selectedItemSub}>
+                        {item.subtitle}
+                      </span>
+                    )}
+
+                    <div className={styles.badgeRow}>
+                      {!isFree && isPurchased ? (
+                        <span className={styles.ownedBadge}>보유 중</span>
+                      ) : null}
+
+                      {isFree && isDownloaded ? (
+                        <span className={styles.downloadedBadge}>
+                          다운로드 완료
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
-                )}
 
-                <button
-                  type="button"
-                  className={styles.removeButton}
-                  onClick={() => handleRemoveItem(item.key)}
-                  aria-label={`${item.title} 삭제`}
-                >
-                  <X size={16} />
-                </button>
-              </li>
-            ))}
+                  {isFree ? (
+                    isDownloaded ? (
+                      <span className={styles.downloadedText}>
+                        다시 받을 수 있어요
+                      </span>
+                    ) : (
+                      <span className={styles.freeItemBadge}>FREE</span>
+                    )
+                  ) : isPurchased ? (
+                    <span className={styles.ownedText}>이미 보유</span>
+                  ) : (
+                    <div className={styles.selectedItemPrice}>
+                      <span className={styles.selectedItemPriceValue}>
+                        {item.price.toLocaleString()}
+                      </span>
+                      <span className={styles.selectedItemPriceUnit}>원</span>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    className={styles.removeButton}
+                    onClick={() => handleRemoveItem(item.key)}
+                    aria-label={`${item.title} 삭제`}
+                  >
+                    <X size={16} />
+                  </button>
+                </li>
+              );
+            })}
           </ul>
 
           <div className={styles.priceRow}>
             {isFree ? (
-              <strong className={styles.freeSummaryText}>
-                {selectedItems.length}개 선택됨
-              </strong>
+              <div className={styles.summaryBox}>
+                <strong className={styles.freeSummaryText}>
+                  {selectedItems.length}개 선택됨
+                </strong>
+
+                {allSelectedDownloaded ? (
+                  <p className={styles.helperText}>
+                    이미 받은 구성이에요. 다시 다운로드할 수 있어요.
+                  </p>
+                ) : someSelectedDownloaded ? (
+                  <p className={styles.helperText}>
+                    새 구성과 기존 구성이 함께 선택되어 있어요.
+                  </p>
+                ) : null}
+              </div>
             ) : (
-              <strong className={styles.price}>
-                <span className={styles.priceValue}>
-                  {totalPrice.toLocaleString()}
-                </span>
-                <span className={styles.priceUnit}>원</span>
-              </strong>
+              <div className={styles.summaryBox}>
+                <strong className={styles.price}>
+                  <span className={styles.priceValue}>
+                    {totalPrice.toLocaleString()}
+                  </span>
+                  <span className={styles.priceUnit}>원</span>
+                </strong>
+
+                {allSelectedPurchased ? (
+                  <p className={styles.helperText}>
+                    선택한 구성은 모두 이미 보유 중이에요.
+                  </p>
+                ) : someSelectedPurchased ? (
+                  <p className={styles.helperText}>
+                    보유 중인 구성을 제외한 새 구성만 계산돼요.
+                  </p>
+                ) : null}
+              </div>
             )}
           </div>
         </div>
@@ -349,9 +538,9 @@ export default function ThemePurchaseBox({
         type="button"
         className={styles.primaryButton}
         onClick={handlePrimaryAction}
-        disabled={selectedItems.length === 0}
+        disabled={isPrimaryDisabled}
       >
-        {isFree ? "다운로드" : "구매하기"}
+        {primaryButtonLabel}
       </button>
     </div>
   );
