@@ -79,7 +79,7 @@ export default function LoginPageClient({ redirect }: LoginPageClientProps) {
   };
 
   return (
-    <BoardLayout badgeText="채뜌" pillText="Theme Login">
+    <BoardLayout badgeText="채뜌">
       <section className={styles.wrapper}>
         <section className={styles.loginCard}>
           <div className={styles.cardHeader}>

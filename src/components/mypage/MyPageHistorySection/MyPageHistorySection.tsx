@@ -12,7 +12,6 @@ import styles from "./MyPageHistorySection.module.css";
 type MyPageRecord = ThemePurchaseRecord | ThemeDownloadRecord;
 
 type MyPageHistorySectionProps = {
-  title: string;
   type: "purchase" | "download";
   records: MyPageRecord[];
   emptyText: string;
@@ -38,7 +37,7 @@ function HistoryItemChips({ items }: { items: ThemePurchaseLineItem[] }) {
           <span className={styles.itemTitle}>{item.title}</span>
 
           {item.subtitle ? (
-            <span className={styles.itemSubtitle}>{item.subtitle}</span>
+            <span className={styles.itemSub}>{item.subtitle}</span>
           ) : null}
 
           {item.versionValue ? (
@@ -51,80 +50,77 @@ function HistoryItemChips({ items }: { items: ThemePurchaseLineItem[] }) {
 }
 
 export default function MyPageHistorySection({
-  title,
   type,
   records,
   emptyText,
 }: MyPageHistorySectionProps) {
-  return (
-    <section className={styles.section}>
-      <div className={styles.header}>
-        <div className={styles.titleRow}>
-          <h2 className={styles.title}>{title}</h2>
-          <span className={styles.count}>{records.length}</span>
-        </div>
+  if (records.length === 0) {
+    return (
+      <div className={styles.emptyBox}>
+        <p className={styles.emptyTitle}>
+          {type === "purchase"
+            ? "아직 비어 있는 구매 보관함"
+            : "아직 비어 있는 다운로드 보관함"}
+        </p>
+        <p className={styles.emptyText}>{emptyText}</p>
       </div>
+    );
+  }
 
-      {records.length === 0 ? (
-        <div className={styles.emptyBox}>
-          <p className={styles.emptyText}>{emptyText}</p>
-        </div>
-      ) : (
-        <ul className={styles.recordList}>
-          {records.map((record) => {
-            const isPurchase = "purchasedAt" in record;
-            const dateText = formatDate(
-              isPurchase ? record.purchasedAt : record.downloadedAt,
-            );
+  return (
+    <ul className={styles.recordList}>
+      {records.map((record) => {
+        const isPurchase = "purchasedAt" in record;
+        const dateText = formatDate(
+          isPurchase ? record.purchasedAt : record.downloadedAt,
+        );
 
-            return (
-              <li key={record.id}>
-                <article className={styles.recordCard}>
-                  <div className={styles.recordTop}>
-                    <span className={styles.statusBadge}>
-                      {type === "purchase" ? "구매 완료" : "다운로드 완료"}
-                    </span>
-                    <span className={styles.recordDate}>{dateText}</span>
-                  </div>
+        return (
+          <li key={record.id}>
+            <article className={styles.recordCard}>
+              <div className={styles.recordTop}>
+                <span className={styles.statusBadge}>
+                  {isPurchase ? "구매 완료" : "무료 다운로드"}
+                </span>
+                <span className={styles.recordDate}>{dateText}</span>
+              </div>
 
-                  <div className={styles.recordBody}>
-                    <div className={styles.thumbnailWrap}>
-                      <Image
-                        src={record.themeThumbnail}
-                        alt={record.themeTitle}
-                        fill
-                        sizes="88px"
-                        className={styles.thumbnail}
-                      />
-                    </div>
+              <div className={styles.recordBody}>
+                <div className={styles.thumbnailWrap}>
+                  <Image
+                    src={record.themeThumbnail}
+                    alt={record.themeTitle}
+                    fill
+                    sizes="92px"
+                    className={styles.thumbnail}
+                  />
+                </div>
 
-                    <div className={styles.recordContent}>
-                      <Link
-                        href={`/themes/${record.themeId}`}
-                        className={styles.themeLink}
-                      >
-                        {record.themeTitle}
-                      </Link>
+                <div className={styles.recordContent}>
+                  <Link
+                    href={`/themes/${record.themeId}`}
+                    className={styles.themeLink}
+                  >
+                    {record.themeTitle}
+                  </Link>
 
-                      <HistoryItemChips items={record.items} />
-                    </div>
+                  <HistoryItemChips items={record.items} />
+                </div>
 
-                    <div className={styles.recordSide}>
-                      {isPurchase ? (
-                        <p className={styles.priceText}>
-                          {formatPrice(record.totalPrice)}원
-                        </p>
-                      ) : (
-                        <p className={styles.freeText}>무료 다운로드</p>
-                      )}
-                    </div>
-                  </div>
-                </article>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </section>
+                <div className={styles.recordSide}>
+                  {isPurchase ? (
+                    <p className={styles.priceText}>
+                      {formatPrice(record.totalPrice)}원
+                    </p>
+                  ) : (
+                    <span className={styles.freePill}>보관 완료</span>
+                  )}
+                </div>
+              </div>
+            </article>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

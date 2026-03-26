@@ -1,11 +1,124 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
-.sections {
+.historyShell {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
+  padding: 24px;
+  border: 3px solid #83615c;
+  background: #fffdf6;
+  box-shadow: 8px 8px 0 var(--color-accent);
+}
+
+.historyHead {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.headingGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 2px solid #83615c;
+  background: #f4777f;
+  color: #fff;
+  box-shadow: 4px 4px 0 rgba(131, 97, 92, 0.18);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  color: #83615c;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.tabRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tabButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 190px;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 3px solid #83615c;
+  background: #fff3df;
+  color: #83615c;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 rgba(131, 97, 92, 0.16);
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.tabButton strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border: 2px solid #83615c;
+  background: #fffdf6;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.tabButton:hover {
+  transform: translate(-1px, -1px);
+}
+
+.tabButtonActive {
+  background: #f4777f;
+  color: #fff;
+}
+
+.tabButtonActive strong {
+  background: #fff;
+  color: #83615c;
+}
+
+@media (max-width: 768px) {
+  .historyShell {
+    padding: 20px 18px;
+    box-shadow: 5px 5px 0 var(--color-accent);
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .tabRow {
+    flex-direction: column;
+  }
+
+  .tabButton {
+    width: 100%;
+  }
 }

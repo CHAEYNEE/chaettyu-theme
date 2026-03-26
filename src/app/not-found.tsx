@@ -6,7 +6,7 @@ import styles from "./not-found.module.css";
 
 export default function NotFound() {
   return (
-    <BoardLayout pillText="Page Not Found">
+    <BoardLayout>
       <section className={styles.section}>
         <div className={styles.inner}>
           <div className={styles.pixelBadge} aria-hidden="true">

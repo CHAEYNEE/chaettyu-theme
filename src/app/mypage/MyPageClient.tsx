@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import BoardLayout from "@/components/layout/BoardLayout/BoardLayout";
@@ -12,12 +12,37 @@ import {
   getUserThemeDownloads,
   getUserThemePurchases,
 } from "@/lib/storage/themeStorage";
+import type {
+  ThemeDownloadRecord,
+  ThemePurchaseRecord,
+} from "@/types/themeHistory";
 
 import styles from "./MyPageClient.module.css";
+
+type MyPageTab = "purchase" | "download";
+
+function getLatestActivityDate(
+  purchases: ThemePurchaseRecord[],
+  downloads: ThemeDownloadRecord[],
+) {
+  const allDates = [
+    ...purchases.map((record) => record.purchasedAt),
+    ...downloads.map((record) => record.downloadedAt),
+  ];
+
+  if (allDates.length === 0) {
+    return null;
+  }
+
+  return [...allDates].sort(
+    (a, b) => new Date(b).getTime() - new Date(a).getTime(),
+  )[0];
+}
 
 export default function MyPageClient() {
   const router = useRouter();
   const { user, isLoaded } = useMockUser();
+  const [selectedTab, setSelectedTab] = useState<MyPageTab | null>(null);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -42,28 +67,67 @@ export default function MyPageClient() {
   }
 
   const hasHistory = purchases.length > 0 || downloads.length > 0;
+  const latestActivity = getLatestActivityDate(purchases, downloads);
+
+  const activeTab: MyPageTab =
+    selectedTab ??
+    (purchases.length === 0 && downloads.length > 0 ? "download" : "purchase");
+
+  const currentRecords = activeTab === "purchase" ? purchases : downloads;
 
   return (
     <BoardLayout>
       <div className={styles.container}>
-        <MyPageProfileCard user={user} />
+        <MyPageProfileCard
+          user={user}
+          purchaseCount={purchases.length}
+          downloadCount={downloads.length}
+          latestActivity={latestActivity}
+        />
 
         {hasHistory ? (
-          <div className={styles.sections}>
-            <MyPageHistorySection
-              title="구매 내역"
-              type="purchase"
-              records={purchases}
-              emptyText="아직 구매한 테마가 없어요."
-            />
+          <section className={styles.historyShell}>
+            <div className={styles.historyHead}>
+              <div className={styles.headingGroup}>
+                <p className={styles.eyebrow}>THEME DRAWER</p>
+                <h2 className={styles.title}>내 테마 보관함</h2>
+              </div>
+
+              <div className={styles.tabRow}>
+                <button
+                  type="button"
+                  className={`${styles.tabButton} ${
+                    activeTab === "purchase" ? styles.tabButtonActive : ""
+                  }`}
+                  onClick={() => setSelectedTab("purchase")}
+                >
+                  <span>구매한 테마</span>
+                  <strong>{purchases.length}</strong>
+                </button>
+
+                <button
+                  type="button"
+                  className={`${styles.tabButton} ${
+                    activeTab === "download" ? styles.tabButtonActive : ""
+                  }`}
+                  onClick={() => setSelectedTab("download")}
+                >
+                  <span>다운로드한 테마</span>
+                  <strong>{downloads.length}</strong>
+                </button>
+              </div>
+            </div>
 
             <MyPageHistorySection
-              title="다운로드 내역"
-              type="download"
-              records={downloads}
-              emptyText="아직 다운로드한 무료 테마가 없어요."
+              type={activeTab}
+              records={currentRecords}
+              emptyText={
+                activeTab === "purchase"
+                  ? "아직 구매한 테마가 없어요."
+                  : "아직 다운로드한 무료 테마가 없어요."
+              }
             />
-          </div>
+          </section>
         ) : (
           <MyPageEmptyState />
         )}

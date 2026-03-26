@@ -57,7 +57,7 @@ export default async function ThemeDetailPage({
       : 0;
 
   return (
-    <BoardLayout pillText={isFree ? "Free Theme" : "Signature Theme"}>
+    <BoardLayout>
       <section className={styles.section}>
         <div className={styles.top}>
           <div className={styles.previewArea}>
