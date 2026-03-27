@@ -1,10 +1,20 @@
+"use client";
+
 import { STORAGE_KEYS } from "@/constants/storageKeys";
 import type { MockUser } from "@/types/mockUser";
 
 export const MOCK_AUTH_EVENT = "mock-auth-changed";
 
-function isBrowser() {
+function isBrowser(): boolean {
   return typeof window !== "undefined";
+}
+
+function emitMockAuthChange() {
+  if (!isBrowser()) {
+    return;
+  }
+
+  window.dispatchEvent(new Event(MOCK_AUTH_EVENT));
 }
 
 function readStorage<T>(key: string, fallback: T): T {
@@ -43,26 +53,35 @@ function clearStorage(key: string) {
     return;
   }
 
-  window.localStorage.removeItem(key);
+  try {
+    window.localStorage.removeItem(key);
+  } catch (error) {
+    console.error(`[storage] failed to clear key: ${key}`, error);
+  }
 }
 
-export function getMockUser() {
+export function getMockUser(): MockUser | null {
   return readStorage<MockUser | null>(STORAGE_KEYS.MOCK_USER, null);
 }
 
 export function setMockUser(user: MockUser) {
   writeStorage(STORAGE_KEYS.MOCK_USER, user);
-  window.dispatchEvent(new Event(MOCK_AUTH_EVENT));
+  emitMockAuthChange();
 }
 
 export function clearMockUser() {
   clearStorage(STORAGE_KEYS.MOCK_USER);
-  window.dispatchEvent(new Event(MOCK_AUTH_EVENT));
+  emitMockAuthChange();
 }
 
-export function sanitizeRedirectPath(path?: string | null) {
+export function hasMockUser(): boolean {
+  return getMockUser() !== null;
+}
+
+export function sanitizeRedirectPath(path?: string | null): string {
   if (!path) return "/";
   if (!path.startsWith("/")) return "/";
   if (path.startsWith("//")) return "/";
+
   return path;
 }

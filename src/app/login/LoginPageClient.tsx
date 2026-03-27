@@ -18,8 +18,26 @@ type LoginPageClientProps = {
   redirect: string;
 };
 
-const MOCK_LOGIN_ID = "chaettyu";
-const MOCK_LOGIN_PASSWORD = "1234";
+const MOCK_ACCOUNTS = [
+  {
+    id: "mock-user-1",
+    loginId: "chaettyu",
+    password: "1234",
+    email: "chae@example.com",
+    nickname: "채뜌",
+    profileImage: "/images/mock_profile.jpg",
+    role: "user" as const,
+  },
+  {
+    id: "mock-admin-1",
+    loginId: "admin",
+    password: "1234",
+    email: "admin@chaettyu.theme",
+    nickname: "관리자",
+    profileImage: "/images/mock_profile.jpg",
+    role: "admin" as const,
+  },
+];
 
 export default function LoginPageClient({ redirect }: LoginPageClientProps) {
   const router = useRouter();
@@ -53,10 +71,13 @@ export default function LoginPageClient({ redirect }: LoginPageClientProps) {
       return;
     }
 
-    if (
-      trimmedLoginId !== MOCK_LOGIN_ID ||
-      trimmedPassword !== MOCK_LOGIN_PASSWORD
-    ) {
+    const matchedAccount = MOCK_ACCOUNTS.find(
+      (account) =>
+        account.loginId === trimmedLoginId &&
+        account.password === trimmedPassword,
+    );
+
+    if (!matchedAccount) {
       setErrorMessage("아이디 또는 비밀번호가 올바르지 않아요.");
       return;
     }
@@ -65,13 +86,14 @@ export default function LoginPageClient({ redirect }: LoginPageClientProps) {
     setIsSubmitting(true);
 
     const nextUser: MockUser = {
-      id: "mock-user-1",
-      loginId: MOCK_LOGIN_ID,
-      email: "chae@example.com",
-      nickname: "채뜌",
+      id: matchedAccount.id,
+      loginId: matchedAccount.loginId,
+      email: matchedAccount.email,
+      nickname: matchedAccount.nickname,
       provider: "mock",
       createdAt: new Date().toISOString(),
-      profileImage: "/images/mock_profile.jpg",
+      profileImage: matchedAccount.profileImage,
+      role: matchedAccount.role,
     };
 
     setMockUser(nextUser);
@@ -84,9 +106,15 @@ export default function LoginPageClient({ redirect }: LoginPageClientProps) {
         <section className={styles.loginCard}>
           <div className={styles.cardHeader}>
             <span className={styles.formBadge}>LOGIN</span>
-            <p className={styles.testAccount}>
-              테스트 계정 · ID : {MOCK_LOGIN_ID} / PW : {MOCK_LOGIN_PASSWORD}
-            </p>
+
+            <div className={styles.testAccountList}>
+              <p className={styles.testAccount}>
+                일반 계정 · ID : chaettyu / PW : 1234
+              </p>
+              <p className={styles.testAccount}>
+                관리자 계정 · ID : admin / PW : 1234
+              </p>
+            </div>
           </div>
 
           <form className={styles.form} onSubmit={handleSubmit}>

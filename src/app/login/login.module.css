@@ -137,6 +137,12 @@
   opacity: 0.85;
 }
 
+.testAccountList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 @media (max-width: 768px) {
   .loginCard {
     padding: 20px 18px;
