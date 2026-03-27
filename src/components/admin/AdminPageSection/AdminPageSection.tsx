@@ -5,6 +5,7 @@ import styles from "./AdminPageSection.module.css";
 type AdminPageSectionProps = {
   title: string;
   description?: string;
+  eyebrow?: string;
   actions?: ReactNode;
   children: ReactNode;
 };
@@ -12,23 +13,27 @@ type AdminPageSectionProps = {
 export default function AdminPageSection({
   title,
   description,
+  eyebrow = "ADMIN MENU",
   actions,
   children,
 }: AdminPageSectionProps) {
   return (
-    <section className={styles.section}>
-      <header className={styles.header}>
-        <div className={styles.headingGroup}>
-          <h1 className={styles.title}>{title}</h1>
-          {description ? (
-            <p className={styles.description}>{description}</p>
-          ) : null}
-        </div>
+    <section className={styles.container}>
+      <div className={styles.shell}>
+        <header className={styles.head}>
+          <div className={styles.headingGroup}>
+            <span className={styles.eyebrow}>{eyebrow}</span>
+            <h1 className={styles.title}>{title}</h1>
+            {description ? (
+              <p className={styles.description}>{description}</p>
+            ) : null}
+          </div>
 
-        {actions ? <div className={styles.actions}>{actions}</div> : null}
-      </header>
+          {actions ? <div className={styles.actions}>{actions}</div> : null}
+        </header>
 
-      <div className={styles.content}>{children}</div>
+        <div className={styles.body}>{children}</div>
+      </div>
     </section>
   );
 }

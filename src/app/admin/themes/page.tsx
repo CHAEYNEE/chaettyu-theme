@@ -1,5 +1,4 @@
-import Link from "next/link";
-
+import AdminActionButton from "@/components/admin/AdminActionButton/AdminActionButton";
 import AdminEmptyState from "@/components/admin/AdminEmptyState/AdminEmptyState";
 import AdminPageSection from "@/components/admin/AdminPageSection/AdminPageSection";
 import AdminThemeList, {
@@ -26,9 +25,14 @@ const mockThemeRows: AdminThemeRow[] = [
 export default function AdminThemesPage() {
   return (
     <AdminPageSection
+      eyebrow="THEME CONTROL"
       title="테마 관리"
-      description="등록된 테마를 확인하고 다음 단계에서 수정 및 등록 기능을 연결할 거예요."
-      actions={<Link href="/admin/themes/new">+ 새 테마 등록</Link>}
+      description="등록된 테마를 확인하고 다음 단계에서 수정과 등록 기능을 붙일 거예요."
+      actions={
+        <AdminActionButton href="/admin/themes/new">
+          + 새 테마 등록
+        </AdminActionButton>
+      }
     >
       {mockThemeRows.length > 0 ? (
         <AdminThemeList items={mockThemeRows} />
