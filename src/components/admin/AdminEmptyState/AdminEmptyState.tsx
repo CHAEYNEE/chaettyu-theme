@@ -11,8 +11,10 @@ export default function AdminEmptyState({
 }: AdminEmptyStateProps) {
   return (
     <div className={styles.box}>
-      <strong className={styles.title}>{title}</strong>
-      <p className={styles.description}>{description}</p>
+      <div className={styles.inner}>
+        <strong className={styles.title}>{title}</strong>
+        <p className={styles.description}>{description}</p>
+      </div>
     </div>
   );
 }
