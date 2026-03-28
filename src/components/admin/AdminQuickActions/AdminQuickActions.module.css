@@ -1,0 +1,25 @@
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.button {
+  min-height: 46px;
+  padding: 0 14px;
+  border: 3px solid #83615c;
+  background: #fff3df;
+  color: #83615c;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 4px 4px 0 rgba(131, 97, 92, 0.14);
+  transition: transform 0.15s ease;
+}
+
+.button:hover {
+  transform: translate(-1px, -1px);
+}

@@ -1,0 +1,81 @@
+.panelGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.panelText {
+  margin: 0;
+  color: #9a756e;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.themeName {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border: 2px solid #83615c;
+  background: #fbd2cc;
+  color: #83615c;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.rankRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 2px dashed rgba(131, 97, 92, 0.18);
+}
+
+.rankRow:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.rankBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  border: 2px solid #83615c;
+  background: #f4777f;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.rankContent {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rankTitle {
+  color: #83615c;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.rankMeta {
+  margin: 0;
+  color: #9a756e;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.countText {
+  color: #f4777f;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .panelGrid {
+    grid-template-columns: 1fr;
+  }
+}

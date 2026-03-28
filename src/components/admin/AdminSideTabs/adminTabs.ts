@@ -7,19 +7,19 @@ export const adminTabs = [
   },
   {
     href: "/admin/themes",
-    label: "테마",
+    label: "테마 관리",
     fullLabel: "관리자 테마 관리",
     match: (pathname: string) => pathname.startsWith("/admin/themes"),
   },
   {
     href: "/admin/purchases",
-    label: "구매",
+    label: "구매 내역",
     fullLabel: "관리자 구매 내역",
     match: (pathname: string) => pathname.startsWith("/admin/purchases"),
   },
   {
     href: "/admin/members",
-    label: "회원",
+    label: "회원 관리",
     fullLabel: "관리자 회원 관리",
     match: (pathname: string) => pathname.startsWith("/admin/members"),
   },
