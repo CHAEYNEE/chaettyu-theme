@@ -1,8 +1,4 @@
-"use client";
-
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
 
 import AdminActionButton from "@/components/admin/AdminActionButton/AdminActionButton";
 import AdminEmptyState from "@/components/admin/AdminEmptyState/AdminEmptyState";
@@ -11,12 +7,37 @@ import AdminThemeList, {
   type AdminThemeRow,
 } from "@/components/admin/AdminThemeList/AdminThemeList";
 import { themes } from "@/data/themes";
-import { getMergedAdminThemes } from "@/lib/storage/adminThemeStorage";
+import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import type { ThemeItem } from "@/types/theme";
 
 import styles from "./page.module.css";
 
 type ThemeFilter = "all" | "free" | "signature";
+
+type AdminThemesPageProps = {
+  searchParams?: Promise<{
+    type?: string;
+  }>;
+};
+
+type AdminThemeListItem = AdminThemeRow & {
+  createdAt: string;
+};
+
+type DbThemeRow = {
+  id: string;
+  title: string;
+  type: ThemeItem["type"];
+  is_published: boolean;
+  set_price: number | null;
+  set_bonus_count: number | null;
+  created_at: string;
+  thumbnail_url: string | null;
+};
+
+type DbSetDownloadRow = {
+  theme_id: string;
+};
 
 function getPurchaseMode(theme: ThemeItem): AdminThemeRow["purchaseMode"] {
   if (theme.setPrice || theme.setBonusCount) {
@@ -42,7 +63,7 @@ function getFilterLabel(filter: ThemeFilter) {
   }
 }
 
-function parseThemeFilter(value: string | null): ThemeFilter {
+function parseThemeFilter(value?: string): ThemeFilter {
   if (value === "free" || value === "signature") {
     return value;
   }
@@ -50,37 +71,112 @@ function parseThemeFilter(value: string | null): ThemeFilter {
   return "all";
 }
 
-export default function AdminThemesPage() {
-  const searchParams = useSearchParams();
+function mapMockThemeToListItem(theme: ThemeItem): AdminThemeListItem {
+  return {
+    id: theme.id,
+    title: theme.title,
+    type: theme.type,
+    purchaseMode: getPurchaseMode(theme),
+    status: theme.isPublished ? "published" : "draft",
+    createdAt: theme.createdAt,
+    thumbnail: theme.thumbnail,
+  };
+}
 
-  const [allThemes] = useState<ThemeItem[]>(() => getMergedAdminThemes(themes));
+export default async function AdminThemesPage({
+  searchParams,
+}: AdminThemesPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const currentFilter = parseThemeFilter(resolvedSearchParams?.type);
 
-  const currentFilter = parseThemeFilter(searchParams.get("type"));
+  const supabase = createSupabaseAdmin();
 
-  const filteredThemes = useMemo(() => {
-    return allThemes.filter((theme) => {
-      if (currentFilter === "all") {
-        return true;
-      }
-
-      return theme.type === currentFilter;
-    });
-  }, [allThemes, currentFilter]);
-
-  const themeRows: AdminThemeRow[] = useMemo(() => {
-    return [...filteredThemes]
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  const [
+    { data: dbThemesData, error: dbThemesError },
+    { data: dbSetDownloadData, error: dbSetDownloadError },
+  ] = await Promise.all([
+    supabase
+      .from("themes")
+      .select(
+        "id, title, type, is_published, set_price, set_bonus_count, created_at, thumbnail_url",
       )
-      .map((theme) => ({
-        id: theme.id,
-        title: theme.title,
-        type: theme.type,
-        purchaseMode: getPurchaseMode(theme),
-        status: theme.isPublished ? "published" : "draft",
-      }));
-  }, [filteredThemes]);
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("theme_download_files")
+      .select("theme_id")
+      .eq("purchase_mode", "set"),
+  ]);
+
+  if (dbThemesError) {
+    console.error("Failed to fetch themes from Supabase:", dbThemesError);
+  }
+
+  if (dbSetDownloadError) {
+    console.error(
+      "Failed to fetch set download files from Supabase:",
+      dbSetDownloadError,
+    );
+  }
+
+  const dbThemes = (dbThemesData ?? []) as DbThemeRow[];
+  const dbSetDownloadRows = (dbSetDownloadData ?? []) as DbSetDownloadRow[];
+
+  const setDownloadThemeIds = new Set(
+    dbSetDownloadRows.map((row) => row.theme_id),
+  );
+
+  const mockThemeItems = themes.map(mapMockThemeToListItem);
+
+  const dbThemeItems: AdminThemeListItem[] = dbThemes.map((theme) => {
+    const hasSetMode =
+      Boolean(theme.set_price) ||
+      Boolean(theme.set_bonus_count) ||
+      setDownloadThemeIds.has(theme.id);
+
+    return {
+      id: theme.id,
+      title: theme.title,
+      type: theme.type,
+      purchaseMode: hasSetMode ? "set" : "single",
+      status: theme.is_published ? "published" : "draft",
+      createdAt: theme.created_at,
+      thumbnail: theme.thumbnail_url ?? undefined,
+    };
+  });
+
+  const mergedThemeMap = new Map<string, AdminThemeListItem>();
+
+  mockThemeItems.forEach((theme) => {
+    mergedThemeMap.set(theme.id, theme);
+  });
+
+  dbThemeItems.forEach((theme) => {
+    mergedThemeMap.set(theme.id, theme);
+  });
+
+  const allThemes = Array.from(mergedThemeMap.values());
+
+  const filteredThemes = allThemes.filter((theme) => {
+    if (currentFilter === "all") {
+      return true;
+    }
+
+    return theme.type === currentFilter;
+  });
+
+  const themeRows: AdminThemeRow[] = [...filteredThemes]
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )
+    .map((theme) => ({
+      id: theme.id,
+      title: theme.title,
+      type: theme.type,
+      purchaseMode: theme.purchaseMode,
+      status: theme.status,
+      thumbnail: theme.thumbnail,
+    }));
 
   const filterOptions: ThemeFilter[] = ["all", "free", "signature"];
 

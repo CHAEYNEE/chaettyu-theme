@@ -2,15 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { ChangeEvent, useMemo, useRef, useState } from "react";
 
 import CustomDropdown, {
   type DropdownOption,
 } from "@/components/common/CustomDropdown/CustomDropdown";
-import {
-  addStoredAdminTheme,
-  getMergedAdminThemes,
-} from "@/lib/storage/adminThemeStorage";
 import type { ThemeItem, ThemePlatform, ThemeType } from "@/types/theme";
 
 import styles from "./AdminThemeForm.module.css";
@@ -89,10 +85,20 @@ function splitByComma(value: string) {
 
 export default function AdminThemeForm({ baseThemes }: AdminThemeFormProps) {
   const router = useRouter();
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  const previewInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState<FormState>(initialFormState);
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
+  const [isUploadingPreviewImages, setIsUploadingPreviewImages] =
+    useState(false);
+
+  const previewImageList = useMemo(
+    () => splitByLine(form.previewImages),
+    [form.previewImages],
+  );
 
   function handleChange<K extends keyof FormState>(
     key: K,
@@ -128,53 +134,132 @@ export default function AdminThemeForm({ baseThemes }: AdminThemeFormProps) {
     }
   }
 
-  function buildThemeItem(): ThemeItem {
-    const previewImages = splitByLine(form.previewImages);
-    const tags = splitByComma(form.tags);
-    const trimmedTitle = form.title.trim();
-    const trimmedThumbnail = form.thumbnail.trim();
-    const normalizedId = normalizeId(form.id);
-    const today = new Date().toISOString().slice(0, 10);
+  async function handleThumbnailUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
 
-    const nextTheme: ThemeItem = {
-      id: normalizedId,
-      title: trimmedTitle,
-      type: form.type,
-      price: form.type === "free" ? 0 : Number(form.price || 0),
-      thumbnail: trimmedThumbnail,
-      previewImages:
-        previewImages.length > 0 ? previewImages : [trimmedThumbnail],
-      tags,
-      isPublished: form.isPublished,
-      createdAt: today,
-      platforms: form.platforms,
-      detailHtml:
-        form.detailHtml.trim() ||
-        `<p>${trimmedTitle} 테마 상세 내용을 준비 중입니다.</p>`,
-    };
-
-    if (form.badge.trim()) {
-      nextTheme.badge = form.badge.trim();
+    if (!file) {
+      return;
     }
 
-    if (form.type === "signature") {
-      nextTheme.purchaseCount = 0;
+    resetError();
+    setIsUploadingThumbnail(true);
 
-      if (form.setPrice.trim()) {
-        nextTheme.setPrice = Number(form.setPrice);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/admin/upload-thumbnail", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = (await response.json()) as {
+        publicUrl?: string;
+        error?: string;
+      };
+
+      if (!response.ok || !result.publicUrl) {
+        throw new Error(result.error || "썸네일 업로드에 실패했어요.");
+      }
+
+      handleChange("thumbnail", result.publicUrl);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "썸네일 업로드 중 문제가 생겼어요.";
+
+      setErrorMessage(message);
+    } finally {
+      setIsUploadingThumbnail(false);
+
+      if (thumbnailInputRef.current) {
+        thumbnailInputRef.current.value = "";
       }
     }
+  }
 
-    if (form.type === "free") {
-      nextTheme.downloadCount = 0;
+  async function handlePreviewImagesUpload(
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
+    const files = Array.from(event.target.files ?? []);
+
+    if (files.length === 0) {
+      return;
     }
 
-    return nextTheme;
+    resetError();
+    setIsUploadingPreviewImages(true);
+
+    try {
+      const formData = new FormData();
+
+      files.forEach((file) => {
+        formData.append("files", file);
+      });
+
+      const response = await fetch("/api/admin/upload-preview-images", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = (await response.json()) as {
+        files?: { publicUrl: string }[];
+        error?: string;
+      };
+
+      if (!response.ok || !result.files) {
+        throw new Error(result.error || "미리보기 이미지 업로드에 실패했어요.");
+      }
+
+      const uploadedUrls = result.files.map((file) => file.publicUrl);
+
+      setForm((prev) => {
+        const existingUrls = splitByLine(prev.previewImages);
+        const mergedUrls = [...existingUrls, ...uploadedUrls];
+
+        return {
+          ...prev,
+          previewImages: mergedUrls.join("\n"),
+        };
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "미리보기 이미지 업로드 중 문제가 생겼어요.";
+
+      setErrorMessage(message);
+    } finally {
+      setIsUploadingPreviewImages(false);
+
+      if (previewInputRef.current) {
+        previewInputRef.current.value = "";
+      }
+    }
+  }
+
+  function buildRequestBody() {
+    return {
+      id: normalizeId(form.id),
+      title: form.title.trim(),
+      type: form.type,
+      price: Number(form.price || 0),
+      setPrice: form.setPrice.trim() ? Number(form.setPrice) : undefined,
+      setBonusCount: undefined,
+      thumbnail: form.thumbnail.trim(),
+      previewImages: splitByLine(form.previewImages),
+      tags: splitByComma(form.tags),
+      isPublished: form.isPublished,
+      downloadFileName: undefined,
+      platforms: form.platforms,
+      detailHtml: form.detailHtml.trim(),
+      badge: form.badge.trim() || undefined,
+    };
   }
 
   function validateForm() {
     const normalizedId = normalizeId(form.id);
-    const mergedThemes = getMergedAdminThemes(baseThemes);
 
     if (!normalizedId) {
       return "테마 ID를 입력해 주세요.";
@@ -185,7 +270,7 @@ export default function AdminThemeForm({ baseThemes }: AdminThemeFormProps) {
     }
 
     if (!form.thumbnail.trim()) {
-      return "썸네일 경로를 입력해 주세요.";
+      return "썸네일을 업로드하거나 경로를 입력해 주세요.";
     }
 
     if (form.platforms.length === 0) {
@@ -196,14 +281,14 @@ export default function AdminThemeForm({ baseThemes }: AdminThemeFormProps) {
       return "유료 테마는 가격을 입력해 주세요.";
     }
 
-    if (mergedThemes.some((theme) => theme.id === normalizedId)) {
-      return "이미 사용 중인 테마 ID예요.";
+    if (baseThemes.some((theme) => theme.id === normalizedId)) {
+      return "기존 mock 테마와 ID가 겹쳐요. 다른 ID를 써주세요.";
     }
 
     return "";
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     resetError();
 
@@ -217,15 +302,33 @@ export default function AdminThemeForm({ baseThemes }: AdminThemeFormProps) {
     setIsSubmitting(true);
 
     try {
-      const nextTheme = buildThemeItem();
+      const response = await fetch("/api/admin/themes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(buildRequestBody()),
+      });
 
-      addStoredAdminTheme(nextTheme);
+      const result = (await response.json()) as {
+        message?: string;
+        error?: string;
+      };
 
-      window.alert("새 테마가 등록되었어요!");
+      if (!response.ok) {
+        throw new Error(result.error || "테마 등록에 실패했어요.");
+      }
+
+      window.alert(result.message || "새 테마가 등록되었어요!");
       router.replace("/admin/themes");
       router.refresh();
-    } catch {
-      setErrorMessage("테마 등록 중 문제가 생겼어요.");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "테마 등록 중 문제가 생겼어요.";
+
+      setErrorMessage(message);
       setIsSubmitting(false);
     }
   }
@@ -393,8 +496,28 @@ export default function AdminThemeForm({ baseThemes }: AdminThemeFormProps) {
         </div>
 
         <div className={styles.column}>
-          <label className={styles.field}>
-            <span className={styles.label}>썸네일 경로</span>
+          <div className={styles.field}>
+            <span className={styles.label}>썸네일</span>
+
+            <div className={styles.thumbnailUploadRow}>
+              <input
+                ref={thumbnailInputRef}
+                className={styles.hiddenFileInput}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                onChange={handleThumbnailUpload}
+              />
+
+              <button
+                type="button"
+                className={styles.uploadButton}
+                onClick={() => thumbnailInputRef.current?.click()}
+                disabled={isUploadingThumbnail}
+              >
+                {isUploadingThumbnail ? "업로드 중..." : "이미지 업로드"}
+              </button>
+            </div>
+
             <input
               className={styles.input}
               type="text"
@@ -403,12 +526,48 @@ export default function AdminThemeForm({ baseThemes }: AdminThemeFormProps) {
                 resetError();
                 handleChange("thumbnail", event.target.value);
               }}
-              placeholder="/images/themes/sample-theme/thumb.gif"
+              placeholder="업로드 후 URL이 자동 입력돼요."
             />
-          </label>
 
-          <label className={styles.field}>
+            {form.thumbnail ? (
+              <div className={styles.thumbnailPreviewBox}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={form.thumbnail}
+                  alt="썸네일 미리보기"
+                  className={styles.thumbnailPreview}
+                />
+              </div>
+            ) : null}
+
+            <span className={styles.hint}>PNG, JPG, WEBP, GIF / 5MB 이하</span>
+          </div>
+
+          <div className={styles.field}>
             <span className={styles.label}>미리보기 이미지</span>
+
+            <div className={styles.thumbnailUploadRow}>
+              <input
+                ref={previewInputRef}
+                className={styles.hiddenFileInput}
+                type="file"
+                multiple
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                onChange={handlePreviewImagesUpload}
+              />
+
+              <button
+                type="button"
+                className={styles.uploadButton}
+                onClick={() => previewInputRef.current?.click()}
+                disabled={isUploadingPreviewImages}
+              >
+                {isUploadingPreviewImages
+                  ? "업로드 중..."
+                  : "미리보기 이미지 추가"}
+              </button>
+            </div>
+
             <textarea
               className={styles.textarea}
               value={form.previewImages}
@@ -418,8 +577,29 @@ export default function AdminThemeForm({ baseThemes }: AdminThemeFormProps) {
               }}
               placeholder={`/images/themes/sample-theme/preview-1.png\n/images/themes/sample-theme/preview-2.png`}
             />
-            <span className={styles.hint}>한 줄에 하나씩 입력</span>
-          </label>
+
+            {previewImageList.length > 0 ? (
+              <div className={styles.previewGrid}>
+                {previewImageList.map((imageUrl, index) => (
+                  <div
+                    key={`${imageUrl}-${index}`}
+                    className={styles.previewCard}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={imageUrl}
+                      alt={`미리보기 이미지 ${index + 1}`}
+                      className={styles.previewImage}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            <span className={styles.hint}>
+              여러 장 선택 가능 / 한 줄에 하나씩 저장돼요.
+            </span>
+          </div>
 
           <label className={styles.field}>
             <span className={styles.label}>태그</span>
@@ -461,7 +641,9 @@ export default function AdminThemeForm({ baseThemes }: AdminThemeFormProps) {
         <button
           type="submit"
           className={styles.primaryButton}
-          disabled={isSubmitting}
+          disabled={
+            isSubmitting || isUploadingThumbnail || isUploadingPreviewImages
+          }
         >
           {isSubmitting ? "등록 중..." : "테마 등록"}
         </button>
