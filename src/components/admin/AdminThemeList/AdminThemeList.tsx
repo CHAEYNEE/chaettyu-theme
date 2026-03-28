@@ -29,9 +29,9 @@ export default function AdminThemeList({ items }: AdminThemeListProps) {
           </div>
 
           <div className={styles.metaRow}>
-            <span>{theme.type === "free" ? "무료" : "시그니처"}</span>
-            <span>{theme.purchaseMode === "single" ? "single" : "set"}</span>
-            <span>{theme.id}</span>
+            <span>{theme.type === "free" ? "무료" : "유료"}</span>
+            <span>{theme.purchaseMode === "single" ? "개별" : "세트"}</span>
+            <span>ID · {theme.id}</span>
           </div>
         </li>
       ))}

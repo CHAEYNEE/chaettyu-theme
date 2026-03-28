@@ -83,7 +83,7 @@ export default function AdminPage() {
     <AdminPageSection
       eyebrow="ADMIN HOME"
       title="관리자 대시보드"
-      description="채뜌.theme 운영 현황을 한눈에 확인하고 필요한 작업으로 바로 이동할 수 있어요."
+      description="채뜌.theme 운영 현황을 한눈에 확인하는 대시보드"
     >
       <AdminDashboardSummary items={dashboardSummary} />
 
@@ -120,7 +120,7 @@ export default function AdminPage() {
           ))}
         </AdminDashboardPanel>
 
-        <AdminDashboardPanel title="인기 시그니처 테마 TOP 3">
+        <AdminDashboardPanel title="인기 유료 테마 TOP 3">
           {popularSignatureThemes.map((theme, index) => (
             <div key={theme.id} className={styles.rankRow}>
               <span className={styles.rankBadge}>{index + 1}</span>

@@ -15,6 +15,7 @@ type CustomDropdownProps = {
   placeholder: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  variant?: "default" | "form";
 };
 
 export default function CustomDropdown({
@@ -23,6 +24,7 @@ export default function CustomDropdown({
   placeholder,
   onChange,
   disabled = false,
+  variant = "default",
 }: CustomDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -69,11 +71,20 @@ export default function CustomDropdown({
   return (
     <div
       ref={rootRef}
-      className={`${styles.dropdown} ${disabled ? styles.disabledDropdown : ""}`}
+      className={[
+        styles.dropdown,
+        disabled ? styles.disabledDropdown : "",
+        variant === "form" ? styles.formDropdown : "",
+      ].join(" ")}
     >
       <button
         type="button"
-        className={`${styles.trigger} ${!value ? styles.placeholderTrigger : ""}`}
+        className={[
+          styles.trigger,
+          !value ? styles.placeholderTrigger : "",
+          variant === "form" ? styles.formTrigger : "",
+          isOpen && variant === "form" ? styles.formTriggerOpen : "",
+        ].join(" ")}
         onClick={handleToggle}
         disabled={disabled}
         aria-haspopup="listbox"
@@ -100,7 +111,12 @@ export default function CustomDropdown({
       </button>
 
       {isOpen && (
-        <div className={styles.menu} role="listbox">
+        <div
+          className={`${styles.menu} ${
+            variant === "form" ? styles.formMenu : ""
+          }`}
+          role="listbox"
+        >
           {options.map((option) => {
             const isSelected = option.value === value;
 
@@ -110,7 +126,7 @@ export default function CustomDropdown({
                 type="button"
                 className={`${styles.menuItem} ${
                   isSelected ? styles.activeMenuItem : ""
-                }`}
+                } ${variant === "form" ? styles.formMenuItem : ""}`}
                 onClick={() => handleSelect(option.value)}
                 role="option"
                 aria-selected={isSelected}
