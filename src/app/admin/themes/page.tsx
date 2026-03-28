@@ -6,7 +6,6 @@ import AdminPageSection from "@/components/admin/AdminPageSection/AdminPageSecti
 import AdminThemeList, {
   type AdminThemeRow,
 } from "@/components/admin/AdminThemeList/AdminThemeList";
-import { themes } from "@/data/themes";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import type { ThemeItem } from "@/types/theme";
 
@@ -39,18 +38,6 @@ type DbSetDownloadRow = {
   theme_id: string;
 };
 
-function getPurchaseMode(theme: ThemeItem): AdminThemeRow["purchaseMode"] {
-  if (theme.setPrice || theme.setBonusCount) {
-    return "set";
-  }
-
-  if (theme.downloadFiles?.some((file) => file.purchaseMode === "set")) {
-    return "set";
-  }
-
-  return "single";
-}
-
 function getFilterLabel(filter: ThemeFilter) {
   switch (filter) {
     case "free":
@@ -69,18 +56,6 @@ function parseThemeFilter(value?: string): ThemeFilter {
   }
 
   return "all";
-}
-
-function mapMockThemeToListItem(theme: ThemeItem): AdminThemeListItem {
-  return {
-    id: theme.id,
-    title: theme.title,
-    type: theme.type,
-    purchaseMode: getPurchaseMode(theme),
-    status: theme.isPublished ? "published" : "draft",
-    createdAt: theme.createdAt,
-    thumbnail: theme.thumbnail,
-  };
 }
 
 export default async function AdminThemesPage({
@@ -125,8 +100,6 @@ export default async function AdminThemesPage({
     dbSetDownloadRows.map((row) => row.theme_id),
   );
 
-  const mockThemeItems = themes.map(mapMockThemeToListItem);
-
   const dbThemeItems: AdminThemeListItem[] = dbThemes.map((theme) => {
     const hasSetMode =
       Boolean(theme.set_price) ||
@@ -144,19 +117,7 @@ export default async function AdminThemesPage({
     };
   });
 
-  const mergedThemeMap = new Map<string, AdminThemeListItem>();
-
-  mockThemeItems.forEach((theme) => {
-    mergedThemeMap.set(theme.id, theme);
-  });
-
-  dbThemeItems.forEach((theme) => {
-    mergedThemeMap.set(theme.id, theme);
-  });
-
-  const allThemes = Array.from(mergedThemeMap.values());
-
-  const filteredThemes = allThemes.filter((theme) => {
+  const filteredThemes = dbThemeItems.filter((theme) => {
     if (currentFilter === "all") {
       return true;
     }

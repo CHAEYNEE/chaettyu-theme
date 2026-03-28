@@ -7,13 +7,9 @@ import { ChangeEvent, useMemo, useRef, useState } from "react";
 import CustomDropdown, {
   type DropdownOption,
 } from "@/components/common/CustomDropdown/CustomDropdown";
-import type { ThemeItem, ThemePlatform, ThemeType } from "@/types/theme";
+import type { ThemePlatform, ThemeType } from "@/types/theme";
 
 import styles from "./AdminThemeForm.module.css";
-
-type AdminThemeFormProps = {
-  baseThemes: ThemeItem[];
-};
 
 type FormState = {
   id: string;
@@ -83,7 +79,7 @@ function splitByComma(value: string) {
     .filter(Boolean);
 }
 
-export default function AdminThemeForm({ baseThemes }: AdminThemeFormProps) {
+export default function AdminThemeForm() {
   const router = useRouter();
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const previewInputRef = useRef<HTMLInputElement>(null);
@@ -279,10 +275,6 @@ export default function AdminThemeForm({ baseThemes }: AdminThemeFormProps) {
 
     if (form.type === "signature" && !form.price.trim()) {
       return "유료 테마는 가격을 입력해 주세요.";
-    }
-
-    if (baseThemes.some((theme) => theme.id === normalizedId)) {
-      return "기존 mock 테마와 ID가 겹쳐요. 다른 ID를 써주세요.";
     }
 
     return "";
