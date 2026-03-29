@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { useToast } from "@/components/common/Toast/ToastProvider";
-import { themes } from "@/data/themes"; // 실제 경로에 맞게 수정
+import { themes } from "@/data/themes";
 import {
   addThemeDownload,
   getUserDownloadedLineItems,
@@ -16,6 +16,7 @@ import type {
   ThemePurchaseLineItem,
   ThemePurchaseRecord,
 } from "@/types/themeHistory";
+import { formatDate } from "@/utils/formatDate";
 
 import styles from "./MyPageHistorySection.module.css";
 
@@ -31,14 +32,6 @@ type DownloadTarget = {
   fileName: string;
   fileUrl: string;
 };
-
-function formatDate(dateString: string) {
-  return new Intl.DateTimeFormat("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(dateString));
-}
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("ko-KR").format(price);

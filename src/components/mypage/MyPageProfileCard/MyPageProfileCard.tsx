@@ -4,6 +4,7 @@ import Image from "next/image";
 
 import { clearMockUser } from "@/lib/auth/mockAuthStorage";
 import type { MockUser } from "@/types/mockUser";
+import { formatDate } from "@/utils/formatDate";
 
 import styles from "./MyPageProfileCard.module.css";
 
@@ -13,16 +14,6 @@ type MyPageProfileCardProps = {
   ownedThemeCount: number;
   latestActivity: string | null;
 };
-
-function formatDate(dateString: string) {
-  const date = new Date(dateString);
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}.${month}.${day}`;
-}
 
 export default function MyPageProfileCard({
   user,
