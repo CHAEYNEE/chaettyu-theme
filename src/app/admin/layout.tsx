@@ -1,16 +1,14 @@
 import type { ReactNode } from "react";
 
-import AdminGuard from "@/components/auth/AdminGuard/AdminGuard";
 import AdminBoardLayout from "@/components/layout/AdminBoardLayout/AdminBoardLayout";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 type AdminLayoutProps = {
   children: ReactNode;
 };
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
-  return (
-    <AdminGuard>
-      <AdminBoardLayout>{children}</AdminBoardLayout>
-    </AdminGuard>
-  );
+export default async function AdminLayout({ children }: AdminLayoutProps) {
+  await requireAdmin({ redirectTo: "/admin" });
+
+  return <AdminBoardLayout>{children}</AdminBoardLayout>;
 }

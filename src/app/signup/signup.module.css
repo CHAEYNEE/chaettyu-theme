@@ -5,7 +5,7 @@
   align-items: center;
 }
 
-.loginCard {
+.signupCard {
   width: 100%;
   max-width: 480px;
   display: flex;
@@ -39,6 +39,15 @@
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+
+.guideText {
+  margin: 0;
+  color: #9a756e;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+  opacity: 0.9;
 }
 
 .form {
@@ -80,6 +89,12 @@
   background: #fffaf0;
 }
 
+.hint {
+  color: #9a756e;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .errorMessage {
   margin: -2px 0 0;
   padding: 10px 12px;
@@ -98,8 +113,8 @@
 }
 
 .primaryButton,
-.secondaryButton,
-.signupButton {
+.secondaryButton {
+  flex: 1;
   min-height: 52px;
   border: 3px solid #83615c;
   display: inline-flex;
@@ -117,11 +132,6 @@
     opacity 0.15s ease;
 }
 
-.primaryButton,
-.secondaryButton {
-  flex: 1;
-}
-
 .primaryButton {
   background: #f4777f;
   color: #fff;
@@ -132,15 +142,8 @@
   color: #83615c;
 }
 
-.signupButton {
-  width: 100%;
-  background: #feedb7;
-  color: #83615c;
-}
-
 .primaryButton:hover,
-.secondaryButton:hover,
-.signupButton:hover {
+.secondaryButton:hover {
   transform: translate(-1px, -1px);
 }
 
@@ -153,29 +156,10 @@
   transform: none;
 }
 
-.testAccount {
-  margin: 0;
-  color: #9a756e;
-  font-size: 13px;
-  line-height: 1.4;
-  text-align: center;
-  opacity: 0.85;
-}
-
-.testAccountList {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
 @media (max-width: 768px) {
-  .loginCard {
+  .signupCard {
     padding: 20px 18px;
     box-shadow: 5px 5px 0 var(--color-accent);
-  }
-
-  .cardTitle {
-    font-size: 24px;
   }
 
   .buttonGroup {

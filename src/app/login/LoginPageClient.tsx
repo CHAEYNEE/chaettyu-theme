@@ -1,16 +1,13 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import BoardLayout from "@/components/layout/BoardLayout/BoardLayout";
-import type { MockUser } from "@/types/mockUser";
-import {
-  getMockUser,
-  sanitizeRedirectPath,
-  setMockUser,
-} from "@/lib/auth/mockAuthStorage";
+import { useToast } from "@/components/common/Toast/ToastProvider";
+import { sanitizeRedirectPath } from "@/lib/auth/mockAuthStorage";
+import { supabaseClient } from "@/lib/supabase/client";
 
 import styles from "./login.module.css";
 
@@ -18,29 +15,16 @@ type LoginPageClientProps = {
   redirect: string;
 };
 
-const MOCK_ACCOUNTS = [
-  {
-    id: "mock-user-1",
-    loginId: "chaettyu",
-    password: "1234",
-    email: "chae@example.com",
-    nickname: "채뜌",
-    profileImage: "/images/mock_profile.jpg",
-    role: "user" as const,
-  },
-  {
-    id: "mock-admin-1",
-    loginId: "admin",
-    password: "1234",
-    email: "admin@chaettyu.theme",
-    nickname: "관리자",
-    profileImage: "/images/mock_profile.jpg",
-    role: "admin" as const,
-  },
-];
+function normalizeLoginId(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[^a-z0-9_-]/g, "");
+}
 
 export default function LoginPageClient({ redirect }: LoginPageClientProps) {
   const router = useRouter();
+  const { showToast } = useToast();
 
   const safeRedirect = useMemo(
     () => sanitizeRedirectPath(redirect),
@@ -52,52 +36,65 @@ export default function LoginPageClient({ redirect }: LoginPageClientProps) {
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    const currentUser = getMockUser();
-
-    if (currentUser) {
-      router.replace(safeRedirect);
-    }
-  }, [router, safeRedirect]);
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const trimmedLoginId = loginId.trim();
+    const trimmedLoginId = normalizeLoginId(loginId.trim());
     const trimmedPassword = password.trim();
 
     if (!trimmedLoginId || !trimmedPassword) {
-      setErrorMessage("아이디와 비밀번호를 입력해 주세요.");
-      return;
-    }
-
-    const matchedAccount = MOCK_ACCOUNTS.find(
-      (account) =>
-        account.loginId === trimmedLoginId &&
-        account.password === trimmedPassword,
-    );
-
-    if (!matchedAccount) {
-      setErrorMessage("아이디 또는 비밀번호가 올바르지 않아요.");
+      const message = "아이디와 비밀번호를 입력해 주세요.";
+      setErrorMessage(message);
+      showToast(message, { type: "error" });
       return;
     }
 
     setErrorMessage("");
     setIsSubmitting(true);
 
-    const nextUser: MockUser = {
-      id: matchedAccount.id,
-      loginId: matchedAccount.loginId,
-      email: matchedAccount.email,
-      nickname: matchedAccount.nickname,
-      provider: "mock",
-      createdAt: new Date().toISOString(),
-      profileImage: matchedAccount.profileImage,
-      role: matchedAccount.role,
-    };
+    try {
+      const resolveResponse = await fetch("/api/auth/resolve-login-id", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          loginId: trimmedLoginId,
+        }),
+      });
 
-    setMockUser(nextUser);
-    router.replace(safeRedirect);
+      const resolveResult = (await resolveResponse.json()) as {
+        email?: string;
+        error?: string;
+      };
+
+      if (!resolveResponse.ok || !resolveResult.email) {
+        throw new Error(
+          resolveResult.error || "아이디 또는 비밀번호가 올바르지 않아요.",
+        );
+      }
+
+      const { error } = await supabaseClient.auth.signInWithPassword({
+        email: resolveResult.email,
+        password: trimmedPassword,
+      });
+
+      if (error) {
+        throw new Error("아이디 또는 비밀번호가 올바르지 않아요.");
+      }
+
+      showToast("로그인되었어요!", { type: "success" });
+
+      router.replace(safeRedirect);
+      router.refresh();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "로그인 중 문제가 생겼어요.";
+
+      setErrorMessage(message);
+      showToast(message, { type: "error" });
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -109,10 +106,7 @@ export default function LoginPageClient({ redirect }: LoginPageClientProps) {
 
             <div className={styles.testAccountList}>
               <p className={styles.testAccount}>
-                일반 계정 · ID : chaettyu / PW : 1234
-              </p>
-              <p className={styles.testAccount}>
-                관리자 계정 · ID : admin / PW : 1234
+                회원가입한 아이디와 비밀번호로 로그인해 주세요.
               </p>
             </div>
           </div>
@@ -124,7 +118,9 @@ export default function LoginPageClient({ redirect }: LoginPageClientProps) {
                 className={styles.input}
                 type="text"
                 value={loginId}
-                onChange={(event) => setLoginId(event.target.value)}
+                onChange={(event) =>
+                  setLoginId(normalizeLoginId(event.target.value))
+                }
                 placeholder="아이디를 입력해 주세요"
                 autoComplete="username"
               />
@@ -159,6 +155,13 @@ export default function LoginPageClient({ redirect }: LoginPageClientProps) {
                 돌아가기
               </Link>
             </div>
+
+            <Link
+              className={styles.signupButton}
+              href={`/signup?redirect=${encodeURIComponent(safeRedirect)}`}
+            >
+              회원가입하기
+            </Link>
           </form>
         </section>
       </section>
