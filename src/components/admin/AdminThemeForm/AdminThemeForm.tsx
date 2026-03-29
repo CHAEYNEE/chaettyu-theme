@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChangeEvent, useMemo, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import CustomDropdown, {
   type DropdownOption,
@@ -10,6 +10,28 @@ import CustomDropdown, {
 import type { ThemePlatform, ThemeType } from "@/types/theme";
 
 import styles from "./AdminThemeForm.module.css";
+
+export type AdminThemeFormMode = "create" | "edit";
+
+export type AdminThemeFormInitialValues = {
+  id: string;
+  title: string;
+  type: ThemeType;
+  price: number;
+  setPrice?: number | null;
+  thumbnail: string;
+  previewImages: string[];
+  tags: string[];
+  badge?: string | null;
+  detailHtml: string;
+  platforms: ThemePlatform[];
+  isPublished: boolean;
+};
+
+type AdminThemeFormProps = {
+  mode?: AdminThemeFormMode;
+  initialValues?: AdminThemeFormInitialValues;
+};
 
 type FormState = {
   id: string;
@@ -24,21 +46,6 @@ type FormState = {
   detailHtml: string;
   platforms: ThemePlatform[];
   isPublished: boolean;
-};
-
-const initialFormState: FormState = {
-  id: "",
-  title: "",
-  type: "free",
-  price: "0",
-  setPrice: "",
-  thumbnail: "",
-  previewImages: "",
-  tags: "",
-  badge: "",
-  detailHtml: "",
-  platforms: ["ios"],
-  isPublished: true,
 };
 
 const themeTypeOptions: DropdownOption[] = [
@@ -79,17 +86,74 @@ function splitByComma(value: string) {
     .filter(Boolean);
 }
 
-export default function AdminThemeForm() {
+function createEmptyFormState(): FormState {
+  return {
+    id: "",
+    title: "",
+    type: "free",
+    price: "0",
+    setPrice: "",
+    thumbnail: "",
+    previewImages: "",
+    tags: "",
+    badge: "",
+    detailHtml: "",
+    platforms: ["ios"],
+    isPublished: true,
+  };
+}
+
+function createInitialFormState(
+  initialValues?: AdminThemeFormInitialValues,
+): FormState {
+  if (!initialValues) {
+    return createEmptyFormState();
+  }
+
+  return {
+    id: initialValues.id,
+    title: initialValues.title,
+    type: initialValues.type,
+    price: String(
+      initialValues.type === "free" ? 0 : (initialValues.price ?? 0),
+    ),
+    setPrice:
+      typeof initialValues.setPrice === "number"
+        ? String(initialValues.setPrice)
+        : "",
+    thumbnail: initialValues.thumbnail ?? "",
+    previewImages: (initialValues.previewImages ?? []).join("\n"),
+    tags: (initialValues.tags ?? []).join(", "),
+    badge: initialValues.badge ?? "",
+    detailHtml: initialValues.detailHtml ?? "",
+    platforms:
+      initialValues.platforms.length > 0 ? initialValues.platforms : ["ios"],
+    isPublished: initialValues.isPublished,
+  };
+}
+
+export default function AdminThemeForm({
+  mode = "create",
+  initialValues,
+}: AdminThemeFormProps) {
   const router = useRouter();
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const previewInputRef = useRef<HTMLInputElement>(null);
 
-  const [form, setForm] = useState<FormState>(initialFormState);
+  const isEditMode = mode === "edit";
+
+  const [form, setForm] = useState<FormState>(() =>
+    createInitialFormState(initialValues),
+  );
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
   const [isUploadingPreviewImages, setIsUploadingPreviewImages] =
     useState(false);
+
+  useEffect(() => {
+    setForm(createInitialFormState(initialValues));
+  }, [initialValues]);
 
   const previewImageList = useMemo(
     () => splitByLine(form.previewImages),
@@ -236,8 +300,10 @@ export default function AdminThemeForm() {
   }
 
   function buildRequestBody() {
+    const normalizedId = normalizeId(form.id);
+
     return {
-      id: normalizeId(form.id),
+      id: normalizedId,
       title: form.title.trim(),
       type: form.type,
       price: Number(form.price || 0),
@@ -293,13 +359,19 @@ export default function AdminThemeForm() {
 
     setIsSubmitting(true);
 
+    const requestBody = buildRequestBody();
+    const endpoint = isEditMode
+      ? `/api/admin/themes/${requestBody.id}`
+      : "/api/admin/themes";
+    const method = isEditMode ? "PATCH" : "POST";
+
     try {
-      const response = await fetch("/api/admin/themes", {
-        method: "POST",
+      const response = await fetch(endpoint, {
+        method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(buildRequestBody()),
+        body: JSON.stringify(requestBody),
       });
 
       const result = (await response.json()) as {
@@ -308,22 +380,41 @@ export default function AdminThemeForm() {
       };
 
       if (!response.ok) {
-        throw new Error(result.error || "테마 등록에 실패했어요.");
+        throw new Error(
+          result.error ||
+            (isEditMode
+              ? "테마 수정에 실패했어요."
+              : "테마 등록에 실패했어요."),
+        );
       }
 
-      window.alert(result.message || "새 테마가 등록되었어요!");
+      window.alert(
+        result.message ||
+          (isEditMode ? "테마가 수정되었어요!" : "새 테마가 등록되었어요!"),
+      );
+
       router.replace("/admin/themes");
       router.refresh();
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
-          : "테마 등록 중 문제가 생겼어요.";
+          : isEditMode
+            ? "테마 수정 중 문제가 생겼어요."
+            : "테마 등록 중 문제가 생겼어요.";
 
       setErrorMessage(message);
       setIsSubmitting(false);
     }
   }
+
+  const submitText = isSubmitting
+    ? isEditMode
+      ? "수정 중..."
+      : "등록 중..."
+    : isEditMode
+      ? "수정 저장"
+      : "테마 등록";
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
@@ -340,6 +431,7 @@ export default function AdminThemeForm() {
               className={styles.input}
               type="text"
               value={form.id}
+              disabled={isEditMode}
               onChange={(event) => {
                 resetError();
                 handleChange("id", normalizeId(event.target.value));
@@ -347,7 +439,9 @@ export default function AdminThemeForm() {
               placeholder="milk-heart"
             />
             <span className={styles.hint}>
-              영문 소문자, 숫자, 하이픈(-)만 사용
+              {isEditMode
+                ? "수정 화면에서는 ID를 변경할 수 없어요."
+                : "영문 소문자, 숫자, 하이픈(-)만 사용"}
             </span>
           </label>
 
@@ -379,7 +473,7 @@ export default function AdminThemeForm() {
                 setForm((prev) => ({
                   ...prev,
                   type: nextType,
-                  price: nextType === "free" ? "0" : prev.price,
+                  price: nextType === "free" ? "0" : prev.price || "0",
                   setPrice: nextType === "free" ? "" : prev.setPrice,
                 }));
               }}
@@ -637,7 +731,7 @@ export default function AdminThemeForm() {
             isSubmitting || isUploadingThumbnail || isUploadingPreviewImages
           }
         >
-          {isSubmitting ? "등록 중..." : "테마 등록"}
+          {submitText}
         </button>
       </div>
     </form>
