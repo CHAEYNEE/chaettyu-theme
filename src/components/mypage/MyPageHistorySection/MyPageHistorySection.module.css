@@ -155,16 +155,22 @@
 }
 
 .actionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 116px;
   height: 38px;
   padding: 0 14px;
+  box-sizing: border-box;
   border: 2px solid #83615c;
   background: #fbd2cc;
   color: #83615c;
   font-size: 13px;
   font-weight: 700;
   font-family: inherit;
+  line-height: 1;
   white-space: nowrap;
+  text-decoration: none;
   cursor: pointer;
   transition:
     transform 0.15s ease,
@@ -175,6 +181,7 @@
 .actionButton:hover {
   transform: translate(-1px, -1px);
   background: #fcc7b3;
+  text-decoration: none;
 }
 
 .actionButton:active {
@@ -186,6 +193,7 @@
   color: #9a756e;
   cursor: default;
   opacity: 0.78;
+  pointer-events: none;
 }
 
 .actionButtonDisabled:hover {

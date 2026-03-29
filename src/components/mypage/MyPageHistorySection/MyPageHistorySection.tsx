@@ -229,7 +229,6 @@ export default function MyPageHistorySection({
           record.items,
         );
         const isDownloading = downloadingRecordId === record.id;
-
         const actionLabel = isRedownload ? "다시 다운로드" : "다운로드";
 
         return (
@@ -285,14 +284,12 @@ export default function MyPageHistorySection({
                     <div className={styles.sideStack}>
                       <span className={styles.freePill}>보관 완료</span>
 
-                      <button
-                        type="button"
+                      <Link
+                        href={`/themes/${record.themeId}`}
                         className={styles.actionButton}
-                        onClick={() => handleRecordDownload(record)}
-                        disabled={isDownloading}
                       >
-                        {isDownloading ? "다운로드 중..." : actionLabel}
-                      </button>
+                        상세에서 다운로드
+                      </Link>
                     </div>
                   )}
                 </div>
