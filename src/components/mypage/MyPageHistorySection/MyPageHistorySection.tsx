@@ -5,21 +5,17 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { useToast } from "@/components/common/Toast/ToastProvider";
-import {
-  addThemeDownload,
-  getUserDownloadedLineItems,
-} from "@/lib/storage/themeStorage";
 import { buildThemeDownloadUrl } from "@/lib/theme/buildThemeDownloadUrl";
 import type {
-  ThemeDownloadRecord,
+  ThemeDownloadHistoryItem,
   ThemePurchaseLineItem,
-  ThemePurchaseRecord,
+  ThemePurchaseHistoryItem,
 } from "@/types/themeHistory";
 import { formatDate } from "@/utils/formatDate";
 
 import styles from "./MyPageHistorySection.module.css";
 
-type MyPageRecord = ThemePurchaseRecord | ThemeDownloadRecord;
+type MyPageRecord = ThemePurchaseHistoryItem | ThemeDownloadHistoryItem;
 
 type MyPageHistorySectionProps = {
   type: "purchase" | "download";
@@ -28,7 +24,6 @@ type MyPageHistorySectionProps = {
 };
 
 type DownloadTarget = {
-  fileName?: string;
   fileUrl: string;
 };
 
@@ -36,47 +31,7 @@ function formatPrice(price: number) {
   return new Intl.NumberFormat("ko-KR").format(price);
 }
 
-function isOwnedLineItem(
-  targetItem: ThemePurchaseLineItem,
-  ownedItems: ThemePurchaseLineItem[],
-) {
-  return ownedItems.some((ownedItem) => {
-    if (ownedItem.key === targetItem.key) {
-      return true;
-    }
-
-    if (ownedItem.platform !== targetItem.platform) {
-      return false;
-    }
-
-    if (
-      ownedItem.purchaseMode === "set" &&
-      targetItem.purchaseMode === "single"
-    ) {
-      return true;
-    }
-
-    return false;
-  });
-}
-
-function hasDownloadedAllItems(
-  userId: string,
-  themeId: string,
-  items: ThemePurchaseLineItem[],
-) {
-  if (items.length === 0) {
-    return false;
-  }
-
-  const downloadedItems = getUserDownloadedLineItems(userId, themeId);
-
-  return items.every((item) => isOwnedLineItem(item, downloadedItems));
-}
-
 function getDownloadTargets(record: MyPageRecord): DownloadTarget[] {
-  const fileNameQueue = [...(record.downloadFileNames ?? [])];
-
   return record.items.map((item) => {
     const fileUrl = buildThemeDownloadUrl({
       themeId: record.themeId,
@@ -85,15 +40,7 @@ function getDownloadTargets(record: MyPageRecord): DownloadTarget[] {
       versionValue: item.versionValue,
     });
 
-    const fallbackFileName =
-      item.purchaseMode === "set"
-        ? `${record.themeId}-${item.platform}-set`
-        : `${record.themeId}-${item.platform}-${item.versionValue ?? "default"}`;
-
-    return {
-      fileUrl,
-      fileName: fileNameQueue.shift() ?? fallbackFileName,
-    };
+    return { fileUrl };
   });
 }
 
@@ -103,10 +50,6 @@ function startDownloads(files: DownloadTarget[]) {
       const link = document.createElement("a");
       link.href = file.fileUrl;
       link.rel = "noopener";
-
-      if (file.fileName) {
-        link.download = file.fileName;
-      }
 
       document.body.appendChild(link);
       link.click();
@@ -141,7 +84,6 @@ export default function MyPageHistorySection({
   emptyText,
 }: MyPageHistorySectionProps) {
   const { showToast } = useToast();
-  const [refreshKey, setRefreshKey] = useState(0);
   const [downloadingRecordId, setDownloadingRecordId] = useState<string | null>(
     null,
   );
@@ -163,41 +105,16 @@ export default function MyPageHistorySection({
       return;
     }
 
-    const wasRedownload = hasDownloadedAllItems(
-      record.userId,
-      record.themeId,
-      record.items,
-    );
-
     setDownloadingRecordId(record.id);
     startDownloads(files);
 
-    addThemeDownload({
-      userId: record.userId,
-      theme: {
-        id: record.themeId,
-        title: record.themeTitle,
-        thumbnail: record.themeThumbnail,
-        type: record.themeType,
-        downloadFileName: record.downloadFileName,
-        downloadFileNames: record.downloadFileNames,
-      },
-      items: record.items,
+    showToast("다운로드를 시작했어요!", {
+      type: "success",
     });
-
-    showToast(
-      wasRedownload
-        ? "이미 받은 구성이에요. 다시 다운로드했어요!"
-        : "다운로드가 완료되었어요!",
-      {
-        type: "success",
-      },
-    );
 
     window.setTimeout(
       () => {
         setDownloadingRecordId(null);
-        setRefreshKey((prev) => prev + 1);
       },
       files.length * 120 + 200,
     );
@@ -223,16 +140,10 @@ export default function MyPageHistorySection({
         const dateText = formatDate(
           isPurchase ? record.purchasedAt : record.downloadedAt,
         );
-        const isRedownload = hasDownloadedAllItems(
-          record.userId,
-          record.themeId,
-          record.items,
-        );
         const isDownloading = downloadingRecordId === record.id;
-        const actionLabel = isRedownload ? "다시 다운로드" : "다운로드";
 
         return (
-          <li key={`${record.id}-${refreshKey}`}>
+          <li key={record.id}>
             <article className={styles.recordCard}>
               <div className={styles.recordTop}>
                 <span className={styles.statusBadge}>
@@ -277,7 +188,7 @@ export default function MyPageHistorySection({
                         onClick={() => handleRecordDownload(record)}
                         disabled={isDownloading}
                       >
-                        {isDownloading ? "다운로드 중..." : actionLabel}
+                        {isDownloading ? "다운로드 중..." : "다운로드"}
                       </button>
                     </div>
                   ) : (

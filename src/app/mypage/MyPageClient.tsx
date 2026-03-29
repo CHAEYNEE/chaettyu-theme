@@ -8,13 +8,10 @@ import MyPageEmptyState from "@/components/mypage/MyPageEmptyState/MyPageEmptySt
 import MyPageHistorySection from "@/components/mypage/MyPageHistorySection/MyPageHistorySection";
 import MyPageProfileCard from "@/components/mypage/MyPageProfileCard/MyPageProfileCard";
 import useMockUser from "@/hooks/useMockUser";
-import {
-  getUserThemeDownloads,
-  getUserThemePurchases,
-} from "@/lib/storage/themeStorage";
+import { fetchMyThemeHistory } from "@/lib/api/themeHistory";
 import type {
-  ThemeDownloadRecord,
-  ThemePurchaseRecord,
+  ThemeDownloadHistoryItem,
+  ThemePurchaseHistoryItem,
 } from "@/types/themeHistory";
 
 import styles from "./MyPageClient.module.css";
@@ -22,8 +19,8 @@ import styles from "./MyPageClient.module.css";
 type MyPageTab = "purchase" | "download";
 
 function getLatestActivityDate(
-  purchases: ThemePurchaseRecord[],
-  downloads: ThemeDownloadRecord[],
+  purchases: ThemePurchaseHistoryItem[],
+  downloads: ThemeDownloadHistoryItem[],
 ) {
   const allDates = [
     ...purchases.map((record) => record.purchasedAt),
@@ -42,65 +39,127 @@ function getLatestActivityDate(
 export default function MyPageClient() {
   const router = useRouter();
   const { user, isLoaded } = useMockUser();
+
   const [selectedTab, setSelectedTab] = useState<MyPageTab | null>(null);
+  const [purchaseRecords, setPurchaseRecords] = useState<
+    ThemePurchaseHistoryItem[]
+  >([]);
+  const [downloadRecords, setDownloadRecords] = useState<
+    ThemeDownloadHistoryItem[]
+  >([]);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(true);
 
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded) {
+      return;
+    }
 
     if (!user) {
       router.replace("/login?redirect=/mypage");
     }
   }, [isLoaded, router, user]);
 
-  const purchases = useMemo(() => {
-    if (!user) return [];
-    return getUserThemePurchases(user.id);
-  }, [user]);
+  useEffect(() => {
+    if (!isLoaded || !user) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadHistory = async () => {
+      try {
+        setIsHistoryLoading(true);
+
+        const response = await fetchMyThemeHistory();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setPurchaseRecords(response.purchases ?? []);
+        setDownloadRecords(response.downloads ?? []);
+      } catch (error) {
+        console.error(error);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setPurchaseRecords([]);
+        setDownloadRecords([]);
+      } finally {
+        if (isMounted) {
+          setIsHistoryLoading(false);
+        }
+      }
+    };
+
+    void loadHistory();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoaded, user]);
 
   const purchasedThemeIdSet = useMemo(() => {
-    return new Set(purchases.map((record) => record.themeId));
-  }, [purchases]);
+    return new Set(purchaseRecords.map((record) => record.themeId));
+  }, [purchaseRecords]);
 
   const downloads = useMemo(() => {
-    if (!user) return [];
-
-    return getUserThemeDownloads(user.id).filter((record) => {
-      if ("themeType" in record && record.themeType) {
+    return downloadRecords.filter((record) => {
+      if (record.themeType) {
         return record.themeType === "free";
       }
 
       return !purchasedThemeIdSet.has(record.themeId);
     });
-  }, [purchasedThemeIdSet, user]);
+  }, [downloadRecords, purchasedThemeIdSet]);
 
   const ownedThemeCount = useMemo(() => {
     const ownedThemeIds = new Set([
-      ...purchases.map((record) => record.themeId),
+      ...purchaseRecords.map((record) => record.themeId),
       ...downloads.map((record) => record.themeId),
     ]);
 
     return ownedThemeIds.size;
-  }, [downloads, purchases]);
+  }, [downloads, purchaseRecords]);
 
   if (!isLoaded || !user) {
     return null;
   }
 
-  const hasHistory = purchases.length > 0 || downloads.length > 0;
-  const latestActivity = getLatestActivityDate(purchases, downloads);
+  if (isHistoryLoading) {
+    return (
+      <BoardLayout>
+        <div className={styles.container}>
+          <MyPageProfileCard
+            user={user}
+            purchaseCount={0}
+            ownedThemeCount={0}
+            latestActivity={null}
+          />
+        </div>
+      </BoardLayout>
+    );
+  }
+
+  const hasHistory = purchaseRecords.length > 0 || downloads.length > 0;
+  const latestActivity = getLatestActivityDate(purchaseRecords, downloads);
 
   const activeTab: MyPageTab =
     selectedTab ??
-    (purchases.length === 0 && downloads.length > 0 ? "download" : "purchase");
+    (purchaseRecords.length === 0 && downloads.length > 0
+      ? "download"
+      : "purchase");
 
-  const currentRecords = activeTab === "purchase" ? purchases : downloads;
+  const currentRecords = activeTab === "purchase" ? purchaseRecords : downloads;
 
   return (
     <BoardLayout>
       <div className={styles.container}>
         <MyPageProfileCard
           user={user}
-          purchaseCount={purchases.length}
+          purchaseCount={purchaseRecords.length}
           ownedThemeCount={ownedThemeCount}
           latestActivity={latestActivity}
         />
@@ -122,7 +181,7 @@ export default function MyPageClient() {
                   onClick={() => setSelectedTab("purchase")}
                 >
                   <span>구매한 테마</span>
-                  <strong>{purchases.length}</strong>
+                  <strong>{purchaseRecords.length}</strong>
                 </button>
 
                 <button

@@ -19,9 +19,12 @@ import styles from "./ThemePurchaseBox.module.css";
 
 type ThemePurchaseBoxProps = {
   theme: ThemeItem;
-  onPrimaryAction?: (items: ThemePurchaseLineItem[]) => boolean;
+  onPrimaryAction?: (
+    items: ThemePurchaseLineItem[],
+  ) => boolean | Promise<boolean>;
   purchasedItemKeys?: string[];
   downloadedItemKeys?: string[];
+  isDisabled?: boolean;
 };
 
 const platformLabelMap: Record<ThemePlatform, string> = {
@@ -34,6 +37,7 @@ export default function ThemePurchaseBox({
   onPrimaryAction,
   purchasedItemKeys = [],
   downloadedItemKeys = [],
+  isDisabled = false,
 }: ThemePurchaseBoxProps) {
   const { showToast } = useToast();
 
@@ -45,6 +49,7 @@ export default function ThemePurchaseBox({
   const [selectedItems, setSelectedItems] = useState<ThemePurchaseLineItem[]>(
     [],
   );
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const purchasedKeySet = useMemo(
     () => new Set(purchasedItemKeys),
@@ -371,15 +376,23 @@ export default function ThemePurchaseBox({
     setSelectedItems((prev) => prev.filter((item) => item.key !== key));
   };
 
-  const handlePrimaryAction = () => {
-    if (isPrimaryDisabled) {
+  const handlePrimaryAction = async () => {
+    if (isPrimaryDisabled || isDisabled || isSubmitting) {
       return;
     }
 
-    const isSuccess = onPrimaryAction?.(selectedItems);
+    try {
+      setIsSubmitting(true);
 
-    if (isSuccess) {
-      resetSelections();
+      const isSuccess = await Promise.resolve(
+        onPrimaryAction?.(selectedItems) ?? false,
+      );
+
+      if (isSuccess) {
+        resetSelections();
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -530,9 +543,9 @@ export default function ThemePurchaseBox({
         type="button"
         className={styles.primaryButton}
         onClick={handlePrimaryAction}
-        disabled={isPrimaryDisabled}
+        disabled={isPrimaryDisabled || isDisabled || isSubmitting}
       >
-        {primaryButtonLabel}
+        {isSubmitting ? "처리 중..." : primaryButtonLabel}
       </button>
     </div>
   );

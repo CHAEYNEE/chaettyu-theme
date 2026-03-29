@@ -1,23 +1,27 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useToast } from "@/components/common/Toast/ToastProvider";
 import ThemePurchaseBox from "@/components/theme/ThemePurchaseBox/ThemePurchaseBox";
 import useMockUser from "@/hooks/useMockUser";
 import {
-  addThemeDownload,
-  addThemePurchase,
+  createThemePurchase,
+  fetchThemeHistoryStatus,
+} from "@/lib/api/themeHistory";
+import {
   getNewPurchaseItems,
-  getUserDownloadedLineItems,
-  getUserPurchasedLineItems,
   hasDownloadedAllSelectedItems,
   hasPurchasedAllSelectedItems,
-} from "@/lib/storage/themeStorage";
+  mergeUniqueLineItems,
+} from "@/lib/theme/themeOwnership";
 import { buildThemeDownloadUrl } from "@/lib/theme/buildThemeDownloadUrl";
 import type { ThemeItem } from "@/types/theme";
-import type { ThemePurchaseLineItem } from "@/types/themeHistory";
+import type {
+  ThemeHistoryStatus,
+  ThemePurchaseLineItem,
+} from "@/types/themeHistory";
 
 type ThemeDetailClientProps = {
   theme: ThemeItem;
@@ -26,6 +30,13 @@ type ThemeDetailClientProps = {
 type DownloadTarget = {
   fileName?: string;
   fileUrl: string;
+};
+
+const EMPTY_STATUS: ThemeHistoryStatus = {
+  purchasedItems: [],
+  downloadedItems: [],
+  purchasedItemKeys: [],
+  downloadedItemKeys: [],
 };
 
 function getDownloadTargets(
@@ -88,25 +99,62 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
   const { user } = useMockUser();
   const { showToast } = useToast();
 
-  const purchasedItemKeys = useMemo(() => {
+  const [status, setStatus] = useState<ThemeHistoryStatus>(EMPTY_STATUS);
+  const [isStatusLoading, setIsStatusLoading] = useState(false);
+
+  useEffect(() => {
     if (!user) {
-      return [];
+      setStatus(EMPTY_STATUS);
+      return;
     }
 
-    return getUserPurchasedLineItems(user.id, theme.id).map((item) => item.key);
-  }, [theme.id, user]);
+    let isMounted = true;
 
-  const downloadedItemKeys = useMemo(() => {
-    if (!user) {
-      return [];
-    }
+    const loadStatus = async () => {
+      try {
+        setIsStatusLoading(true);
+        const nextStatus = await fetchThemeHistoryStatus(theme.id);
 
-    return getUserDownloadedLineItems(user.id, theme.id).map(
-      (item) => item.key,
-    );
-  }, [theme.id, user]);
+        if (!isMounted) {
+          return;
+        }
 
-  const handleDownload = (items: ThemePurchaseLineItem[]) => {
+        setStatus(nextStatus);
+      } catch (error) {
+        console.error(error);
+
+        if (!isMounted) {
+          return;
+        }
+
+        showToast("보유 내역을 불러오지 못했어요.", {
+          type: "error",
+        });
+      } finally {
+        if (isMounted) {
+          setIsStatusLoading(false);
+        }
+      }
+    };
+
+    void loadStatus();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [theme.id, user, showToast]);
+
+  const purchasedItemKeys = useMemo(
+    () => status.purchasedItemKeys,
+    [status.purchasedItemKeys],
+  );
+
+  const downloadedItemKeys = useMemo(
+    () => status.downloadedItemKeys,
+    [status.downloadedItemKeys],
+  );
+
+  const handleDownload = async (items: ThemePurchaseLineItem[]) => {
     const files = getDownloadTargets(theme, items);
 
     if (files.length === 0) {
@@ -116,26 +164,24 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
       return false;
     }
 
+    const isRedownload = user
+      ? hasDownloadedAllSelectedItems(status.downloadedItems, items)
+      : false;
+
     startDownloads(files);
 
-    if (!user) {
-      showToast("다운로드가 시작되었어요!", {
-        type: "success",
-      });
-      return true;
+    if (user) {
+      const mergedDownloadedItems = mergeUniqueLineItems(
+        status.downloadedItems,
+        items,
+      );
+
+      setStatus((prev) => ({
+        ...prev,
+        downloadedItems: mergedDownloadedItems,
+        downloadedItemKeys: mergedDownloadedItems.map((item) => item.key),
+      }));
     }
-
-    const isRedownload = hasDownloadedAllSelectedItems(
-      user.id,
-      theme.id,
-      items,
-    );
-
-    addThemeDownload({
-      userId: user.id,
-      theme,
-      items,
-    });
 
     showToast(
       isRedownload
@@ -149,7 +195,7 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
     return true;
   };
 
-  const handlePrimaryAction = (items: ThemePurchaseLineItem[]) => {
+  const handlePrimaryAction = async (items: ThemePurchaseLineItem[]) => {
     if (items.length === 0) {
       showToast("구성을 먼저 선택해 주세요!", {
         type: "error",
@@ -168,41 +214,57 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
       return false;
     }
 
-    const alreadyOwned = hasPurchasedAllSelectedItems(user.id, theme.id, items);
+    const alreadyOwned = hasPurchasedAllSelectedItems(
+      status.purchasedItems,
+      items,
+    );
 
     if (alreadyOwned) {
       return handleDownload(items);
     }
 
-    const purchasableItems = getNewPurchaseItems(user.id, theme.id, items);
+    const purchasableItems = getNewPurchaseItems(status.purchasedItems, items);
     const hasMixedSelection = purchasableItems.length !== items.length;
 
-    const purchaseResult = addThemePurchase({
-      userId: user.id,
-      theme,
-      items: purchasableItems,
-    });
+    try {
+      await createThemePurchase({
+        themeId: theme.id,
+        items: purchasableItems,
+      });
 
-    if (!purchaseResult) {
+      const mergedPurchasedItems = mergeUniqueLineItems(
+        status.purchasedItems,
+        purchasableItems,
+      );
+
+      setStatus((prev) => ({
+        ...prev,
+        purchasedItems: mergedPurchasedItems,
+        purchasedItemKeys: mergedPurchasedItems.map((item) => item.key),
+      }));
+
       showToast(
-        "선택한 구성은 이미 보유 중이에요. 다운로드로 다시 받을 수 있어요.",
+        hasMixedSelection
+          ? "이미 가진 구성을 제외한 새 구성만 구매했어요!"
+          : "구매가 완료되었어요!",
         {
-          type: "info",
+          type: "success",
         },
       );
+
+      return true;
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "구매 처리 중 오류가 발생했어요.";
+
+      showToast(message, {
+        type: "error",
+      });
+
       return false;
     }
-
-    showToast(
-      hasMixedSelection
-        ? "이미 가진 구성을 제외한 새 구성만 구매했어요!"
-        : "구매가 완료되었어요!",
-      {
-        type: "success",
-      },
-    );
-
-    return true;
   };
 
   return (
@@ -211,6 +273,7 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
       onPrimaryAction={handlePrimaryAction}
       purchasedItemKeys={purchasedItemKeys}
       downloadedItemKeys={downloadedItemKeys}
+      isDisabled={isStatusLoading}
     />
   );
 }

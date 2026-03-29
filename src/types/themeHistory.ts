@@ -10,29 +10,47 @@ export type ThemePurchaseLineItem = {
   versionValue?: string;
 };
 
-export type ThemePurchaseRecord = {
+export type ThemePurchaseHistoryItem = {
   id: string;
   userId: string;
   themeId: string;
   themeType: ThemeType;
   themeTitle: string;
   themeThumbnail: string;
-  downloadFileName?: string;
-  downloadFileNames?: string[];
   purchasedAt: string;
   totalPrice: number;
   items: ThemePurchaseLineItem[];
 };
 
-export type ThemeDownloadRecord = {
+export type ThemeDownloadHistoryItem = {
   id: string;
   userId: string;
   themeId: string;
   themeType: ThemeType;
   themeTitle: string;
   themeThumbnail: string;
-  downloadFileName?: string;
-  downloadFileNames?: string[];
   downloadedAt: string;
   items: ThemePurchaseLineItem[];
+};
+
+export type ThemeHistoryStatus = {
+  purchasedItems: ThemePurchaseLineItem[];
+  downloadedItems: ThemePurchaseLineItem[];
+  purchasedItemKeys: string[];
+  downloadedItemKeys: string[];
+};
+
+export type CreateThemePurchasePayload = {
+  themeId: string;
+  items: ThemePurchaseLineItem[];
+};
+
+export type CreateThemePurchaseResponse = {
+  success: true;
+  purchaseId: string;
+};
+
+export type ThemeHistoryResponse = {
+  purchases: ThemePurchaseHistoryItem[];
+  downloads: ThemeDownloadHistoryItem[];
 };
