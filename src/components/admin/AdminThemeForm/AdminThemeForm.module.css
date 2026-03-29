@@ -321,6 +321,64 @@
   margin-top: 12px;
 }
 
+.versionHeaderRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.versionList,
+.downloadFileList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.versionCard,
+.downloadFileCard {
+  padding: 14px;
+  border: 3px solid #83615c;
+  background: #fffdf6;
+  box-shadow: 4px 4px 0 rgba(131, 97, 92, 0.12);
+}
+
+.versionRowGrid,
+.downloadFileGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.versionActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.downloadFileFull {
+  grid-column: 1 / -1;
+}
+
+.fileInfoBox {
+  padding: 12px;
+  border: 3px solid #83615c;
+  background: #fff8ed;
+}
+
+.fileInfoText {
+  margin: 0;
+  color: #83615c;
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.fileInfoText + .fileInfoText {
+  margin-top: 6px;
+}
+
 @media (max-width: 768px) {
   .section {
     padding: 16px;
@@ -343,7 +401,8 @@
     flex: 1 1 100%;
   }
 
-  .versionRowGrid {
+  .versionRowGrid,
+  .downloadFileGrid {
     grid-template-columns: 1fr;
   }
 }

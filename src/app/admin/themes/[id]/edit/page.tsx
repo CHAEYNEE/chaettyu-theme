@@ -5,7 +5,7 @@ import AdminThemeForm, {
   type AdminThemeFormInitialValues,
 } from "@/components/admin/AdminThemeForm/AdminThemeForm";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
-import type { ThemePlatform, ThemeType } from "@/types/theme";
+import type { PurchaseMode, ThemePlatform, ThemeType } from "@/types/theme";
 
 type AdminEditThemePageProps = {
   params: Promise<{
@@ -38,6 +38,15 @@ type DbThemeVersionRow = {
   sort_order: number;
 };
 
+type DbDownloadFileRow = {
+  platform: ThemePlatform;
+  purchase_mode: PurchaseMode;
+  version_value: string | null;
+  file_name: string;
+  storage_bucket: string;
+  storage_path: string;
+};
+
 function sanitizePlatforms(value: ThemePlatform[] | null | undefined) {
   if (!Array.isArray(value)) {
     return ["ios"] as ThemePlatform[];
@@ -60,6 +69,7 @@ export default async function AdminEditThemePage({
     { data: themeData, error: themeError },
     { data: previewData, error: previewError },
     { data: versionData, error: versionError },
+    { data: downloadFileData, error: downloadFileError },
   ] = await Promise.all([
     supabase
       .from("themes")
@@ -78,6 +88,12 @@ export default async function AdminEditThemePage({
       .select("label, value, sort_order")
       .eq("theme_id", id)
       .order("sort_order", { ascending: true }),
+    supabase
+      .from("theme_download_files")
+      .select(
+        "platform, purchase_mode, version_value, file_name, storage_bucket, storage_path",
+      )
+      .eq("theme_id", id),
   ]);
 
   if (themeError) {
@@ -92,6 +108,13 @@ export default async function AdminEditThemePage({
     console.error("Failed to fetch theme versions for edit:", versionError);
   }
 
+  if (downloadFileError) {
+    console.error(
+      "Failed to fetch theme download files for edit:",
+      downloadFileError,
+    );
+  }
+
   if (!themeData) {
     notFound();
   }
@@ -104,6 +127,16 @@ export default async function AdminEditThemePage({
     (version) => ({
       label: version.label,
       value: version.value,
+    }),
+  );
+  const downloadFiles = ((downloadFileData ?? []) as DbDownloadFileRow[]).map(
+    (downloadFile) => ({
+      platform: downloadFile.platform,
+      purchaseMode: downloadFile.purchase_mode,
+      versionValue: downloadFile.version_value ?? undefined,
+      fileName: downloadFile.file_name,
+      storageBucket: downloadFile.storage_bucket,
+      storagePath: downloadFile.storage_path,
     }),
   );
 
@@ -121,6 +154,7 @@ export default async function AdminEditThemePage({
     platforms: sanitizePlatforms(theme.platforms),
     isPublished: theme.is_published,
     versions,
+    downloadFiles,
   };
 
   return (

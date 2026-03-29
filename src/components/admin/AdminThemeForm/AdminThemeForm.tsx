@@ -7,9 +7,23 @@ import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import CustomDropdown, {
   type DropdownOption,
 } from "@/components/common/CustomDropdown/CustomDropdown";
-import type { ThemePlatform, ThemeType, ThemeVersion } from "@/types/theme";
+import type {
+  PurchaseMode,
+  ThemePlatform,
+  ThemeType,
+  ThemeVersion,
+} from "@/types/theme";
 
 import styles from "./AdminThemeForm.module.css";
+
+type AdminDownloadFileInput = {
+  platform: ThemePlatform;
+  purchaseMode: PurchaseMode;
+  versionValue?: string;
+  fileName: string;
+  storageBucket: string;
+  storagePath: string;
+};
 
 export type AdminThemeFormMode = "create" | "edit";
 
@@ -27,6 +41,7 @@ export type AdminThemeFormInitialValues = {
   platforms: ThemePlatform[];
   isPublished: boolean;
   versions: ThemeVersion[];
+  downloadFiles: AdminDownloadFileInput[];
 };
 
 type AdminThemeFormProps = {
@@ -35,6 +50,10 @@ type AdminThemeFormProps = {
 };
 
 type VersionFormItem = ThemeVersion & {
+  formId: string;
+};
+
+type DownloadFileFormItem = AdminDownloadFileInput & {
   formId: string;
 };
 
@@ -52,6 +71,7 @@ type FormState = {
   platforms: ThemePlatform[];
   isPublished: boolean;
   versions: VersionFormItem[];
+  downloadFiles: DownloadFileFormItem[];
 };
 
 const themeTypeOptions: DropdownOption[] = [
@@ -67,6 +87,11 @@ const publishStatusOptions: DropdownOption[] = [
 const platformOptions: { label: string; value: ThemePlatform }[] = [
   { label: "iOS", value: "ios" },
   { label: "Android", value: "android" },
+];
+
+const purchaseModeOptions: DropdownOption[] = [
+  { label: "개별", value: "single" },
+  { label: "세트", value: "set" },
 ];
 
 function normalizeId(value: string) {
@@ -92,21 +117,35 @@ function splitByComma(value: string) {
     .filter(Boolean);
 }
 
-function createVersionFormId() {
+function createFormId(prefix: string) {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return crypto.randomUUID();
+    return `${prefix}-${crypto.randomUUID()}`;
   }
 
-  return `version-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
 function createVersionFormItem(
   version?: Partial<ThemeVersion>,
 ): VersionFormItem {
   return {
-    formId: createVersionFormId(),
+    formId: createFormId("version"),
     label: version?.label ?? "",
     value: version?.value ?? "",
+  };
+}
+
+function createDownloadFileFormItem(
+  downloadFile?: Partial<AdminDownloadFileInput>,
+): DownloadFileFormItem {
+  return {
+    formId: createFormId("download"),
+    platform: downloadFile?.platform ?? "ios",
+    purchaseMode: downloadFile?.purchaseMode ?? "single",
+    versionValue: downloadFile?.versionValue ?? "",
+    fileName: downloadFile?.fileName ?? "",
+    storageBucket: downloadFile?.storageBucket ?? "",
+    storagePath: downloadFile?.storagePath ?? "",
   };
 }
 
@@ -125,6 +164,40 @@ function hasDuplicateVersionValues(versions: ThemeVersion[]) {
   return new Set(values).size !== values.length;
 }
 
+function getSanitizedDownloadFiles(
+  downloadFiles: DownloadFileFormItem[],
+): AdminDownloadFileInput[] {
+  return downloadFiles
+    .map((downloadFile) => ({
+      platform: downloadFile.platform,
+      purchaseMode: downloadFile.purchaseMode,
+      versionValue:
+        downloadFile.purchaseMode === "single"
+          ? downloadFile.versionValue?.trim()
+          : undefined,
+      fileName: downloadFile.fileName.trim(),
+      storageBucket: downloadFile.storageBucket.trim(),
+      storagePath: downloadFile.storagePath.trim(),
+    }))
+    .filter(
+      (downloadFile) =>
+        downloadFile.fileName ||
+        downloadFile.storageBucket ||
+        downloadFile.storagePath ||
+        downloadFile.versionValue,
+    );
+}
+
+function hasDuplicateDownloadFileKeys(downloadFiles: AdminDownloadFileInput[]) {
+  const keys = downloadFiles.map((downloadFile) =>
+    downloadFile.purchaseMode === "single"
+      ? `${downloadFile.platform}:${downloadFile.purchaseMode}:${downloadFile.versionValue ?? ""}`
+      : `${downloadFile.platform}:${downloadFile.purchaseMode}`,
+  );
+
+  return new Set(keys).size !== keys.length;
+}
+
 function createEmptyFormState(): FormState {
   return {
     id: "",
@@ -140,6 +213,7 @@ function createEmptyFormState(): FormState {
     platforms: ["ios"],
     isPublished: true,
     versions: [],
+    downloadFiles: [],
   };
 }
 
@@ -172,6 +246,9 @@ function createInitialFormState(
     versions: (initialValues.versions ?? []).map((version) =>
       createVersionFormItem(version),
     ),
+    downloadFiles: (initialValues.downloadFiles ?? []).map((downloadFile) =>
+      createDownloadFileFormItem(downloadFile),
+    ),
   };
 }
 
@@ -182,6 +259,9 @@ export default function AdminThemeForm({
   const router = useRouter();
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const previewInputRef = useRef<HTMLInputElement>(null);
+  const downloadFileInputRefs = useRef<Record<string, HTMLInputElement | null>>(
+    {},
+  );
 
   const isEditMode = mode === "edit";
 
@@ -193,6 +273,9 @@ export default function AdminThemeForm({
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
   const [isUploadingPreviewImages, setIsUploadingPreviewImages] =
     useState(false);
+  const [uploadingDownloadFileId, setUploadingDownloadFileId] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     setForm(createInitialFormState(initialValues));
@@ -201,6 +284,17 @@ export default function AdminThemeForm({
   const previewImageList = useMemo(
     () => splitByLine(form.previewImages),
     [form.previewImages],
+  );
+
+  const versionDropdownOptions = useMemo<DropdownOption[]>(
+    () =>
+      getSanitizedVersions(form.versions)
+        .filter((version) => version.value)
+        .map((version) => ({
+          label: version.label || version.value,
+          value: version.value,
+        })),
+    [form.versions],
   );
 
   function handleChange<K extends keyof FormState>(
@@ -232,14 +326,14 @@ export default function AdminThemeForm({
   }
 
   function handleVersionChange(
-    index: number,
+    formId: string,
     key: keyof ThemeVersion,
     value: string,
   ) {
     setForm((prev) => ({
       ...prev,
-      versions: prev.versions.map((version, versionIndex) =>
-        versionIndex === index ? { ...version, [key]: value } : version,
+      versions: prev.versions.map((version) =>
+        version.formId === formId ? { ...version, [key]: value } : version,
       ),
     }));
   }
@@ -251,11 +345,78 @@ export default function AdminThemeForm({
     }));
   }
 
-  function handleRemoveVersion(index: number) {
+  function handleRemoveVersion(formId: string) {
     setForm((prev) => ({
       ...prev,
-      versions: prev.versions.filter(
-        (_, versionIndex) => versionIndex !== index,
+      versions: prev.versions.filter((version) => version.formId !== formId),
+      downloadFiles: prev.downloadFiles.map((downloadFile) => {
+        const removedVersion = prev.versions.find(
+          (version) => version.formId === formId,
+        );
+
+        if (
+          removedVersion &&
+          downloadFile.purchaseMode === "single" &&
+          downloadFile.versionValue === removedVersion.value
+        ) {
+          return {
+            ...downloadFile,
+            versionValue: "",
+          };
+        }
+
+        return downloadFile;
+      }),
+    }));
+  }
+
+  function handleAddDownloadFile() {
+    setForm((prev) => ({
+      ...prev,
+      downloadFiles: [...prev.downloadFiles, createDownloadFileFormItem()],
+    }));
+  }
+
+  function handleRemoveDownloadFile(formId: string) {
+    setForm((prev) => ({
+      ...prev,
+      downloadFiles: prev.downloadFiles.filter(
+        (downloadFile) => downloadFile.formId !== formId,
+      ),
+    }));
+
+    delete downloadFileInputRefs.current[formId];
+  }
+
+  function handleDownloadFileChange<K extends keyof AdminDownloadFileInput>(
+    formId: string,
+    key: K,
+    value: AdminDownloadFileInput[K],
+  ) {
+    setForm((prev) => ({
+      ...prev,
+      downloadFiles: prev.downloadFiles.map((downloadFile) =>
+        downloadFile.formId === formId
+          ? { ...downloadFile, [key]: value }
+          : downloadFile,
+      ),
+    }));
+  }
+
+  function handleDownloadFilePurchaseModeChange(
+    formId: string,
+    purchaseMode: PurchaseMode,
+  ) {
+    setForm((prev) => ({
+      ...prev,
+      downloadFiles: prev.downloadFiles.map((downloadFile) =>
+        downloadFile.formId === formId
+          ? {
+              ...downloadFile,
+              purchaseMode,
+              versionValue: purchaseMode === "single" ? "" : "",
+            }
+          : downloadFile,
       ),
     }));
   }
@@ -371,6 +532,112 @@ export default function AdminThemeForm({
     }
   }
 
+  async function handleDownloadFileUpload(
+    formId: string,
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    resetError();
+
+    const normalizedThemeId = normalizeId(form.id);
+
+    if (!normalizedThemeId) {
+      setErrorMessage(
+        "다운로드 파일 업로드 전에 테마 ID를 먼저 입력해 주세요.",
+      );
+      event.target.value = "";
+      return;
+    }
+
+    const targetDownloadFile = form.downloadFiles.find(
+      (downloadFile) => downloadFile.formId === formId,
+    );
+
+    if (!targetDownloadFile) {
+      event.target.value = "";
+      return;
+    }
+
+    if (
+      targetDownloadFile.purchaseMode === "single" &&
+      !targetDownloadFile.versionValue?.trim()
+    ) {
+      setErrorMessage("개별 파일은 연결할 버전을 먼저 선택해 주세요.");
+      event.target.value = "";
+      return;
+    }
+
+    setUploadingDownloadFileId(formId);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("themeId", normalizedThemeId);
+      formData.append("platform", targetDownloadFile.platform);
+      formData.append("purchaseMode", targetDownloadFile.purchaseMode);
+
+      if (
+        targetDownloadFile.purchaseMode === "single" &&
+        targetDownloadFile.versionValue
+      ) {
+        formData.append("versionValue", targetDownloadFile.versionValue);
+      }
+
+      const response = await fetch("/api/admin/upload-download-file", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = (await response.json()) as {
+        fileName?: string;
+        storageBucket?: string;
+        storagePath?: string;
+        error?: string;
+      };
+
+      if (
+        !response.ok ||
+        !result.fileName ||
+        !result.storageBucket ||
+        !result.storagePath
+      ) {
+        throw new Error(result.error || "다운로드 파일 업로드에 실패했어요.");
+      }
+
+      setForm((prev) => ({
+        ...prev,
+        downloadFiles: prev.downloadFiles.map((downloadFile) =>
+          downloadFile.formId === formId
+            ? {
+                ...downloadFile,
+                fileName: result.fileName ?? "",
+                storageBucket: result.storageBucket ?? "",
+                storagePath: result.storagePath ?? "",
+              }
+            : downloadFile,
+        ),
+      }));
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "다운로드 파일 업로드 중 문제가 생겼어요.";
+
+      setErrorMessage(message);
+    } finally {
+      setUploadingDownloadFileId(null);
+
+      if (downloadFileInputRefs.current[formId]) {
+        downloadFileInputRefs.current[formId]!.value = "";
+      }
+    }
+  }
+
   function buildRequestBody() {
     const normalizedId = normalizeId(form.id);
 
@@ -390,12 +657,19 @@ export default function AdminThemeForm({
       detailHtml: form.detailHtml.trim(),
       badge: form.badge.trim() || undefined,
       versions: getSanitizedVersions(form.versions),
+      downloadFiles: getSanitizedDownloadFiles(form.downloadFiles),
     };
   }
 
   function validateForm() {
     const normalizedId = normalizeId(form.id);
     const sanitizedVersions = getSanitizedVersions(form.versions);
+    const sanitizedDownloadFiles = getSanitizedDownloadFiles(
+      form.downloadFiles,
+    );
+    const versionValueSet = new Set(
+      sanitizedVersions.map((version) => version.value),
+    );
 
     if (!normalizedId) {
       return "테마 ID를 입력해 주세요.";
@@ -427,6 +701,41 @@ export default function AdminThemeForm({
 
     if (hasDuplicateVersionValues(sanitizedVersions)) {
       return "버전 값은 중복될 수 없어요.";
+    }
+
+    if (
+      sanitizedDownloadFiles.some(
+        (downloadFile) =>
+          !downloadFile.fileName ||
+          !downloadFile.storageBucket ||
+          !downloadFile.storagePath,
+      )
+    ) {
+      return "다운로드 파일은 업로드까지 완료해 주세요.";
+    }
+
+    if (
+      sanitizedDownloadFiles.some(
+        (downloadFile) =>
+          downloadFile.purchaseMode === "single" && !downloadFile.versionValue,
+      )
+    ) {
+      return "개별 다운로드 파일은 연결할 버전을 선택해 주세요.";
+    }
+
+    if (
+      sanitizedDownloadFiles.some(
+        (downloadFile) =>
+          downloadFile.purchaseMode === "single" &&
+          downloadFile.versionValue &&
+          !versionValueSet.has(downloadFile.versionValue),
+      )
+    ) {
+      return "등록된 버전 값만 다운로드 파일에 연결할 수 있어요.";
+    }
+
+    if (hasDuplicateDownloadFileKeys(sanitizedDownloadFiles)) {
+      return "같은 플랫폼/구매 방식 조합의 다운로드 파일이 중복되었어요.";
     }
 
     return "";
@@ -671,9 +980,6 @@ export default function AdminThemeForm({
           <div className={styles.versionHeaderRow}>
             <div>
               <span className={styles.label}>버전 목록</span>
-              <p className={styles.hint}>
-                다운로드 파일 연결에 사용할 버전 값을 먼저 정리해 주세요.
-              </p>
             </div>
 
             <button
@@ -694,7 +1000,7 @@ export default function AdminThemeForm({
             </p>
           ) : (
             <div className={styles.versionList}>
-              {form.versions.map((version, index) => (
+              {form.versions.map((version) => (
                 <div key={version.formId} className={styles.versionCard}>
                   <div className={styles.versionRowGrid}>
                     <label className={styles.field}>
@@ -706,7 +1012,7 @@ export default function AdminThemeForm({
                         onChange={(event) => {
                           resetError();
                           handleVersionChange(
-                            index,
+                            version.formId,
                             "label",
                             event.target.value,
                           );
@@ -724,7 +1030,7 @@ export default function AdminThemeForm({
                         onChange={(event) => {
                           resetError();
                           handleVersionChange(
-                            index,
+                            version.formId,
                             "value",
                             event.target.value,
                           );
@@ -740,7 +1046,7 @@ export default function AdminThemeForm({
                       className={styles.secondaryButton}
                       onClick={() => {
                         resetError();
-                        handleRemoveVersion(index);
+                        handleRemoveVersion(version.formId);
                       }}
                     >
                       삭제
@@ -748,6 +1054,195 @@ export default function AdminThemeForm({
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionEyebrow}>DOWNLOAD FILES</p>
+          <h3 className={styles.sectionTitle}>다운로드 파일</h3>
+        </div>
+
+        <div className={styles.column}>
+          <div className={styles.versionHeaderRow}>
+            <div>
+              <span className={styles.label}>파일 목록</span>
+            </div>
+
+            <button
+              type="button"
+              className={styles.uploadButton}
+              onClick={() => {
+                resetError();
+                handleAddDownloadFile();
+              }}
+            >
+              + 파일 추가
+            </button>
+          </div>
+
+          {form.downloadFiles.length === 0 ? (
+            <p className={styles.hint}>
+              아직 등록된 다운로드 파일이 없어요. 배포할 파일을 추가해 주세요.
+            </p>
+          ) : (
+            <div className={styles.downloadFileList}>
+              {form.downloadFiles.map((downloadFile) => {
+                const isSingle = downloadFile.purchaseMode === "single";
+                const isUploading =
+                  uploadingDownloadFileId === downloadFile.formId;
+
+                return (
+                  <div
+                    key={downloadFile.formId}
+                    className={styles.downloadFileCard}
+                  >
+                    <div className={styles.downloadFileGrid}>
+                      <div className={styles.field}>
+                        <span className={styles.label}>플랫폼</span>
+                        <CustomDropdown
+                          value={downloadFile.platform}
+                          options={platformOptions.map((option) => ({
+                            label: option.label,
+                            value: option.value,
+                          }))}
+                          placeholder="플랫폼 선택"
+                          variant="form"
+                          onChange={(value) => {
+                            resetError();
+                            handleDownloadFileChange(
+                              downloadFile.formId,
+                              "platform",
+                              value as ThemePlatform,
+                            );
+                          }}
+                        />
+                      </div>
+
+                      <div className={styles.field}>
+                        <span className={styles.label}>구매 방식</span>
+                        <CustomDropdown
+                          value={downloadFile.purchaseMode}
+                          options={purchaseModeOptions}
+                          placeholder="구매 방식 선택"
+                          variant="form"
+                          onChange={(value) => {
+                            resetError();
+                            handleDownloadFilePurchaseModeChange(
+                              downloadFile.formId,
+                              value as PurchaseMode,
+                            );
+                          }}
+                        />
+                      </div>
+
+                      <div className={styles.field}>
+                        <span className={styles.label}>연결 버전</span>
+
+                        {isSingle ? (
+                          <CustomDropdown
+                            value={downloadFile.versionValue ?? ""}
+                            options={versionDropdownOptions}
+                            placeholder={
+                              versionDropdownOptions.length > 0
+                                ? "버전 선택"
+                                : "먼저 버전을 추가해 주세요"
+                            }
+                            variant="form"
+                            onChange={(value) => {
+                              resetError();
+                              handleDownloadFileChange(
+                                downloadFile.formId,
+                                "versionValue",
+                                value,
+                              );
+                            }}
+                          />
+                        ) : (
+                          <input
+                            className={styles.input}
+                            type="text"
+                            value="세트 파일은 버전 연결이 필요 없어요"
+                            disabled
+                          />
+                        )}
+                      </div>
+
+                      <div className={styles.field}>
+                        <span className={styles.label}>파일 업로드</span>
+
+                        <div className={styles.thumbnailUploadRow}>
+                          <input
+                            ref={(node) => {
+                              downloadFileInputRefs.current[
+                                downloadFile.formId
+                              ] = node;
+                            }}
+                            className={styles.hiddenFileInput}
+                            type="file"
+                            onChange={(event) =>
+                              handleDownloadFileUpload(
+                                downloadFile.formId,
+                                event,
+                              )
+                            }
+                          />
+
+                          <button
+                            type="button"
+                            className={styles.uploadButton}
+                            disabled={isUploading}
+                            onClick={() =>
+                              downloadFileInputRefs.current[
+                                downloadFile.formId
+                              ]?.click()
+                            }
+                          >
+                            {isUploading ? "업로드 중..." : "파일 업로드"}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div
+                        className={`${styles.field} ${styles.downloadFileFull}`}
+                      >
+                        <span className={styles.label}>저장 정보</span>
+
+                        <div className={styles.fileInfoBox}>
+                          <p className={styles.fileInfoText}>
+                            파일명: {downloadFile.fileName || "-"}
+                          </p>
+                          <p className={styles.fileInfoText}>
+                            버킷: {downloadFile.storageBucket || "-"}
+                          </p>
+                          <p className={styles.fileInfoText}>
+                            경로: {downloadFile.storagePath || "-"}
+                          </p>
+                        </div>
+
+                        <span className={styles.hint}>
+                          개별 파일은 버전을 고른 뒤 업로드해 주세요.
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className={styles.versionActions}>
+                      <button
+                        type="button"
+                        className={styles.secondaryButton}
+                        onClick={() => {
+                          resetError();
+                          handleRemoveDownloadFile(downloadFile.formId);
+                        }}
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -906,7 +1401,10 @@ export default function AdminThemeForm({
           type="submit"
           className={styles.primaryButton}
           disabled={
-            isSubmitting || isUploadingThumbnail || isUploadingPreviewImages
+            isSubmitting ||
+            isUploadingThumbnail ||
+            isUploadingPreviewImages ||
+            Boolean(uploadingDownloadFileId)
           }
         >
           {submitText}

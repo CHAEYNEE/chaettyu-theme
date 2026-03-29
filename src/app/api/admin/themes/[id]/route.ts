@@ -1,7 +1,21 @@
 import { NextResponse } from "next/server";
 
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
-import type { ThemePlatform, ThemeType, ThemeVersion } from "@/types/theme";
+import type {
+  PurchaseMode,
+  ThemePlatform,
+  ThemeType,
+  ThemeVersion,
+} from "@/types/theme";
+
+type ThemeDownloadFilePayload = {
+  platform: ThemePlatform;
+  purchaseMode: PurchaseMode;
+  versionValue?: string;
+  fileName: string;
+  storageBucket: string;
+  storagePath: string;
+};
 
 type UpdateThemeRequest = {
   id: string;
@@ -19,6 +33,7 @@ type UpdateThemeRequest = {
   detailHtml: string;
   badge?: string;
   versions?: ThemeVersion[];
+  downloadFiles?: ThemeDownloadFilePayload[];
 };
 
 type RouteContext = {
@@ -66,10 +81,42 @@ function isValidVersionArray(value: unknown): value is ThemeVersion[] {
   );
 }
 
+function isValidDownloadFileArray(
+  value: unknown,
+): value is ThemeDownloadFilePayload[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (item) =>
+        item &&
+        typeof item === "object" &&
+        (item.platform === "ios" || item.platform === "android") &&
+        (item.purchaseMode === "single" || item.purchaseMode === "set") &&
+        typeof item.fileName === "string" &&
+        typeof item.storageBucket === "string" &&
+        typeof item.storagePath === "string" &&
+        (item.versionValue === undefined ||
+          typeof item.versionValue === "string"),
+    )
+  );
+}
+
 function hasDuplicateVersionValues(versions: ThemeVersion[]) {
   const values = versions.map((version) => version.value).filter(Boolean);
 
   return new Set(values).size !== values.length;
+}
+
+function hasDuplicateDownloadFileKeys(
+  downloadFiles: ThemeDownloadFilePayload[],
+) {
+  const keys = downloadFiles.map((downloadFile) =>
+    downloadFile.purchaseMode === "single"
+      ? `${downloadFile.platform}:${downloadFile.purchaseMode}:${downloadFile.versionValue ?? ""}`
+      : `${downloadFile.platform}:${downloadFile.purchaseMode}`,
+  );
+
+  return new Set(keys).size !== keys.length;
 }
 
 function parsePayload(body: unknown): UpdateThemeRequest | null {
@@ -90,7 +137,10 @@ function parsePayload(body: unknown): UpdateThemeRequest | null {
     typeof payload.isPublished !== "boolean" ||
     !isValidPlatformArray(payload.platforms) ||
     typeof payload.detailHtml !== "string" ||
-    (payload.versions !== undefined && !isValidVersionArray(payload.versions))
+    (payload.versions !== undefined &&
+      !isValidVersionArray(payload.versions)) ||
+    (payload.downloadFiles !== undefined &&
+      !isValidDownloadFileArray(payload.downloadFiles))
   ) {
     return null;
   }
@@ -127,6 +177,25 @@ export async function PATCH(request: Request, context: RouteContext) {
         value: version.value.trim(),
       }))
       .filter((version) => version.label || version.value);
+    const downloadFiles = (payload.downloadFiles ?? [])
+      .map((downloadFile) => ({
+        platform: downloadFile.platform,
+        purchaseMode: downloadFile.purchaseMode,
+        versionValue:
+          downloadFile.purchaseMode === "single"
+            ? downloadFile.versionValue?.trim()
+            : undefined,
+        fileName: downloadFile.fileName.trim(),
+        storageBucket: downloadFile.storageBucket.trim(),
+        storagePath: downloadFile.storagePath.trim(),
+      }))
+      .filter(
+        (downloadFile) =>
+          downloadFile.fileName ||
+          downloadFile.storageBucket ||
+          downloadFile.storagePath ||
+          downloadFile.versionValue,
+      );
 
     if (!normalizedId) {
       return NextResponse.json(
@@ -182,6 +251,55 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (hasDuplicateVersionValues(versions)) {
       return NextResponse.json(
         { error: "버전 값은 중복될 수 없어요." },
+        { status: 400 },
+      );
+    }
+
+    if (
+      downloadFiles.some(
+        (downloadFile) =>
+          !downloadFile.fileName ||
+          !downloadFile.storageBucket ||
+          !downloadFile.storagePath,
+      )
+    ) {
+      return NextResponse.json(
+        { error: "다운로드 파일 업로드를 완료해 주세요." },
+        { status: 400 },
+      );
+    }
+
+    if (
+      downloadFiles.some(
+        (downloadFile) =>
+          downloadFile.purchaseMode === "single" && !downloadFile.versionValue,
+      )
+    ) {
+      return NextResponse.json(
+        { error: "개별 다운로드 파일은 버전 연결이 필요해요." },
+        { status: 400 },
+      );
+    }
+
+    const versionValueSet = new Set(versions.map((version) => version.value));
+
+    if (
+      downloadFiles.some(
+        (downloadFile) =>
+          downloadFile.purchaseMode === "single" &&
+          downloadFile.versionValue &&
+          !versionValueSet.has(downloadFile.versionValue),
+      )
+    ) {
+      return NextResponse.json(
+        { error: "등록된 버전 값만 다운로드 파일에 연결할 수 있어요." },
+        { status: 400 },
+      );
+    }
+
+    if (hasDuplicateDownloadFileKeys(downloadFiles)) {
+      return NextResponse.json(
+        { error: "같은 플랫폼/구매 방식 조합의 다운로드 파일이 중복되었어요." },
         { status: 400 },
       );
     }
@@ -298,6 +416,44 @@ export async function PATCH(request: Request, context: RouteContext) {
       if (insertVersionsError) {
         return NextResponse.json(
           { error: "새 버전 정보 저장에 실패했어요." },
+          { status: 500 },
+        );
+      }
+    }
+
+    const { error: deleteDownloadFilesError } = await supabase
+      .from("theme_download_files")
+      .delete()
+      .eq("theme_id", normalizedRouteId);
+
+    if (deleteDownloadFilesError) {
+      return NextResponse.json(
+        { error: "기존 다운로드 파일 정보 정리에 실패했어요." },
+        { status: 500 },
+      );
+    }
+
+    if (downloadFiles.length > 0) {
+      const { error: insertDownloadFilesError } = await supabase
+        .from("theme_download_files")
+        .insert(
+          downloadFiles.map((downloadFile) => ({
+            theme_id: normalizedRouteId,
+            platform: downloadFile.platform,
+            purchase_mode: downloadFile.purchaseMode,
+            version_value:
+              downloadFile.purchaseMode === "single"
+                ? (downloadFile.versionValue ?? null)
+                : null,
+            file_name: downloadFile.fileName,
+            storage_bucket: downloadFile.storageBucket,
+            storage_path: downloadFile.storagePath,
+          })),
+        );
+
+      if (insertDownloadFilesError) {
+        return NextResponse.json(
+          { error: "새 다운로드 파일 정보 저장에 실패했어요." },
           { status: 500 },
         );
       }
