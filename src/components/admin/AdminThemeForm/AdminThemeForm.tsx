@@ -7,6 +7,7 @@ import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import CustomDropdown, {
   type DropdownOption,
 } from "@/components/common/CustomDropdown/CustomDropdown";
+import { useToast } from "@/components/common/Toast/ToastProvider";
 import type {
   PurchaseMode,
   ThemePlatform,
@@ -257,6 +258,7 @@ export default function AdminThemeForm({
   initialValues,
 }: AdminThemeFormProps) {
   const router = useRouter();
+  const { showToast } = useToast();
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const previewInputRef = useRef<HTMLInputElement>(null);
   const downloadFileInputRefs = useRef<Record<string, HTMLInputElement | null>>(
@@ -296,6 +298,16 @@ export default function AdminThemeForm({
         })),
     [form.versions],
   );
+
+  const hasSetDownloadFile = useMemo(() => {
+    const sanitizedDownloadFiles = getSanitizedDownloadFiles(
+      form.downloadFiles,
+    );
+
+    return sanitizedDownloadFiles.some(
+      (downloadFile) => downloadFile.purchaseMode === "set",
+    );
+  }, [form.downloadFiles]);
 
   function handleChange<K extends keyof FormState>(
     key: K,
@@ -456,6 +468,7 @@ export default function AdminThemeForm({
       }
 
       handleChange("thumbnail", result.publicUrl);
+      showToast("썸네일 업로드가 완료되었어요!", { type: "success" });
     } catch (error) {
       const message =
         error instanceof Error
@@ -463,6 +476,7 @@ export default function AdminThemeForm({
           : "썸네일 업로드 중 문제가 생겼어요.";
 
       setErrorMessage(message);
+      showToast(message, { type: "error" });
     } finally {
       setIsUploadingThumbnail(false);
 
@@ -516,6 +530,10 @@ export default function AdminThemeForm({
           previewImages: mergedUrls.join("\n"),
         };
       });
+
+      showToast("미리보기 이미지 업로드가 완료되었어요!", {
+        type: "success",
+      });
     } catch (error) {
       const message =
         error instanceof Error
@@ -523,6 +541,7 @@ export default function AdminThemeForm({
           : "미리보기 이미지 업로드 중 문제가 생겼어요.";
 
       setErrorMessage(message);
+      showToast(message, { type: "error" });
     } finally {
       setIsUploadingPreviewImages(false);
 
@@ -547,9 +566,9 @@ export default function AdminThemeForm({
     const normalizedThemeId = normalizeId(form.id);
 
     if (!normalizedThemeId) {
-      setErrorMessage(
-        "다운로드 파일 업로드 전에 테마 ID를 먼저 입력해 주세요.",
-      );
+      const message = "다운로드 파일 업로드 전에 테마 ID를 먼저 입력해 주세요.";
+      setErrorMessage(message);
+      showToast(message, { type: "error" });
       event.target.value = "";
       return;
     }
@@ -567,7 +586,9 @@ export default function AdminThemeForm({
       targetDownloadFile.purchaseMode === "single" &&
       !targetDownloadFile.versionValue?.trim()
     ) {
-      setErrorMessage("개별 파일은 연결할 버전을 먼저 선택해 주세요.");
+      const message = "개별 파일은 연결할 버전을 먼저 선택해 주세요.";
+      setErrorMessage(message);
+      showToast(message, { type: "error" });
       event.target.value = "";
       return;
     }
@@ -622,6 +643,10 @@ export default function AdminThemeForm({
             : downloadFile,
         ),
       }));
+
+      showToast("다운로드 파일 업로드가 완료되었어요!", {
+        type: "success",
+      });
     } catch (error) {
       const message =
         error instanceof Error
@@ -629,6 +654,7 @@ export default function AdminThemeForm({
           : "다운로드 파일 업로드 중 문제가 생겼어요.";
 
       setErrorMessage(message);
+      showToast(message, { type: "error" });
     } finally {
       setUploadingDownloadFileId(null);
 
@@ -692,6 +718,14 @@ export default function AdminThemeForm({
     }
 
     if (
+      form.type === "signature" &&
+      hasSetDownloadFile &&
+      !form.setPrice.trim()
+    ) {
+      return "세트 파일을 등록한 경우 세트 가격도 입력해 주세요.";
+    }
+
+    if (
       sanitizedVersions.some(
         (version) => !version.label.trim() || !version.value.trim(),
       )
@@ -749,6 +783,7 @@ export default function AdminThemeForm({
 
     if (validationMessage) {
       setErrorMessage(validationMessage);
+      showToast(validationMessage, { type: "error" });
       return;
     }
 
@@ -783,13 +818,16 @@ export default function AdminThemeForm({
         );
       }
 
-      window.alert(
+      showToast(
         result.message ||
           (isEditMode ? "테마가 수정되었어요!" : "새 테마가 등록되었어요!"),
+        { type: "success" },
       );
 
-      router.replace("/admin/themes");
-      router.refresh();
+      window.setTimeout(() => {
+        router.replace("/admin/themes");
+        router.refresh();
+      }, 180);
     } catch (error) {
       const message =
         error instanceof Error
@@ -799,6 +837,7 @@ export default function AdminThemeForm({
             : "테마 등록 중 문제가 생겼어요.";
 
       setErrorMessage(message);
+      showToast(message, { type: "error" });
       setIsSubmitting(false);
     }
   }
@@ -919,6 +958,11 @@ export default function AdminThemeForm({
               }}
               placeholder="7500"
             />
+            <span className={styles.hint}>
+              {form.type === "signature" && hasSetDownloadFile
+                ? "세트 파일이 있으면 세트 가격도 꼭 입력해 주세요."
+                : "세트 구매를 사용할 때 입력해 주세요."}
+            </span>
           </label>
 
           <div className={styles.field}>

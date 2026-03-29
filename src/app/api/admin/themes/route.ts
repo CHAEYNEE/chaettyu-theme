@@ -125,12 +125,16 @@ function parsePayload(body: unknown): CreateThemeRequest | null {
     typeof payload.title !== "string" ||
     !isValidThemeType(payload.type) ||
     typeof payload.price !== "number" ||
+    (payload.setPrice !== undefined && typeof payload.setPrice !== "number") ||
+    (payload.setBonusCount !== undefined &&
+      typeof payload.setBonusCount !== "number") ||
     typeof payload.thumbnail !== "string" ||
     !isStringArray(payload.previewImages) ||
     !isStringArray(payload.tags) ||
     typeof payload.isPublished !== "boolean" ||
     !isValidPlatformArray(payload.platforms) ||
     typeof payload.detailHtml !== "string" ||
+    (payload.badge !== undefined && typeof payload.badge !== "string") ||
     (payload.versions !== undefined &&
       !isValidVersionArray(payload.versions)) ||
     (payload.downloadFiles !== undefined &&
@@ -188,6 +192,10 @@ export async function POST(request: Request) {
           downloadFile.versionValue,
       );
 
+    const hasSetDownloadFile = downloadFiles.some(
+      (downloadFile) => downloadFile.purchaseMode === "set",
+    );
+
     if (!normalizedId) {
       return NextResponse.json(
         { error: "테마 ID를 입력해 주세요." },
@@ -219,6 +227,17 @@ export async function POST(request: Request) {
     if (payload.type === "signature" && payload.price <= 0) {
       return NextResponse.json(
         { error: "유료 테마는 가격을 입력해 주세요." },
+        { status: 400 },
+      );
+    }
+
+    if (
+      payload.type === "signature" &&
+      hasSetDownloadFile &&
+      (!payload.setPrice || payload.setPrice <= 0)
+    ) {
+      return NextResponse.json(
+        { error: "세트 파일을 등록한 경우 세트 가격도 입력해 주세요." },
         { status: 400 },
       );
     }
