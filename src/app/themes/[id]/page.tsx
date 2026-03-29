@@ -2,11 +2,11 @@ import { notFound } from "next/navigation";
 
 import BoardLayout from "@/components/layout/BoardLayout/BoardLayout";
 import PreviewGallery from "@/components/theme/PreviewGallery/PreviewGallery";
-import ThemeDetailClient from "./ThemeDetailClient";
 import ThemeDetailTabs from "@/components/theme/ThemeDetailTabs/ThemeDetailTabs";
-import { themes } from "@/data/themes";
+import { getPublicThemeDetail } from "@/lib/theme/getPublicThemeDetail";
 import type { ThemePlatform } from "@/types/theme";
 
+import ThemeDetailClient from "./ThemeDetailClient";
 import styles from "./page.module.css";
 
 type ThemeDetailPageProps = {
@@ -20,17 +20,13 @@ const platformLabelMap: Record<ThemePlatform, string> = {
   android: "AND",
 };
 
-export function generateStaticParams() {
-  return themes.map((theme) => ({
-    id: theme.id,
-  }));
-}
+export const revalidate = 0;
 
 export default async function ThemeDetailPage({
   params,
 }: ThemeDetailPageProps) {
   const { id } = await params;
-  const theme = themes.find((item) => item.id === id);
+  const theme = await getPublicThemeDetail(id);
 
   if (!theme) {
     notFound();
