@@ -1,9 +1,9 @@
 import BoardLayout from "@/components/layout/BoardLayout/BoardLayout";
 import ThemeListSection from "@/components/theme/ThemeListSection/ThemeListSection";
-import { themes } from "@/data/themes";
+import { getPublicThemesByType } from "@/lib/theme/getPublicThemes";
 
-export default function FreeThemesPage() {
-  const freeThemes = themes.filter((theme) => theme.type === "free");
+export default async function FreeThemesPage() {
+  const freeThemes = await getPublicThemesByType("free");
 
   return (
     <BoardLayout>

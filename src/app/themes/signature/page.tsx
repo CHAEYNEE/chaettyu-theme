@@ -1,9 +1,9 @@
 import BoardLayout from "@/components/layout/BoardLayout/BoardLayout";
 import ThemeListSection from "@/components/theme/ThemeListSection/ThemeListSection";
-import { themes } from "@/data/themes";
+import { getPublicThemesByType } from "@/lib/theme/getPublicThemes";
 
-export default function SignatureThemesPage() {
-  const signatureThemes = themes.filter((theme) => theme.type === "signature");
+export default async function SignatureThemesPage() {
+  const signatureThemes = await getPublicThemesByType("signature");
 
   return (
     <BoardLayout>
