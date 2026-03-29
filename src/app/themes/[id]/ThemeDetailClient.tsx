@@ -147,8 +147,8 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
 
     showToast(
       isRedownload
-        ? "이미 받은 구성이에요. 다시 다운로드했어요!"
-        : "다운로드가 완료되었어요!",
+        ? "이미 받은 구성이에요. 다시 다운로드를 시작했어요!"
+        : "다운로드를 시작했어요!",
       {
         type: "success",
       },

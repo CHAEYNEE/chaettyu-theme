@@ -98,8 +98,13 @@ export async function GET(request: Request, context: RouteContext) {
       );
     }
 
-    return NextResponse.redirect(signedUrlData.signedUrl, 307);
-  } catch {
+    const signedUrl = new URL(signedUrlData.signedUrl);
+    signedUrl.searchParams.set("download", downloadFile.file_name);
+
+    return NextResponse.redirect(signedUrl.toString(), 307);
+  } catch (error) {
+    console.error("Theme download route error:", error);
+
     return NextResponse.json(
       { error: "알 수 없는 오류가 발생했어요." },
       { status: 500 },
