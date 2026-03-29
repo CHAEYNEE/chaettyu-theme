@@ -65,7 +65,7 @@ export default function MyPageClient() {
     if (!user) return [];
 
     return getUserThemeDownloads(user.id).filter((record) => {
-      if (record.themeType) {
+      if ("themeType" in record && record.themeType) {
         return record.themeType === "free";
       }
 

@@ -250,6 +250,7 @@ export default function MyPageHistorySection({
                     fill
                     sizes="92px"
                     className={styles.thumbnail}
+                    unoptimized
                   />
                 </div>
 
