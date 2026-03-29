@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
-import type { ThemePlatform, ThemeType } from "@/types/theme";
+import type { ThemePlatform, ThemeType, ThemeVersion } from "@/types/theme";
 
 type CreateThemeRequest = {
   id: string;
@@ -18,6 +18,7 @@ type CreateThemeRequest = {
   platforms: ThemePlatform[];
   detailHtml: string;
   badge?: string;
+  versions?: ThemeVersion[];
 };
 
 function normalizeId(value: string) {
@@ -46,6 +47,25 @@ function isStringArray(value: unknown): value is string[] {
   );
 }
 
+function isValidVersionArray(value: unknown): value is ThemeVersion[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (item) =>
+        item &&
+        typeof item === "object" &&
+        typeof item.label === "string" &&
+        typeof item.value === "string",
+    )
+  );
+}
+
+function hasDuplicateVersionValues(versions: ThemeVersion[]) {
+  const values = versions.map((version) => version.value).filter(Boolean);
+
+  return new Set(values).size !== values.length;
+}
+
 function parsePayload(body: unknown): CreateThemeRequest | null {
   if (!body || typeof body !== "object") {
     return null;
@@ -63,7 +83,8 @@ function parsePayload(body: unknown): CreateThemeRequest | null {
     !isStringArray(payload.tags) ||
     typeof payload.isPublished !== "boolean" ||
     !isValidPlatformArray(payload.platforms) ||
-    typeof payload.detailHtml !== "string"
+    typeof payload.detailHtml !== "string" ||
+    (payload.versions !== undefined && !isValidVersionArray(payload.versions))
   ) {
     return null;
   }
@@ -91,6 +112,12 @@ export async function POST(request: Request) {
       .filter(Boolean);
     const tags = payload.tags.map((item) => item.trim()).filter(Boolean);
     const detailHtml = payload.detailHtml.trim();
+    const versions = (payload.versions ?? [])
+      .map((version) => ({
+        label: version.label.trim(),
+        value: version.value.trim(),
+      }))
+      .filter((version) => version.label || version.value);
 
     if (!normalizedId) {
       return NextResponse.json(
@@ -123,6 +150,22 @@ export async function POST(request: Request) {
     if (payload.type === "signature" && payload.price <= 0) {
       return NextResponse.json(
         { error: "유료 테마는 가격을 입력해 주세요." },
+        { status: 400 },
+      );
+    }
+
+    if (
+      versions.some((version) => !version.label.trim() || !version.value.trim())
+    ) {
+      return NextResponse.json(
+        { error: "버전명과 버전 값은 함께 입력해 주세요." },
+        { status: 400 },
+      );
+    }
+
+    if (hasDuplicateVersionValues(versions)) {
+      return NextResponse.json(
+        { error: "버전 값은 중복될 수 없어요." },
         { status: 400 },
       );
     }
@@ -184,6 +227,33 @@ export async function POST(request: Request) {
 
         return NextResponse.json(
           { error: "미리보기 이미지 저장에 실패했어요." },
+          { status: 500 },
+        );
+      }
+    }
+
+    if (versions.length > 0) {
+      const { error: versionInsertError } = await supabase
+        .from("theme_versions")
+        .insert(
+          versions.map((version, index) => ({
+            theme_id: normalizedId,
+            label: version.label,
+            value: version.value,
+            sort_order: index,
+          })),
+        );
+
+      if (versionInsertError) {
+        await supabase
+          .from("theme_preview_images")
+          .delete()
+          .eq("theme_id", normalizedId);
+
+        await supabase.from("themes").delete().eq("id", normalizedId);
+
+        return NextResponse.json(
+          { error: "버전 정보 저장에 실패했어요." },
           { status: 500 },
         );
       }

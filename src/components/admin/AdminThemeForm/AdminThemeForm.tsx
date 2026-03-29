@@ -7,7 +7,7 @@ import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import CustomDropdown, {
   type DropdownOption,
 } from "@/components/common/CustomDropdown/CustomDropdown";
-import type { ThemePlatform, ThemeType } from "@/types/theme";
+import type { ThemePlatform, ThemeType, ThemeVersion } from "@/types/theme";
 
 import styles from "./AdminThemeForm.module.css";
 
@@ -26,11 +26,16 @@ export type AdminThemeFormInitialValues = {
   detailHtml: string;
   platforms: ThemePlatform[];
   isPublished: boolean;
+  versions: ThemeVersion[];
 };
 
 type AdminThemeFormProps = {
   mode?: AdminThemeFormMode;
   initialValues?: AdminThemeFormInitialValues;
+};
+
+type VersionFormItem = ThemeVersion & {
+  formId: string;
 };
 
 type FormState = {
@@ -46,6 +51,7 @@ type FormState = {
   detailHtml: string;
   platforms: ThemePlatform[];
   isPublished: boolean;
+  versions: VersionFormItem[];
 };
 
 const themeTypeOptions: DropdownOption[] = [
@@ -86,6 +92,39 @@ function splitByComma(value: string) {
     .filter(Boolean);
 }
 
+function createVersionFormId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `version-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function createVersionFormItem(
+  version?: Partial<ThemeVersion>,
+): VersionFormItem {
+  return {
+    formId: createVersionFormId(),
+    label: version?.label ?? "",
+    value: version?.value ?? "",
+  };
+}
+
+function getSanitizedVersions(versions: VersionFormItem[]): ThemeVersion[] {
+  return versions
+    .map((version) => ({
+      label: version.label.trim(),
+      value: version.value.trim(),
+    }))
+    .filter((version) => version.label || version.value);
+}
+
+function hasDuplicateVersionValues(versions: ThemeVersion[]) {
+  const values = versions.map((version) => version.value).filter(Boolean);
+
+  return new Set(values).size !== values.length;
+}
+
 function createEmptyFormState(): FormState {
   return {
     id: "",
@@ -100,6 +139,7 @@ function createEmptyFormState(): FormState {
     detailHtml: "",
     platforms: ["ios"],
     isPublished: true,
+    versions: [],
   };
 }
 
@@ -129,6 +169,9 @@ function createInitialFormState(
     platforms:
       initialValues.platforms.length > 0 ? initialValues.platforms : ["ios"],
     isPublished: initialValues.isPublished,
+    versions: (initialValues.versions ?? []).map((version) =>
+      createVersionFormItem(version),
+    ),
   };
 }
 
@@ -186,6 +229,35 @@ export default function AdminThemeForm({
         platforms: [...prev.platforms, platform],
       };
     });
+  }
+
+  function handleVersionChange(
+    index: number,
+    key: keyof ThemeVersion,
+    value: string,
+  ) {
+    setForm((prev) => ({
+      ...prev,
+      versions: prev.versions.map((version, versionIndex) =>
+        versionIndex === index ? { ...version, [key]: value } : version,
+      ),
+    }));
+  }
+
+  function handleAddVersion() {
+    setForm((prev) => ({
+      ...prev,
+      versions: [...prev.versions, createVersionFormItem()],
+    }));
+  }
+
+  function handleRemoveVersion(index: number) {
+    setForm((prev) => ({
+      ...prev,
+      versions: prev.versions.filter(
+        (_, versionIndex) => versionIndex !== index,
+      ),
+    }));
   }
 
   function resetError() {
@@ -317,11 +389,13 @@ export default function AdminThemeForm({
       platforms: form.platforms,
       detailHtml: form.detailHtml.trim(),
       badge: form.badge.trim() || undefined,
+      versions: getSanitizedVersions(form.versions),
     };
   }
 
   function validateForm() {
     const normalizedId = normalizeId(form.id);
+    const sanitizedVersions = getSanitizedVersions(form.versions);
 
     if (!normalizedId) {
       return "테마 ID를 입력해 주세요.";
@@ -341,6 +415,18 @@ export default function AdminThemeForm({
 
     if (form.type === "signature" && !form.price.trim()) {
       return "유료 테마는 가격을 입력해 주세요.";
+    }
+
+    if (
+      sanitizedVersions.some(
+        (version) => !version.label.trim() || !version.value.trim(),
+      )
+    ) {
+      return "버전명과 버전 값은 함께 입력해 주세요.";
+    }
+
+    if (hasDuplicateVersionValues(sanitizedVersions)) {
+      return "버전 값은 중복될 수 없어요.";
     }
 
     return "";
@@ -572,6 +658,98 @@ export default function AdminThemeForm({
               }}
             />
           </div>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <p className={styles.sectionEyebrow}>VERSIONS</p>
+          <h3 className={styles.sectionTitle}>버전 정보</h3>
+        </div>
+
+        <div className={styles.column}>
+          <div className={styles.versionHeaderRow}>
+            <div>
+              <span className={styles.label}>버전 목록</span>
+              <p className={styles.hint}>
+                다운로드 파일 연결에 사용할 버전 값을 먼저 정리해 주세요.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              className={styles.uploadButton}
+              onClick={() => {
+                resetError();
+                handleAddVersion();
+              }}
+            >
+              + 버전 추가
+            </button>
+          </div>
+
+          {form.versions.length === 0 ? (
+            <p className={styles.hint}>
+              아직 등록된 버전이 없어요. 필요할 때만 추가해 주세요.
+            </p>
+          ) : (
+            <div className={styles.versionList}>
+              {form.versions.map((version, index) => (
+                <div key={version.formId} className={styles.versionCard}>
+                  <div className={styles.versionRowGrid}>
+                    <label className={styles.field}>
+                      <span className={styles.label}>버전명</span>
+                      <input
+                        className={styles.input}
+                        type="text"
+                        value={version.label}
+                        onChange={(event) => {
+                          resetError();
+                          handleVersionChange(
+                            index,
+                            "label",
+                            event.target.value,
+                          );
+                        }}
+                        placeholder="기본 버전"
+                      />
+                    </label>
+
+                    <label className={styles.field}>
+                      <span className={styles.label}>버전 값</span>
+                      <input
+                        className={styles.input}
+                        type="text"
+                        value={version.value}
+                        onChange={(event) => {
+                          resetError();
+                          handleVersionChange(
+                            index,
+                            "value",
+                            event.target.value,
+                          );
+                        }}
+                        placeholder="basic"
+                      />
+                    </label>
+                  </div>
+
+                  <div className={styles.versionActions}>
+                    <button
+                      type="button"
+                      className={styles.secondaryButton}
+                      onClick={() => {
+                        resetError();
+                        handleRemoveVersion(index);
+                      }}
+                    >
+                      삭제
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

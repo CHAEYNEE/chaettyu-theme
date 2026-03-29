@@ -32,6 +32,12 @@ type DbPreviewImageRow = {
   sort_order: number;
 };
 
+type DbThemeVersionRow = {
+  label: string;
+  value: string;
+  sort_order: number;
+};
+
 function sanitizePlatforms(value: ThemePlatform[] | null | undefined) {
   if (!Array.isArray(value)) {
     return ["ios"] as ThemePlatform[];
@@ -53,6 +59,7 @@ export default async function AdminEditThemePage({
   const [
     { data: themeData, error: themeError },
     { data: previewData, error: previewError },
+    { data: versionData, error: versionError },
   ] = await Promise.all([
     supabase
       .from("themes")
@@ -66,6 +73,11 @@ export default async function AdminEditThemePage({
       .select("image_url, sort_order")
       .eq("theme_id", id)
       .order("sort_order", { ascending: true }),
+    supabase
+      .from("theme_versions")
+      .select("label, value, sort_order")
+      .eq("theme_id", id)
+      .order("sort_order", { ascending: true }),
   ]);
 
   if (themeError) {
@@ -76,6 +88,10 @@ export default async function AdminEditThemePage({
     console.error("Failed to fetch preview images for edit:", previewError);
   }
 
+  if (versionError) {
+    console.error("Failed to fetch theme versions for edit:", versionError);
+  }
+
   if (!themeData) {
     notFound();
   }
@@ -83,6 +99,12 @@ export default async function AdminEditThemePage({
   const theme = themeData as DbThemeDetailRow;
   const previewImages = ((previewData ?? []) as DbPreviewImageRow[]).map(
     (item) => item.image_url,
+  );
+  const versions = ((versionData ?? []) as DbThemeVersionRow[]).map(
+    (version) => ({
+      label: version.label,
+      value: version.value,
+    }),
   );
 
   const initialValues: AdminThemeFormInitialValues = {
@@ -98,6 +120,7 @@ export default async function AdminEditThemePage({
     detailHtml: theme.detail_html ?? "",
     platforms: sanitizePlatforms(theme.platforms),
     isPublished: theme.is_published,
+    versions,
   };
 
   return (
