@@ -1,4 +1,4 @@
-import type { PurchaseMode, ThemePlatform } from "@/types/theme";
+import type { PurchaseMode, ThemePlatform, ThemeType } from "@/types/theme";
 
 export type ThemePurchaseLineItem = {
   key: string;
@@ -14,6 +14,7 @@ export type ThemePurchaseRecord = {
   id: string;
   userId: string;
   themeId: string;
+  themeType: ThemeType;
   themeTitle: string;
   themeThumbnail: string;
   downloadFileName?: string;
@@ -27,6 +28,7 @@ export type ThemeDownloadRecord = {
   id: string;
   userId: string;
   themeId: string;
+  themeType: ThemeType;
   themeTitle: string;
   themeThumbnail: string;
   downloadFileName?: string;

@@ -1,16 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
 import { useToast } from "@/components/common/Toast/ToastProvider";
-import { themes } from "@/data/themes";
 import {
   addThemeDownload,
   getUserDownloadedLineItems,
 } from "@/lib/storage/themeStorage";
-import type { ThemeItem } from "@/types/theme";
+import { buildThemeDownloadUrl } from "@/lib/theme/buildThemeDownloadUrl";
 import type {
   ThemeDownloadRecord,
   ThemePurchaseLineItem,
@@ -29,7 +28,7 @@ type MyPageHistorySectionProps = {
 };
 
 type DownloadTarget = {
-  fileName: string;
+  fileName?: string;
   fileUrl: string;
 };
 
@@ -75,54 +74,27 @@ function hasDownloadedAllItems(
   return items.every((item) => isOwnedLineItem(item, downloadedItems));
 }
 
-function getDownloadTargets(
-  theme: ThemeItem,
-  items: ThemePurchaseLineItem[],
-): DownloadTarget[] {
-  const downloadFiles = theme.downloadFiles;
+function getDownloadTargets(record: MyPageRecord): DownloadTarget[] {
+  const fileNameQueue = [...(record.downloadFileNames ?? [])];
 
-  if (!downloadFiles || downloadFiles.length === 0) {
-    return [];
-  }
+  return record.items.map((item) => {
+    const fileUrl = buildThemeDownloadUrl({
+      themeId: record.themeId,
+      platform: item.platform,
+      purchaseMode: item.purchaseMode,
+      versionValue: item.versionValue,
+    });
 
-  const fileMap = new Map<string, DownloadTarget>();
+    const fallbackFileName =
+      item.purchaseMode === "set"
+        ? `${record.themeId}-${item.platform}-set`
+        : `${record.themeId}-${item.platform}-${item.versionValue ?? "default"}`;
 
-  items.forEach((item) => {
-    if (item.purchaseMode === "set") {
-      const matchedSetFile = downloadFiles.find(
-        (file) =>
-          file.platform === item.platform && file.purchaseMode === "set",
-      );
-
-      if (matchedSetFile) {
-        fileMap.set(`${matchedSetFile.platform}-set`, {
-          fileName: matchedSetFile.fileName,
-          fileUrl: matchedSetFile.fileUrl,
-        });
-      }
-
-      return;
-    }
-
-    const matchedSingleFile = downloadFiles.find(
-      (file) =>
-        file.platform === item.platform &&
-        file.purchaseMode === "single" &&
-        file.versionValue === item.versionValue,
-    );
-
-    if (matchedSingleFile) {
-      fileMap.set(
-        `${matchedSingleFile.platform}-${matchedSingleFile.versionValue}`,
-        {
-          fileName: matchedSingleFile.fileName,
-          fileUrl: matchedSingleFile.fileUrl,
-        },
-      );
-    }
+    return {
+      fileUrl,
+      fileName: fileNameQueue.shift() ?? fallbackFileName,
+    };
   });
-
-  return Array.from(fileMap.values());
 }
 
 function startDownloads(files: DownloadTarget[]) {
@@ -130,8 +102,12 @@ function startDownloads(files: DownloadTarget[]) {
     window.setTimeout(() => {
       const link = document.createElement("a");
       link.href = file.fileUrl;
-      link.download = file.fileName;
       link.rel = "noopener";
+
+      if (file.fileName) {
+        link.download = file.fileName;
+      }
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -170,22 +146,15 @@ export default function MyPageHistorySection({
     null,
   );
 
-  const themeMap = useMemo(
-    () => new Map(themes.map((theme) => [theme.id, theme])),
-    [],
-  );
-
   const handleRecordDownload = (record: MyPageRecord) => {
-    const theme = themeMap.get(record.themeId);
-
-    if (!theme || !theme.downloadFiles || theme.downloadFiles.length === 0) {
-      showToast("이 테마는 아직 마이페이지 다운로드가 준비되지 않았어요!", {
-        type: "info",
+    if (record.items.length === 0) {
+      showToast("다운로드할 구성을 찾지 못했어요.", {
+        type: "error",
       });
       return;
     }
 
-    const files = getDownloadTargets(theme, record.items);
+    const files = getDownloadTargets(record);
 
     if (files.length === 0) {
       showToast("다운로드할 파일을 찾지 못했어요.", {
@@ -205,7 +174,14 @@ export default function MyPageHistorySection({
 
     addThemeDownload({
       userId: record.userId,
-      theme,
+      theme: {
+        id: record.themeId,
+        title: record.themeTitle,
+        thumbnail: record.themeThumbnail,
+        type: record.themeType,
+        downloadFileName: record.downloadFileName,
+        downloadFileNames: record.downloadFileNames,
+      },
       items: record.items,
     });
 
@@ -247,8 +223,6 @@ export default function MyPageHistorySection({
         const dateText = formatDate(
           isPurchase ? record.purchasedAt : record.downloadedAt,
         );
-        const theme = themeMap.get(record.themeId);
-        const canDownloadFromMyPage = Boolean(theme?.downloadFiles?.length);
         const isRedownload = hasDownloadedAllItems(
           record.userId,
           record.themeId,
@@ -256,11 +230,7 @@ export default function MyPageHistorySection({
         );
         const isDownloading = downloadingRecordId === record.id;
 
-        const actionLabel = !canDownloadFromMyPage
-          ? "준비 중"
-          : isRedownload
-            ? "다시 다운로드"
-            : "다운로드";
+        const actionLabel = isRedownload ? "다시 다운로드" : "다운로드";
 
         return (
           <li key={`${record.id}-${refreshKey}`}>
@@ -303,13 +273,9 @@ export default function MyPageHistorySection({
 
                       <button
                         type="button"
-                        className={`${styles.actionButton} ${
-                          !canDownloadFromMyPage
-                            ? styles.actionButtonDisabled
-                            : ""
-                        }`}
+                        className={styles.actionButton}
                         onClick={() => handleRecordDownload(record)}
-                        disabled={!canDownloadFromMyPage || isDownloading}
+                        disabled={isDownloading}
                       >
                         {isDownloading ? "다운로드 중..." : actionLabel}
                       </button>
@@ -320,13 +286,9 @@ export default function MyPageHistorySection({
 
                       <button
                         type="button"
-                        className={`${styles.actionButton} ${
-                          !canDownloadFromMyPage
-                            ? styles.actionButtonDisabled
-                            : ""
-                        }`}
+                        className={styles.actionButton}
                         onClick={() => handleRecordDownload(record)}
-                        disabled={!canDownloadFromMyPage || isDownloading}
+                        disabled={isDownloading}
                       >
                         {isDownloading ? "다운로드 중..." : actionLabel}
                       </button>

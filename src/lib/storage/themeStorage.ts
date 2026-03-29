@@ -4,7 +4,17 @@ import type {
   ThemePurchaseLineItem,
   ThemePurchaseRecord,
 } from "@/types/themeHistory";
-import type { ThemeItem } from "@/types/theme";
+import type { ThemeDownloadFile, ThemeType } from "@/types/theme";
+
+type ThemeHistoryThemeSource = {
+  id: string;
+  title: string;
+  thumbnail: string;
+  type: ThemeType;
+  downloadFileName?: string;
+  downloadFileNames?: string[];
+  downloadFiles?: ThemeDownloadFile[];
+};
 
 function isBrowser() {
   return typeof window !== "undefined";
@@ -97,12 +107,16 @@ function uniqueLineItems(items: ThemePurchaseLineItem[]) {
   return mergeUniqueLineItems([], items);
 }
 
-function getFallbackDownloadFileNames(theme: ThemeItem) {
+function getFallbackDownloadFileNames(theme: ThemeHistoryThemeSource) {
+  if (theme.downloadFileNames && theme.downloadFileNames.length > 0) {
+    return theme.downloadFileNames;
+  }
+
   return theme.downloadFileName ? [theme.downloadFileName] : [];
 }
 
 function getDownloadFileNamesByItems(
-  theme: ThemeItem,
+  theme: ThemeHistoryThemeSource,
   items: ThemePurchaseLineItem[],
 ) {
   const downloadFiles = theme.downloadFiles;
@@ -222,7 +236,7 @@ export function hasPurchasedAllSelectedItems(
 
 type AddThemePurchaseParams = {
   userId: string;
-  theme: ThemeItem;
+  theme: ThemeHistoryThemeSource;
   items: ThemePurchaseLineItem[];
 };
 
@@ -246,6 +260,7 @@ export function addThemePurchase({
     id: generateId("purchase"),
     userId,
     themeId: theme.id,
+    themeType: theme.type,
     themeTitle: theme.title,
     themeThumbnail: theme.thumbnail,
     downloadFileName: downloadFileNames[0],
@@ -328,7 +343,7 @@ export function hasDownloadedAllSelectedItems(
 
 type AddThemeDownloadParams = {
   userId: string;
-  theme: ThemeItem;
+  theme: ThemeHistoryThemeSource;
   items: ThemePurchaseLineItem[];
 };
 
@@ -352,6 +367,7 @@ export function addThemeDownload({
       id: generateId("download"),
       userId,
       themeId: theme.id,
+      themeType: theme.type,
       themeTitle: theme.title,
       themeThumbnail: theme.thumbnail,
       downloadFileName: downloadFileNames[0],
@@ -375,6 +391,7 @@ export function addThemeDownload({
 
   const updatedRecord: ThemeDownloadRecord = {
     ...baseRecord,
+    themeType: theme.type,
     themeTitle: theme.title,
     themeThumbnail: theme.thumbnail,
     downloadFileName: downloadFileNames[0],

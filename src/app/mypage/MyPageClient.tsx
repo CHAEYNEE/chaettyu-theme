@@ -8,7 +8,6 @@ import MyPageEmptyState from "@/components/mypage/MyPageEmptyState/MyPageEmptySt
 import MyPageHistorySection from "@/components/mypage/MyPageHistorySection/MyPageHistorySection";
 import MyPageProfileCard from "@/components/mypage/MyPageProfileCard/MyPageProfileCard";
 import useMockUser from "@/hooks/useMockUser";
-import { themes } from "@/data/themes";
 import {
   getUserThemeDownloads,
   getUserThemePurchases,
@@ -53,23 +52,26 @@ export default function MyPageClient() {
     }
   }, [isLoaded, router, user]);
 
-  const themeTypeMap = useMemo(
-    () => new Map(themes.map((theme) => [theme.id, theme.type])),
-    [],
-  );
-
   const purchases = useMemo(() => {
     if (!user) return [];
     return getUserThemePurchases(user.id);
   }, [user]);
 
+  const purchasedThemeIdSet = useMemo(() => {
+    return new Set(purchases.map((record) => record.themeId));
+  }, [purchases]);
+
   const downloads = useMemo(() => {
     if (!user) return [];
 
-    return getUserThemeDownloads(user.id).filter(
-      (record) => themeTypeMap.get(record.themeId) === "free",
-    );
-  }, [themeTypeMap, user]);
+    return getUserThemeDownloads(user.id).filter((record) => {
+      if (record.themeType) {
+        return record.themeType === "free";
+      }
+
+      return !purchasedThemeIdSet.has(record.themeId);
+    });
+  }, [purchasedThemeIdSet, user]);
 
   const ownedThemeCount = useMemo(() => {
     const ownedThemeIds = new Set([
