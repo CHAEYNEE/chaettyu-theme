@@ -201,6 +201,13 @@
   text-underline-offset: 2px;
 }
 
+.toolButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 4px 4px 0 rgba(131, 97, 92, 0.08);
+}
+
 @media (max-width: 768px) {
   .toolbar {
     gap: 8px;

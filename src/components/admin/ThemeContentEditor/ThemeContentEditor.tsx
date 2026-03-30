@@ -258,13 +258,50 @@ export default function ThemeContentEditor({
     setLinkInputValue("");
   }
 
+  function handleUndo() {
+    if (!editor) {
+      return;
+    }
+
+    editor.chain().focus().undo().run();
+  }
+
+  function handleRedo() {
+    if (!editor) {
+      return;
+    }
+
+    editor.chain().focus().redo().run();
+  }
+
   if (!editor) {
     return null;
   }
 
+  const canUndo = editor.can().chain().focus().undo().run();
+  const canRedo = editor.can().chain().focus().redo().run();
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.toolbar}>
+        <button
+          type="button"
+          className={styles.toolButton}
+          onClick={handleUndo}
+          disabled={!canUndo}
+        >
+          되돌리기
+        </button>
+
+        <button
+          type="button"
+          className={styles.toolButton}
+          onClick={handleRedo}
+          disabled={!canRedo}
+        >
+          다시하기
+        </button>
+
         <button
           type="button"
           className={`${styles.toolButton} ${
