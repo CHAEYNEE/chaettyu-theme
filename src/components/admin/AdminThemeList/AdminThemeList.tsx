@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import AdminDeleteThemeButton from "@/components/admin/AdminDeleteThemeButton/AdminDeleteThemeButton";
 import AdminPublishToggleButton from "@/components/admin/AdminPublishToggleButton/AdminPublishToggleButton";
 
 import styles from "./AdminThemeList.module.css";
@@ -80,6 +81,11 @@ export default function AdminThemeList({ items }: AdminThemeListProps) {
                   <AdminPublishToggleButton
                     themeId={theme.id}
                     status={theme.status}
+                  />
+
+                  <AdminDeleteThemeButton
+                    themeId={theme.id}
+                    themeTitle={theme.title}
                   />
                 </div>
               </div>
