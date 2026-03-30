@@ -135,6 +135,63 @@
   min-width: 0;
 }
 
+.selectionToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 3px solid var(--color-accent-strong);
+  background: #fff9ef;
+  box-shadow: 4px 4px 0 rgba(131, 97, 92, 0.14);
+  margin-bottom: 14px;
+}
+
+.selectionLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.selectAllLabel,
+.cardCheckLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cardCheckLabel {
+  align-self: flex-start;
+  padding-top: 2px;
+}
+
+.selectCheckbox {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.selectionInfo {
+  color: var(--color-text-sub);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.selectionPrice {
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 800;
+  text-align: right;
+}
+
 .list {
   display: flex;
   flex-direction: column;
@@ -233,6 +290,46 @@
   box-shadow: 3px 3px 0 rgba(244, 119, 127, 0.18);
 }
 
+.itemActionButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.singlePurchaseButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 3px solid var(--color-accent-strong);
+  background: #fff3df;
+  box-shadow: 4px 4px 0 rgba(131, 97, 92, 0.14);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.singlePurchaseButton:hover:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 rgba(131, 97, 92, 0.14);
+  background: #ffe8c7;
+}
+
+.singlePurchaseButton:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 .removeButton {
   display: inline-flex;
   align-items: center;
@@ -327,6 +424,30 @@
   box-shadow: 3px 3px 0 rgba(244, 119, 127, 0.18);
 }
 
+.summaryMain {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 3px solid var(--color-accent-strong);
+  background: #fff9ef;
+  box-shadow: 4px 4px 0 rgba(131, 97, 92, 0.14);
+}
+
+.summaryMainLabel {
+  color: var(--color-text-sub);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.summaryMainPrice {
+  color: var(--color-text);
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
 .summaryRow {
   display: flex;
   align-items: center;
@@ -357,6 +478,38 @@
   flex-direction: column;
   gap: 10px;
   margin-top: 6px;
+}
+
+.selectedPurchaseButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 3px solid var(--color-accent-strong);
+  background: #fff3df;
+  box-shadow: 4px 4px 0 rgba(131, 97, 92, 0.14);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.selectedPurchaseButton:hover:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 rgba(131, 97, 92, 0.14);
+  background: #ffe8c7;
+}
+
+.selectedPurchaseButton:disabled {
+  opacity: 0.55;
+  cursor: default;
 }
 
 .purchaseButton,
@@ -432,6 +585,15 @@
     grid-template-columns: 1fr;
   }
 
+  .selectionToolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .selectionPrice {
+    text-align: left;
+  }
+
   .card {
     flex-direction: column;
   }
@@ -445,6 +607,11 @@
     flex-direction: column;
   }
 
+  .itemActionButtons {
+    width: 100%;
+  }
+
+  .singlePurchaseButton,
   .removeButton {
     width: 100%;
   }
@@ -458,6 +625,7 @@
     position: static;
   }
 
+  .selectedPurchaseButton,
   .purchaseButton,
   .primaryLink,
   .secondaryLink,
@@ -493,7 +661,9 @@
   }
 
   .clearButton,
+  .singlePurchaseButton,
   .removeButton,
+  .selectedPurchaseButton,
   .purchaseButton,
   .primaryLink,
   .secondaryLink {
@@ -515,7 +685,8 @@
   }
 
   .itemPrice,
-  .summaryPrice {
+  .summaryPrice,
+  .summaryMainPrice {
     font-size: 20px;
   }
 
