@@ -9,6 +9,7 @@ export function sanitizeThemeDetailHtml(html: string) {
       "em",
       "u",
       "s",
+      "span",
       "blockquote",
       "ul",
       "ol",
@@ -22,8 +23,26 @@ export function sanitizeThemeDetailHtml(html: string) {
     allowedAttributes: {
       a: ["href", "target", "rel"],
       img: ["src", "alt", "title"],
+      p: ["style"],
+      h2: ["style"],
+      h3: ["style"],
+      span: ["style"],
     },
-    allowedSchemes: ["http", "https", "mailto"],
+    allowedStyles: {
+      p: {
+        "text-align": [/^left$/, /^center$/, /^right$/],
+      },
+      h2: {
+        "text-align": [/^left$/, /^center$/, /^right$/],
+      },
+      h3: {
+        "text-align": [/^left$/, /^center$/, /^right$/],
+      },
+      span: {
+        "font-size": [/^\d+(px|em|rem|%)$/],
+      },
+    },
+    allowedSchemes: ["http", "https", "mailto", "tel"],
     allowedSchemesByTag: {
       img: ["http", "https"],
     },

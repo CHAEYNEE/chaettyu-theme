@@ -5,6 +5,8 @@ import { ChangeEvent, useRef, useState } from "react";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
+import TextAlign from "@tiptap/extension-text-align";
+import { FontSize, TextStyle } from "@tiptap/extension-text-style";
 import StarterKit from "@tiptap/starter-kit";
 import { EditorContent, useEditor } from "@tiptap/react";
 
@@ -21,6 +23,18 @@ type ThemeContentEditorProps = {
     detailJson: Record<string, unknown> | null;
   }) => void;
 };
+
+const FONT_SIZE_OPTIONS = [
+  { label: "기본", value: "" },
+  { label: "12", value: "12px" },
+  { label: "14", value: "14px" },
+  { label: "16", value: "16px" },
+  { label: "18", value: "18px" },
+  { label: "20", value: "20px" },
+  { label: "24", value: "24px" },
+  { label: "28", value: "28px" },
+  { label: "32", value: "32px" },
+];
 
 function normalizeThemeId(value: string) {
   return value
@@ -83,6 +97,7 @@ export default function ThemeContentEditor({
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isLinkBoxOpen, setIsLinkBoxOpen] = useState(false);
   const [linkInputValue, setLinkInputValue] = useState("");
+  const [linkOpenInNewTab, setLinkOpenInNewTab] = useState(true);
 
   const editor = useEditor({
     extensions: [
@@ -90,6 +105,12 @@ export default function ThemeContentEditor({
         heading: {
           levels: [2, 3],
         },
+      }),
+      TextStyle,
+      FontSize,
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
+        alignments: ["left", "center", "right"],
       }),
       Image.configure({
         inline: false,
@@ -131,6 +152,12 @@ export default function ThemeContentEditor({
       });
     },
   });
+
+  function closeLinkBox() {
+    setIsLinkBoxOpen(false);
+    setLinkInputValue("");
+    setLinkOpenInNewTab(true);
+  }
 
   async function handleImageUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -208,11 +235,13 @@ export default function ThemeContentEditor({
       return;
     }
 
-    const previousHref = editor.getAttributes("link").href as
-      | string
-      | undefined;
+    const attributes = editor.getAttributes("link") as {
+      href?: string;
+      target?: string | null;
+    };
 
-    setLinkInputValue(previousHref ?? "");
+    setLinkInputValue(attributes.href ?? "");
+    setLinkOpenInNewTab(attributes.target !== null);
     setIsLinkBoxOpen(true);
   }
 
@@ -225,8 +254,7 @@ export default function ThemeContentEditor({
 
     if (!normalizedHref) {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
-      setIsLinkBoxOpen(false);
-      setLinkInputValue("");
+      closeLinkBox();
       return;
     }
 
@@ -241,11 +269,14 @@ export default function ThemeContentEditor({
       .chain()
       .focus()
       .extendMarkRange("link")
-      .setLink({ href: normalizedHref })
+      .setLink({
+        href: normalizedHref,
+        target: linkOpenInNewTab ? "_blank" : null,
+        rel: linkOpenInNewTab ? "noopener noreferrer" : null,
+      })
       .run();
 
-    setIsLinkBoxOpen(false);
-    setLinkInputValue("");
+    closeLinkBox();
   }
 
   function handleRemoveLink() {
@@ -254,8 +285,7 @@ export default function ThemeContentEditor({
     }
 
     editor.chain().focus().extendMarkRange("link").unsetLink().run();
-    setIsLinkBoxOpen(false);
-    setLinkInputValue("");
+    closeLinkBox();
   }
 
   function handleUndo() {
@@ -280,120 +310,183 @@ export default function ThemeContentEditor({
 
   const canUndo = editor.can().chain().focus().undo().run();
   const canRedo = editor.can().chain().focus().redo().run();
+  const currentFontSize =
+    (editor.getAttributes("textStyle").fontSize as string | undefined) ?? "";
 
   return (
     <div className={styles.wrapper}>
       <div className={styles.toolbar}>
-        <button
-          type="button"
-          className={styles.toolButton}
-          onClick={handleUndo}
-          disabled={!canUndo}
-        >
-          되돌리기
-        </button>
+        <div className={styles.toolbarGroup}>
+          <button
+            type="button"
+            className={styles.toolButton}
+            onClick={handleUndo}
+            disabled={!canUndo}
+          >
+            되돌리기
+          </button>
 
-        <button
-          type="button"
-          className={styles.toolButton}
-          onClick={handleRedo}
-          disabled={!canRedo}
-        >
-          다시하기
-        </button>
+          <button
+            type="button"
+            className={styles.toolButton}
+            onClick={handleRedo}
+            disabled={!canRedo}
+          >
+            다시하기
+          </button>
 
-        <button
-          type="button"
-          className={`${styles.toolButton} ${
-            editor.isActive("bold") ? styles.toolButtonActive : ""
-          }`}
-          onClick={() => editor.chain().focus().toggleBold().run()}
-        >
-          굵게
-        </button>
+          <button
+            type="button"
+            className={`${styles.toolButton} ${
+              editor.isActive("bold") ? styles.toolButtonActive : ""
+            }`}
+            onClick={() => editor.chain().focus().toggleBold().run()}
+          >
+            굵게
+          </button>
 
-        <button
-          type="button"
-          className={`${styles.toolButton} ${
-            editor.isActive("italic") ? styles.toolButtonActive : ""
-          }`}
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-        >
-          기울임
-        </button>
+          <button
+            type="button"
+            className={`${styles.toolButton} ${
+              editor.isActive("italic") ? styles.toolButtonActive : ""
+            }`}
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+          >
+            기울임
+          </button>
 
-        <button
-          type="button"
-          className={`${styles.toolButton} ${
-            editor.isActive("heading", { level: 2 })
-              ? styles.toolButtonActive
-              : ""
-          }`}
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 2 }).run()
-          }
-        >
-          제목 2
-        </button>
+          <button
+            type="button"
+            className={`${styles.toolButton} ${
+              editor.isActive("heading", { level: 2 })
+                ? styles.toolButtonActive
+                : ""
+            }`}
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 2 }).run()
+            }
+          >
+            제목 2
+          </button>
 
-        <button
-          type="button"
-          className={`${styles.toolButton} ${
-            editor.isActive("heading", { level: 3 })
-              ? styles.toolButtonActive
-              : ""
-          }`}
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 3 }).run()
-          }
-        >
-          제목 3
-        </button>
+          <button
+            type="button"
+            className={`${styles.toolButton} ${
+              editor.isActive("heading", { level: 3 })
+                ? styles.toolButtonActive
+                : ""
+            }`}
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 3 }).run()
+            }
+          >
+            제목 3
+          </button>
 
-        <button
-          type="button"
-          className={`${styles.toolButton} ${
-            editor.isActive("bulletList") ? styles.toolButtonActive : ""
-          }`}
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-        >
-          리스트
-        </button>
+          <button
+            type="button"
+            className={`${styles.toolButton} ${
+              editor.isActive("bulletList") ? styles.toolButtonActive : ""
+            }`}
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+          >
+            리스트
+          </button>
+        </div>
 
-        <button
-          type="button"
-          className={`${styles.toolButton} ${
-            editor.isActive("link") ? styles.toolButtonActive : ""
-          }`}
-          onClick={handleOpenLinkBox}
-        >
-          링크
-        </button>
+        <div className={styles.toolbarGroup}>
+          <select
+            className={styles.toolSelect}
+            value={currentFontSize}
+            onChange={(event) => {
+              const value = event.target.value;
 
-        <button
-          type="button"
-          className={styles.toolButton}
-          onClick={handleRemoveLink}
-        >
-          링크 해제
-        </button>
+              if (!value) {
+                editor.chain().focus().unsetFontSize().run();
+                return;
+              }
 
-        <input
-          ref={imageInputRef}
-          className={styles.hiddenFileInput}
-          type="file"
-          accept="image/png,image/jpeg,image/webp,image/gif"
-          onChange={handleImageUpload}
-        />
+              editor.chain().focus().setFontSize(value).run();
+            }}
+          >
+            {FONT_SIZE_OPTIONS.map((option) => (
+              <option key={option.label} value={option.value}>
+                글자 {option.label}
+              </option>
+            ))}
+          </select>
 
-        <button
-          type="button"
-          className={styles.toolButton}
-          disabled={isUploadingImage}
-          onClick={() => imageInputRef.current?.click()}
-        >
-          {isUploadingImage ? "업로드 중..." : "이미지"}
-        </button>
+          <button
+            type="button"
+            className={`${styles.toolButton} ${
+              editor.isActive({ textAlign: "left" })
+                ? styles.toolButtonActive
+                : ""
+            }`}
+            onClick={() => editor.chain().focus().setTextAlign("left").run()}
+          >
+            좌측
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.toolButton} ${
+              editor.isActive({ textAlign: "center" })
+                ? styles.toolButtonActive
+                : ""
+            }`}
+            onClick={() => editor.chain().focus().setTextAlign("center").run()}
+          >
+            가운데
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.toolButton} ${
+              editor.isActive({ textAlign: "right" })
+                ? styles.toolButtonActive
+                : ""
+            }`}
+            onClick={() => editor.chain().focus().setTextAlign("right").run()}
+          >
+            우측
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.toolButton} ${
+              editor.isActive("link") ? styles.toolButtonActive : ""
+            }`}
+            onClick={handleOpenLinkBox}
+          >
+            링크
+          </button>
+
+          <button
+            type="button"
+            className={styles.toolButton}
+            onClick={handleRemoveLink}
+          >
+            링크 해제
+          </button>
+
+          <input
+            ref={imageInputRef}
+            className={styles.hiddenFileInput}
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            onChange={handleImageUpload}
+          />
+
+          <button
+            type="button"
+            className={styles.toolButton}
+            disabled={isUploadingImage}
+            onClick={() => imageInputRef.current?.click()}
+          >
+            {isUploadingImage ? "업로드 중..." : "이미지"}
+          </button>
+        </div>
       </div>
 
       {isLinkBoxOpen && (
@@ -405,6 +498,16 @@ export default function ThemeContentEditor({
             placeholder="https://example.com"
             className={styles.linkInput}
           />
+
+          <label className={styles.linkCheckboxLabel}>
+            <input
+              type="checkbox"
+              className={styles.linkCheckbox}
+              checked={linkOpenInNewTab}
+              onChange={(event) => setLinkOpenInNewTab(event.target.checked)}
+            />
+            새 탭에서 열기
+          </label>
 
           <div className={styles.linkActions}>
             <button
@@ -418,10 +521,15 @@ export default function ThemeContentEditor({
             <button
               type="button"
               className={styles.linkActionButton}
-              onClick={() => {
-                setIsLinkBoxOpen(false);
-                setLinkInputValue("");
-              }}
+              onClick={handleRemoveLink}
+            >
+              링크 제거
+            </button>
+
+            <button
+              type="button"
+              className={styles.linkActionButton}
+              onClick={closeLinkBox}
             >
               취소
             </button>
@@ -436,7 +544,7 @@ export default function ThemeContentEditor({
       </div>
 
       <p className={styles.helpText}>
-        제목, 리스트, 링크, 이미지를 자유롭게 넣을 수 있어요.
+        제목, 글자 크기, 정렬, 리스트, 링크, 이미지를 자유롭게 넣을 수 있어요.
       </p>
     </div>
   );
