@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 
-import { clearMockUser } from "@/lib/auth/mockAuthStorage";
+import { clearStoredAuthUser } from "@/lib/auth/authStorage";
 import type { AuthUser } from "@/types/authUser";
 import { formatDate } from "@/utils/formatDate";
 
@@ -22,7 +22,7 @@ export default function MyPageProfileCard({
   latestActivity,
 }: MyPageProfileCardProps) {
   const handleLogout = () => {
-    clearMockUser();
+    clearStoredAuthUser();
   };
 
   return (

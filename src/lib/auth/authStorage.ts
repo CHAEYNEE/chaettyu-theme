@@ -3,18 +3,18 @@
 import { STORAGE_KEYS } from "@/constants/storageKeys";
 import type { AuthUser } from "@/types/authUser";
 
-export const MOCK_AUTH_EVENT = "mock-auth-changed";
+export const AUTH_STORAGE_EVENT = "auth-storage-changed";
 
 function isBrowser(): boolean {
   return typeof window !== "undefined";
 }
 
-function emitMockAuthChange() {
+function emitAuthStorageChange() {
   if (!isBrowser()) {
     return;
   }
 
-  window.dispatchEvent(new Event(MOCK_AUTH_EVENT));
+  window.dispatchEvent(new Event(AUTH_STORAGE_EVENT));
 }
 
 function readStorage<T>(key: string, fallback: T): T {
@@ -60,22 +60,22 @@ function clearStorage(key: string) {
   }
 }
 
-export function getMockUser(): AuthUser | null {
-  return readStorage<AuthUser | null>(STORAGE_KEYS.MOCK_USER, null);
+export function getStoredAuthUser(): AuthUser | null {
+  return readStorage<AuthUser | null>(STORAGE_KEYS.AUTH_USER, null);
 }
 
-export function setMockUser(user: AuthUser) {
-  writeStorage(STORAGE_KEYS.MOCK_USER, user);
-  emitMockAuthChange();
+export function setStoredAuthUser(user: AuthUser) {
+  writeStorage(STORAGE_KEYS.AUTH_USER, user);
+  emitAuthStorageChange();
 }
 
-export function clearMockUser() {
-  clearStorage(STORAGE_KEYS.MOCK_USER);
-  emitMockAuthChange();
+export function clearStoredAuthUser() {
+  clearStorage(STORAGE_KEYS.AUTH_USER);
+  emitAuthStorageChange();
 }
 
-export function hasMockUser(): boolean {
-  return getMockUser() !== null;
+export function hasStoredAuthUser(): boolean {
+  return getStoredAuthUser() !== null;
 }
 
 export function sanitizeRedirectPath(path?: string | null): string {

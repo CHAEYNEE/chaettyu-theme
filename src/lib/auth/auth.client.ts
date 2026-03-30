@@ -1,6 +1,6 @@
 "use client";
 
-import { getMockUser as getStoredAuthUser } from "./mockAuthStorage";
+import { getStoredAuthUser } from "./authStorage";
 import type { AuthSession, AuthUser } from "./auth.types";
 
 function normalizeAuthUser(): AuthUser | null {

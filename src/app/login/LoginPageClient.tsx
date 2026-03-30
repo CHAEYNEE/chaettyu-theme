@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 import BoardLayout from "@/components/layout/BoardLayout/BoardLayout";
 import { useToast } from "@/components/common/Toast/ToastProvider";
-import { sanitizeRedirectPath } from "@/lib/auth/mockAuthStorage";
+import { sanitizeRedirectPath } from "@/lib/auth/authStorage";
 import { supabaseClient } from "@/lib/supabase/client";
 
 import styles from "./login.module.css";

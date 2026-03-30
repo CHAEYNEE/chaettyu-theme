@@ -8,7 +8,7 @@ import { LogIn, LogOut, ShoppingCart, UserRound } from "lucide-react";
 import ScrollToTopButton from "@/components/common/ScrollToTopButton/ScrollToTopButton";
 import SideTabs from "@/components/layout/SideTabs/SideTabs";
 import useAuthUser from "@/hooks/useAuthUser";
-import { clearMockUser } from "@/lib/auth/mockAuthStorage";
+import { clearStoredAuthUser } from "@/lib/auth/authStorage";
 import useOuterScrollbar from "./useOuterScrollbar";
 import styles from "./BoardLayout.module.css";
 
@@ -69,7 +69,7 @@ export default function BoardLayout({
   };
 
   const handleLogoutClick = () => {
-    clearMockUser();
+    clearStoredAuthUser();
     router.refresh();
   };
 

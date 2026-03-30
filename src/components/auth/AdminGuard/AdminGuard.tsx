@@ -4,7 +4,7 @@ import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { STORAGE_KEYS } from "@/constants/storageKeys";
-import { MOCK_AUTH_EVENT } from "@/lib/auth/mockAuthStorage";
+import { AUTH_STORAGE_EVENT } from "@/lib/auth/authStorage";
 import { isAdminSession } from "@/lib/auth/auth.shared";
 import type { AuthSession } from "@/lib/auth/auth.types";
 import type { AuthUser } from "@/types/authUser";
@@ -16,11 +16,11 @@ type AdminGuardProps = {
 const EMPTY_SNAPSHOT = "";
 
 function subscribe(callback: () => void) {
-  window.addEventListener(MOCK_AUTH_EVENT, callback);
+  window.addEventListener(AUTH_STORAGE_EVENT, callback);
   window.addEventListener("storage", callback);
 
   return () => {
-    window.removeEventListener(MOCK_AUTH_EVENT, callback);
+    window.removeEventListener(AUTH_STORAGE_EVENT, callback);
     window.removeEventListener("storage", callback);
   };
 }
@@ -30,7 +30,7 @@ function getSnapshot(): string {
     return EMPTY_SNAPSHOT;
   }
 
-  return window.localStorage.getItem(STORAGE_KEYS.MOCK_USER) ?? EMPTY_SNAPSHOT;
+  return window.localStorage.getItem(STORAGE_KEYS.AUTH_USER) ?? EMPTY_SNAPSHOT;
 }
 
 function getServerSnapshot(): string {
