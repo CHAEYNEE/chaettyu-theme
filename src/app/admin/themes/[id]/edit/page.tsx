@@ -23,6 +23,7 @@ type DbThemeDetailRow = {
   tags: string[] | null;
   badge: string | null;
   detail_html: string | null;
+  detail_json: Record<string, unknown> | null;
   platforms: ThemePlatform[] | null;
   is_published: boolean;
 };
@@ -59,6 +60,14 @@ function sanitizePlatforms(value: ThemePlatform[] | null | undefined) {
   return filtered.length > 0 ? filtered : (["ios"] as ThemePlatform[]);
 }
 
+function sanitizeDetailJson(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  return value as Record<string, unknown>;
+}
+
 export default async function AdminEditThemePage({
   params,
 }: AdminEditThemePageProps) {
@@ -74,7 +83,7 @@ export default async function AdminEditThemePage({
     supabase
       .from("themes")
       .select(
-        "id, title, type, price, set_price, thumbnail_url, tags, badge, detail_html, platforms, is_published",
+        "id, title, type, price, set_price, thumbnail_url, tags, badge, detail_html, detail_json, platforms, is_published",
       )
       .eq("id", id)
       .maybeSingle(),
@@ -151,6 +160,7 @@ export default async function AdminEditThemePage({
     tags: theme.tags ?? [],
     badge: theme.badge ?? "",
     detailHtml: theme.detail_html ?? "",
+    detailJson: sanitizeDetailJson(theme.detail_json),
     platforms: sanitizePlatforms(theme.platforms),
     isPublished: theme.is_published,
     versions,
