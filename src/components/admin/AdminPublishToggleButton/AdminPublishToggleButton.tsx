@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { useToast } from "@/components/common/Toast/ToastProvider";
+
 import styles from "./AdminPublishToggleButton.module.css";
 
 type AdminPublishToggleButtonProps = {
@@ -21,8 +23,8 @@ export default function AdminPublishToggleButton({
   status,
 }: AdminPublishToggleButtonProps) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
 
   const nextIsPublished = status !== "published";
   const buttonLabel = status === "published" ? "비공개로 전환" : "공개로 전환";
@@ -33,7 +35,6 @@ export default function AdminPublishToggleButton({
     }
 
     setIsSubmitting(true);
-    setErrorMessage("");
 
     try {
       const response = await fetch(`/api/admin/themes/${themeId}/publish`, {
@@ -54,10 +55,19 @@ export default function AdminPublishToggleButton({
         throw new Error(result?.error ?? "발행 상태 변경에 실패했어요.");
       }
 
+      showToast(
+        result?.message ??
+          (nextIsPublished
+            ? "테마를 공개했어요."
+            : "테마를 비공개로 전환했어요."),
+        { type: "success" },
+      );
+
       router.refresh();
     } catch (error) {
-      setErrorMessage(
+      showToast(
         error instanceof Error ? error.message : "발행 상태 변경에 실패했어요.",
+        { type: "error" },
       );
     } finally {
       setIsSubmitting(false);
@@ -76,8 +86,6 @@ export default function AdminPublishToggleButton({
       >
         {isSubmitting ? "변경 중..." : buttonLabel}
       </button>
-
-      {errorMessage ? <p className={styles.errorText}>{errorMessage}</p> : null}
     </div>
   );
 }

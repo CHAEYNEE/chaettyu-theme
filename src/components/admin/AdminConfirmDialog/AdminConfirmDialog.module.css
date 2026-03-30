@@ -1,0 +1,130 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(131, 97, 92, 0.34);
+  backdrop-filter: blur(1px);
+}
+
+.dialog {
+  position: relative;
+  width: min(100%, 420px);
+  padding: 24px 20px 18px;
+  border: 4px solid #83615c;
+  background: #fffdf6;
+  box-shadow: 8px 8px 0 rgba(131, 97, 92, 0.18);
+}
+
+.badge {
+  position: absolute;
+  top: -16px;
+  left: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 3px solid #83615c;
+  background: #f4777f;
+  box-shadow: 4px 4px 0 rgba(244, 119, 127, 0.2);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.title {
+  margin: 0;
+  color: #83615c;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.description {
+  margin: 0;
+  color: #83615c;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.cancelButton,
+.confirmButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 3px solid #83615c;
+  background: #fffdf6;
+  box-shadow: 4px 4px 0 rgba(131, 97, 92, 0.14);
+  color: #83615c;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.cancelButton:hover:not(:disabled),
+.confirmButton:hover:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 rgba(131, 97, 92, 0.14);
+}
+
+.cancelButton:disabled,
+.confirmButton:disabled {
+  opacity: 0.68;
+  cursor: wait;
+}
+
+.confirmDanger {
+  border-color: #b65a63;
+  background: #fff1f1;
+  box-shadow: 4px 4px 0 rgba(182, 90, 99, 0.18);
+  color: #b65a63;
+}
+
+@media (max-width: 640px) {
+  .dialog {
+    padding: 22px 16px 16px;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .description,
+  .cancelButton,
+  .confirmButton {
+    font-size: 12px;
+  }
+
+  .cancelButton,
+  .confirmButton {
+    min-height: 34px;
+    padding: 0 12px;
+  }
+}
