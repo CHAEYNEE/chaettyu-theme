@@ -1425,6 +1425,7 @@ export default function AdminThemeForm({
             <span className={styles.label}>상세 내용</span>
 
             <ThemeContentEditor
+              themeId={form.id}
               initialHtml={form.detailHtml}
               onChange={({ detailHtml }) => {
                 resetError();
