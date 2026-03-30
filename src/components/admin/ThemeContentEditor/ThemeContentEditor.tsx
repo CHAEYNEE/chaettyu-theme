@@ -3,6 +3,7 @@
 import { ChangeEvent, useRef, useState } from "react";
 
 import Image from "@tiptap/extension-image";
+import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import StarterKit from "@tiptap/starter-kit";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -30,6 +31,45 @@ function normalizeThemeId(value: string) {
     .replace(/^-|-$/g, "");
 }
 
+function normalizeHref(rawValue: string) {
+  const value = rawValue.trim();
+
+  if (!value) {
+    return "";
+  }
+
+  if (/^mailto:/i.test(value) || /^tel:/i.test(value)) {
+    return value;
+  }
+
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    return `mailto:${value}`;
+  }
+
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  return `https://${value}`;
+}
+
+function isValidHref(value: string) {
+  if (!value) {
+    return false;
+  }
+
+  if (/^mailto:/i.test(value) || /^tel:/i.test(value)) {
+    return true;
+  }
+
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export default function ThemeContentEditor({
   themeId = "",
   initialHtml = "",
@@ -37,8 +77,12 @@ export default function ThemeContentEditor({
   onChange,
 }: ThemeContentEditorProps) {
   const { showToast } = useToast();
+
   const imageInputRef = useRef<HTMLInputElement>(null);
+
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isLinkBoxOpen, setIsLinkBoxOpen] = useState(false);
+  const [linkInputValue, setLinkInputValue] = useState("");
 
   const editor = useEditor({
     extensions: [
@@ -49,6 +93,23 @@ export default function ThemeContentEditor({
       }),
       Image.configure({
         inline: false,
+      }),
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+        linkOnPaste: true,
+        defaultProtocol: "https",
+        protocols: [
+          "mailto",
+          {
+            scheme: "tel",
+            optionalSlashes: true,
+          },
+        ],
+        HTMLAttributes: {
+          rel: "noopener noreferrer",
+          target: "_blank",
+        },
       }),
       Placeholder.configure({
         placeholder: "테마 상세 내용을 입력해 주세요.",
@@ -142,6 +203,61 @@ export default function ThemeContentEditor({
     }
   }
 
+  function handleOpenLinkBox() {
+    if (!editor) {
+      return;
+    }
+
+    const previousHref = editor.getAttributes("link").href as
+      | string
+      | undefined;
+
+    setLinkInputValue(previousHref ?? "");
+    setIsLinkBoxOpen(true);
+  }
+
+  function handleApplyLink() {
+    if (!editor) {
+      return;
+    }
+
+    const normalizedHref = normalizeHref(linkInputValue);
+
+    if (!normalizedHref) {
+      editor.chain().focus().extendMarkRange("link").unsetLink().run();
+      setIsLinkBoxOpen(false);
+      setLinkInputValue("");
+      return;
+    }
+
+    if (!isValidHref(normalizedHref)) {
+      showToast("올바른 링크 주소를 입력해 주세요.", {
+        type: "error",
+      });
+      return;
+    }
+
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange("link")
+      .setLink({ href: normalizedHref })
+      .run();
+
+    setIsLinkBoxOpen(false);
+    setLinkInputValue("");
+  }
+
+  function handleRemoveLink() {
+    if (!editor) {
+      return;
+    }
+
+    editor.chain().focus().extendMarkRange("link").unsetLink().run();
+    setIsLinkBoxOpen(false);
+    setLinkInputValue("");
+  }
+
   if (!editor) {
     return null;
   }
@@ -207,6 +323,24 @@ export default function ThemeContentEditor({
           리스트
         </button>
 
+        <button
+          type="button"
+          className={`${styles.toolButton} ${
+            editor.isActive("link") ? styles.toolButtonActive : ""
+          }`}
+          onClick={handleOpenLinkBox}
+        >
+          링크
+        </button>
+
+        <button
+          type="button"
+          className={styles.toolButton}
+          onClick={handleRemoveLink}
+        >
+          링크 해제
+        </button>
+
         <input
           ref={imageInputRef}
           className={styles.hiddenFileInput}
@@ -225,6 +359,39 @@ export default function ThemeContentEditor({
         </button>
       </div>
 
+      {isLinkBoxOpen && (
+        <div className={styles.linkBox}>
+          <input
+            type="text"
+            value={linkInputValue}
+            onChange={(event) => setLinkInputValue(event.target.value)}
+            placeholder="https://example.com"
+            className={styles.linkInput}
+          />
+
+          <div className={styles.linkActions}>
+            <button
+              type="button"
+              className={styles.linkActionButton}
+              onClick={handleApplyLink}
+            >
+              적용
+            </button>
+
+            <button
+              type="button"
+              className={styles.linkActionButton}
+              onClick={() => {
+                setIsLinkBoxOpen(false);
+                setLinkInputValue("");
+              }}
+            >
+              취소
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className={styles.editorShell}>
         <div className={styles.editor}>
           <EditorContent editor={editor} />
@@ -232,7 +399,7 @@ export default function ThemeContentEditor({
       </div>
 
       <p className={styles.helpText}>
-        제목, 리스트, 이미지를 자유롭게 넣을 수 있어요.
+        제목, 리스트, 링크, 이미지를 자유롭게 넣을 수 있어요.
       </p>
     </div>
   );

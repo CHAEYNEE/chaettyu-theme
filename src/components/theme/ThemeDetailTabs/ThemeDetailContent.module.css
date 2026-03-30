@@ -21,7 +21,7 @@
   width: auto;
   max-width: 100%;
   height: auto;
-  margin: 0 auto;
+  margin: 0 auto 20px;
 }
 
 .detailEditorContent blockquote {
@@ -29,6 +29,22 @@
   padding: 18px 20px;
   background: var(--color-surface);
   color: var(--color-text);
+}
+
+.detailEditorContent a {
+  color: #f4777f;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.detailEditorContent a:hover {
+  color: #fff;
+  background: #f4777f;
+  border-bottom-color: #f4777f;
 }
 
 @media (max-width: 900px) {
