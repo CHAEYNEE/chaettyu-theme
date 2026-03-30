@@ -48,10 +48,23 @@
   width: auto;
   max-width: 100%;
   height: auto;
-  margin: 22px auto;
-  border: 3px solid #83615c;
-  background: #fffdf6;
-  box-shadow: 6px 6px 0 rgba(131, 97, 92, 0.12);
+  margin-top: 22px;
+  margin-bottom: 22px;
+}
+
+.detailEditorContent img[data-align="left"] {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.detailEditorContent img[data-align="center"] {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.detailEditorContent img[data-align="right"] {
+  margin-left: auto;
+  margin-right: 0;
 }
 
 .detailEditorContent blockquote {
@@ -103,6 +116,7 @@
   }
 
   .detailEditorContent img {
-    margin: 18px auto;
+    margin-top: 18px;
+    margin-bottom: 18px;
   }
 }

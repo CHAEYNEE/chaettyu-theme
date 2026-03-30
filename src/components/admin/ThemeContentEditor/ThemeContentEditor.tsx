@@ -1,17 +1,17 @@
 "use client";
 
-import { ChangeEvent, useRef, useState } from "react";
+import { ChangeEvent, MouseEvent, useRef, useState } from "react";
 
-import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
 import { FontSize, TextStyle } from "@tiptap/extension-text-style";
 import StarterKit from "@tiptap/starter-kit";
-import { EditorContent, useEditor } from "@tiptap/react";
+import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
 
 import { useToast } from "@/components/common/Toast/ToastProvider";
 
+import { AlignedImage, type ImageAlign } from "./AlignedImage";
 import styles from "./ThemeContentEditor.module.css";
 
 type ThemeContentEditorProps = {
@@ -112,7 +112,7 @@ export default function ThemeContentEditor({
         types: ["heading", "paragraph"],
         alignments: ["left", "center", "right"],
       }),
-      Image.configure({
+      AlignedImage.configure({
         inline: false,
       }),
       Link.configure({
@@ -153,10 +153,78 @@ export default function ThemeContentEditor({
     },
   });
 
+  const editorState = useEditorState({
+    editor,
+    selector: ({ editor }) => {
+      if (!editor) {
+        return {
+          currentFontSize: "",
+          isImageSelected: false,
+          currentImageAlign: "center" as ImageAlign,
+        };
+      }
+
+      return {
+        currentFontSize:
+          (editor.getAttributes("textStyle").fontSize as string | undefined) ??
+          "",
+        isImageSelected: editor.isActive("image"),
+        currentImageAlign:
+          (editor.getAttributes("image").align as ImageAlign | undefined) ??
+          "center",
+      };
+    },
+  });
+
+  const safeEditorState = editorState ?? {
+    currentFontSize: "",
+    isImageSelected: false,
+    currentImageAlign: "center" as ImageAlign,
+  };
+
   function closeLinkBox() {
     setIsLinkBoxOpen(false);
     setLinkInputValue("");
     setLinkOpenInNewTab(true);
+  }
+
+  function handleSetImageAlign(align: ImageAlign) {
+    if (!editor || !safeEditorState.isImageSelected) {
+      return;
+    }
+
+    editor.chain().focus().updateAttributes("image", { align }).run();
+  }
+
+  function handleEditorMouseDownCapture(event: MouseEvent<HTMLDivElement>) {
+    if (!editor) {
+      return;
+    }
+
+    const target = event.target;
+
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+
+    const imageElement = target.closest("img");
+
+    if (!(imageElement instanceof HTMLImageElement)) {
+      return;
+    }
+
+    if (!editor.view.dom.contains(imageElement)) {
+      return;
+    }
+
+    try {
+      const position = editor.view.posAtDOM(imageElement, 0);
+
+      event.preventDefault();
+      editor.chain().focus().setNodeSelection(position).run();
+    } catch {
+      // ignore
+    }
   }
 
   async function handleImageUpload(event: ChangeEvent<HTMLInputElement>) {
@@ -204,10 +272,14 @@ export default function ThemeContentEditor({
       editor
         .chain()
         .focus()
-        .setImage({
-          src: result.publicUrl,
-          alt: file.name,
-          title: file.name,
+        .insertContent({
+          type: "image",
+          attrs: {
+            src: result.publicUrl,
+            alt: file.name,
+            title: file.name,
+            align: "center",
+          },
         })
         .run();
 
@@ -310,8 +382,6 @@ export default function ThemeContentEditor({
 
   const canUndo = editor.can().chain().focus().undo().run();
   const canRedo = editor.can().chain().focus().redo().run();
-  const currentFontSize =
-    (editor.getAttributes("textStyle").fontSize as string | undefined) ?? "";
 
   return (
     <div className={styles.wrapper}>
@@ -397,7 +467,7 @@ export default function ThemeContentEditor({
         <div className={styles.toolbarGroup}>
           <select
             className={styles.toolSelect}
-            value={currentFontSize}
+            value={safeEditorState.currentFontSize}
             onChange={(event) => {
               const value = event.target.value;
 
@@ -451,7 +521,9 @@ export default function ThemeContentEditor({
           >
             우측
           </button>
+        </div>
 
+        <div className={styles.toolbarGroup}>
           <button
             type="button"
             className={`${styles.toolButton} ${
@@ -485,6 +557,48 @@ export default function ThemeContentEditor({
             onClick={() => imageInputRef.current?.click()}
           >
             {isUploadingImage ? "업로드 중..." : "이미지"}
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.toolButton} ${
+              safeEditorState.isImageSelected &&
+              safeEditorState.currentImageAlign === "left"
+                ? styles.toolButtonActive
+                : ""
+            }`}
+            onClick={() => handleSetImageAlign("left")}
+            disabled={!safeEditorState.isImageSelected}
+          >
+            이미지 좌측
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.toolButton} ${
+              safeEditorState.isImageSelected &&
+              safeEditorState.currentImageAlign === "center"
+                ? styles.toolButtonActive
+                : ""
+            }`}
+            onClick={() => handleSetImageAlign("center")}
+            disabled={!safeEditorState.isImageSelected}
+          >
+            이미지 가운데
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.toolButton} ${
+              safeEditorState.isImageSelected &&
+              safeEditorState.currentImageAlign === "right"
+                ? styles.toolButtonActive
+                : ""
+            }`}
+            onClick={() => handleSetImageAlign("right")}
+            disabled={!safeEditorState.isImageSelected}
+          >
+            이미지 우측
           </button>
         </div>
       </div>
@@ -537,7 +651,10 @@ export default function ThemeContentEditor({
         </div>
       )}
 
-      <div className={styles.editorShell}>
+      <div
+        className={styles.editorShell}
+        onMouseDownCapture={handleEditorMouseDownCapture}
+      >
         <div className={styles.editor}>
           <EditorContent editor={editor} />
         </div>

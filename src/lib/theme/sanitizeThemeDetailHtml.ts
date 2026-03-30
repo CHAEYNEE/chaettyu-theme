@@ -22,7 +22,7 @@ export function sanitizeThemeDetailHtml(html: string) {
     ],
     allowedAttributes: {
       a: ["href", "target", "rel"],
-      img: ["src", "alt", "title"],
+      img: ["src", "alt", "title", "data-align"],
       p: ["style"],
       h2: ["style"],
       h3: ["style"],
@@ -51,6 +51,17 @@ export function sanitizeThemeDetailHtml(html: string) {
         rel: "noopener noreferrer",
         target: "_blank",
       }),
+    },
+    exclusiveFilter(frame) {
+      if (
+        frame.tag === "img" &&
+        frame.attribs["data-align"] &&
+        !["left", "center", "right"].includes(frame.attribs["data-align"])
+      ) {
+        delete frame.attribs["data-align"];
+      }
+
+      return false;
     },
   }).trim();
 }
