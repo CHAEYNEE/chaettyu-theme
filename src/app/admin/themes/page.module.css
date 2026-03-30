@@ -1,7 +1,78 @@
+.toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.searchForm {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 420px;
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  flex: 1 1 240px;
+  min-width: 220px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 3px solid #83615c;
+  background: #fffdf6;
+  box-shadow: 4px 4px 0 rgba(131, 97, 92, 0.14);
+  color: #83615c;
+  font-size: 13px;
+  font-weight: 700;
+  outline: none;
+}
+
+.searchInput::placeholder {
+  color: rgba(131, 97, 92, 0.56);
+}
+
+.searchInput:focus {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 rgba(131, 97, 92, 0.14);
+}
+
+.searchButton,
+.resetButton,
+.statusButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 3px solid #83615c;
+  background: #fffdf6;
+  box-shadow: 4px 4px 0 rgba(131, 97, 92, 0.14);
+  color: #83615c;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.searchButton:hover,
+.resetButton:hover,
+.statusButton:hover {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 rgba(131, 97, 92, 0.14);
+}
+
 .filterWrap {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 18px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  flex: 1 1 320px;
 }
 
 .filterTabs {
@@ -41,14 +112,81 @@
   box-shadow: 4px 4px 0 rgba(244, 119, 127, 0.22);
 }
 
-@media (max-width: 640px) {
-  .filterWrap {
-    justify-content: flex-end;
+.statusForm {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.statusSelect {
+  min-width: 150px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 3px solid #83615c;
+  background: #fffdf6;
+  box-shadow: 4px 4px 0 rgba(131, 97, 92, 0.14);
+  color: #83615c;
+  font-size: 13px;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+}
+
+.statusSelect:focus {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 rgba(131, 97, 92, 0.14);
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    align-items: stretch;
   }
 
+  .searchForm,
+  .filterWrap,
+  .statusForm {
+    width: 100%;
+  }
+
+  .filterWrap {
+    align-items: stretch;
+  }
+
+  .filterTabs {
+    justify-content: flex-start;
+  }
+
+  .statusForm {
+    justify-content: flex-start;
+  }
+
+  .searchInput {
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .searchInput,
+  .searchButton,
+  .resetButton,
+  .statusSelect,
+  .statusButton,
   .filterTab {
     min-height: 34px;
-    padding: 0 12px;
     font-size: 12px;
+  }
+
+  .searchButton,
+  .resetButton,
+  .statusButton,
+  .filterTab {
+    padding: 0 12px;
+  }
+
+  .statusSelect {
+    min-width: 132px;
+    padding: 0 12px;
   }
 }

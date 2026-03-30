@@ -139,6 +139,15 @@
   font-weight: 700;
 }
 
+.actionGroup {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
 @media (max-width: 768px) {
   .cardInner {
     grid-template-columns: 1fr;
@@ -158,5 +167,10 @@
 
   .editButton {
     width: 100%;
+  }
+
+  .actionGroup {
+    width: 100%;
+    justify-content: flex-start;
   }
 }

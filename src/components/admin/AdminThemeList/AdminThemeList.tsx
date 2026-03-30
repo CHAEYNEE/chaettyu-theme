@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import AdminPublishToggleButton from "@/components/admin/AdminPublishToggleButton/AdminPublishToggleButton";
+
 import styles from "./AdminThemeList.module.css";
 
 export type AdminThemeRow = {
@@ -67,12 +69,19 @@ export default function AdminThemeList({ items }: AdminThemeListProps) {
                   </span>
                 </div>
 
-                <Link
-                  href={`/admin/themes/${theme.id}/edit`}
-                  className={styles.editButton}
-                >
-                  수정
-                </Link>
+                <div className={styles.actionGroup}>
+                  <Link
+                    href={`/admin/themes/${theme.id}/edit`}
+                    className={styles.editButton}
+                  >
+                    수정
+                  </Link>
+
+                  <AdminPublishToggleButton
+                    themeId={theme.id}
+                    status={theme.status}
+                  />
+                </div>
               </div>
 
               <div className={styles.metaRow}>
