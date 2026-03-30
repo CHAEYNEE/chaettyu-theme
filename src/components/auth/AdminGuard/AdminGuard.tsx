@@ -7,7 +7,7 @@ import { STORAGE_KEYS } from "@/constants/storageKeys";
 import { MOCK_AUTH_EVENT } from "@/lib/auth/mockAuthStorage";
 import { isAdminSession } from "@/lib/auth/auth.shared";
 import type { AuthSession } from "@/lib/auth/auth.types";
-import type { MockUser } from "@/types/mockUser";
+import type { AuthUser } from "@/types/authUser";
 
 type AdminGuardProps = {
   children: React.ReactNode;
@@ -46,14 +46,14 @@ function parseSession(snapshot: string): AuthSession {
   }
 
   try {
-    const mockUser = JSON.parse(snapshot) as MockUser;
+    const authUser = JSON.parse(snapshot) as AuthUser;
 
     return {
       user: {
-        id: mockUser.id,
-        email: mockUser.email,
-        nickname: mockUser.nickname,
-        role: mockUser.role ?? "user",
+        id: authUser.id,
+        email: authUser.email,
+        nickname: authUser.nickname,
+        role: authUser.role ?? "user",
       },
       isLoggedIn: true,
     };

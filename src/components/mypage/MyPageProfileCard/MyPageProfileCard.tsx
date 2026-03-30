@@ -3,13 +3,13 @@
 import Image from "next/image";
 
 import { clearMockUser } from "@/lib/auth/mockAuthStorage";
-import type { MockUser } from "@/types/mockUser";
+import type { AuthUser } from "@/types/authUser";
 import { formatDate } from "@/utils/formatDate";
 
 import styles from "./MyPageProfileCard.module.css";
 
 type MyPageProfileCardProps = {
-  user: MockUser;
+  user: AuthUser;
   purchaseCount: number;
   ownedThemeCount: number;
   latestActivity: string | null;

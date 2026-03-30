@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 
 import { supabaseClient } from "@/lib/supabase/client";
-import type { MockUser } from "@/types/mockUser";
+import type { AuthUser } from "@/types/authUser";
 
-function mapUserToMockUser(user: User | null): MockUser | null {
+function mapUserToAuthUser(user: User | null): AuthUser | null {
   if (!user) {
     return null;
   }
@@ -22,7 +22,7 @@ function mapUserToMockUser(user: User | null): MockUser | null {
       typeof user.user_metadata?.nickname === "string"
         ? user.user_metadata.nickname
         : (user.email?.split("@")[0] ?? "회원"),
-    provider: "mock",
+    provider: "supabase",
     createdAt: user.created_at,
     profileImage:
       typeof user.user_metadata?.profile_image === "string"
@@ -32,8 +32,8 @@ function mapUserToMockUser(user: User | null): MockUser | null {
   };
 }
 
-export default function useMockUser() {
-  const [user, setUser] = useState<MockUser | null>(null);
+export default function useAuthUser() {
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -44,18 +44,20 @@ export default function useMockUser() {
         data: { user },
       } = await supabaseClient.auth.getUser();
 
-      if (!isMounted) return;
+      if (!isMounted) {
+        return;
+      }
 
-      setUser(mapUserToMockUser(user));
+      setUser(mapUserToAuthUser(user));
       setIsLoaded(true);
     };
 
-    syncUser();
+    void syncUser();
 
     const {
       data: { subscription },
     } = supabaseClient.auth.onAuthStateChange((_event, session) => {
-      setUser(mapUserToMockUser(session?.user ?? null));
+      setUser(mapUserToAuthUser(session?.user ?? null));
       setIsLoaded(true);
     });
 

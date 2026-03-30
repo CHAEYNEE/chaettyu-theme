@@ -1,20 +1,20 @@
 "use client";
 
-import { getMockUser } from "./mockAuthStorage";
+import { getMockUser as getStoredAuthUser } from "./mockAuthStorage";
 import type { AuthSession, AuthUser } from "./auth.types";
 
 function normalizeAuthUser(): AuthUser | null {
-  const mockUser = getMockUser();
+  const storedUser = getStoredAuthUser();
 
-  if (!mockUser) {
+  if (!storedUser) {
     return null;
   }
 
   return {
-    id: mockUser.id,
-    email: mockUser.email,
-    nickname: mockUser.nickname,
-    role: mockUser.role ?? "user",
+    id: storedUser.id,
+    email: storedUser.email,
+    nickname: storedUser.nickname,
+    role: storedUser.role ?? "user",
   };
 }
 
@@ -23,6 +23,6 @@ export function getClientSession(): AuthSession {
 
   return {
     user,
-    isLoggedIn: !!user,
+    isLoggedIn: Boolean(user),
   };
 }

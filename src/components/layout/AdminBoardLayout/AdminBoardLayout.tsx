@@ -7,7 +7,7 @@ import { LogIn, LogOut, ShoppingCart, UserRound } from "lucide-react";
 
 import ScrollToTopButton from "@/components/common/ScrollToTopButton/ScrollToTopButton";
 import AdminSideTabs from "@/components/admin/AdminSideTabs/AdminSideTabs";
-import useMockUser from "@/hooks/useMockUser";
+import useAuthUser from "@/hooks/useAuthUser";
 import { clearMockUser } from "@/lib/auth/mockAuthStorage";
 import useOuterScrollbar from "@/components/layout/BoardLayout/useOuterScrollbar";
 
@@ -31,7 +31,7 @@ export default function AdminBoardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { user } = useMockUser();
+  const { user } = useAuthUser();
 
   const {
     scrollRef,

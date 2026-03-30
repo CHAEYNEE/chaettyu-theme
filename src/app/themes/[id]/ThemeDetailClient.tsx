@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { useToast } from "@/components/common/Toast/ToastProvider";
 import ThemePurchaseBox from "@/components/theme/ThemePurchaseBox/ThemePurchaseBox";
-import useMockUser from "@/hooks/useMockUser";
+import useAuthUser from "@/hooks/useAuthUser";
 import {
   createThemePurchase,
   fetchThemeHistoryStatus,
@@ -96,7 +96,7 @@ function startDownloads(files: DownloadTarget[]) {
 
 export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
   const router = useRouter();
-  const { user } = useMockUser();
+  const { user } = useAuthUser();
   const { showToast } = useToast();
 
   const [status, setStatus] = useState<ThemeHistoryStatus>(EMPTY_STATUS);

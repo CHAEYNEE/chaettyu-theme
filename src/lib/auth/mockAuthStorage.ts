@@ -1,7 +1,7 @@
 "use client";
 
 import { STORAGE_KEYS } from "@/constants/storageKeys";
-import type { MockUser } from "@/types/mockUser";
+import type { AuthUser } from "@/types/authUser";
 
 export const MOCK_AUTH_EVENT = "mock-auth-changed";
 
@@ -60,11 +60,11 @@ function clearStorage(key: string) {
   }
 }
 
-export function getMockUser(): MockUser | null {
-  return readStorage<MockUser | null>(STORAGE_KEYS.MOCK_USER, null);
+export function getMockUser(): AuthUser | null {
+  return readStorage<AuthUser | null>(STORAGE_KEYS.MOCK_USER, null);
 }
 
-export function setMockUser(user: MockUser) {
+export function setMockUser(user: AuthUser) {
   writeStorage(STORAGE_KEYS.MOCK_USER, user);
   emitMockAuthChange();
 }

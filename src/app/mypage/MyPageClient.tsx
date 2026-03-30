@@ -7,7 +7,7 @@ import BoardLayout from "@/components/layout/BoardLayout/BoardLayout";
 import MyPageEmptyState from "@/components/mypage/MyPageEmptyState/MyPageEmptyState";
 import MyPageHistorySection from "@/components/mypage/MyPageHistorySection/MyPageHistorySection";
 import MyPageProfileCard from "@/components/mypage/MyPageProfileCard/MyPageProfileCard";
-import useMockUser from "@/hooks/useMockUser";
+import useAuthUser from "@/hooks/useAuthUser";
 import { fetchMyThemeHistory } from "@/lib/api/themeHistory";
 import type {
   ThemeDownloadHistoryItem,
@@ -38,7 +38,7 @@ function getLatestActivityDate(
 
 export default function MyPageClient() {
   const router = useRouter();
-  const { user, isLoaded } = useMockUser();
+  const { user, isLoaded } = useAuthUser();
 
   const [selectedTab, setSelectedTab] = useState<MyPageTab | null>(null);
   const [purchaseRecords, setPurchaseRecords] = useState<
