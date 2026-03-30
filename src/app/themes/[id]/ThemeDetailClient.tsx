@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/common/Toast/ToastProvider";
 import ThemePurchaseBox from "@/components/theme/ThemePurchaseBox/ThemePurchaseBox";
 import useAuthUser from "@/hooks/useAuthUser";
+import { useCart } from "@/providers/CartProvider";
 import {
   createThemePurchase,
   fetchThemeHistoryStatus,
@@ -17,6 +18,7 @@ import {
   mergeUniqueLineItems,
 } from "@/lib/theme/themeOwnership";
 import { buildThemeDownloadUrl } from "@/lib/theme/buildThemeDownloadUrl";
+import type { AddCartItemInput } from "@/types/cart";
 import type { ThemeItem } from "@/types/theme";
 import type {
   ThemeHistoryStatus,
@@ -94,10 +96,41 @@ function startDownloads(files: DownloadTarget[]) {
   });
 }
 
+function getVersionLabel(
+  theme: ThemeItem,
+  item: ThemePurchaseLineItem,
+): string | null {
+  if (item.purchaseMode !== "single" || !item.versionValue) {
+    return null;
+  }
+
+  return (
+    theme.versions?.find((version) => version.value === item.versionValue)
+      ?.label ?? item.versionValue
+  );
+}
+
+function mapLineItemToCartItem(
+  theme: ThemeItem,
+  item: ThemePurchaseLineItem,
+): AddCartItemInput {
+  return {
+    themeId: theme.id,
+    title: theme.title,
+    thumbnail: theme.thumbnail,
+    price: item.price,
+    platform: item.platform,
+    purchaseMode: item.purchaseMode,
+    versionValue: item.versionValue ?? null,
+    versionLabel: getVersionLabel(theme, item),
+  };
+}
+
 export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
   const router = useRouter();
   const { user } = useAuthUser();
   const { showToast } = useToast();
+  const { addItem } = useCart();
 
   const [status, setStatus] = useState<ThemeHistoryStatus>(EMPTY_STATUS);
   const [isStatusLoading, setIsStatusLoading] = useState(false);
@@ -267,10 +300,103 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
     }
   };
 
+  const handleAddToCart = async (items: ThemePurchaseLineItem[]) => {
+    if (items.length === 0) {
+      showToast("구성을 먼저 선택해 주세요!", {
+        type: "error",
+      });
+      return false;
+    }
+
+    if (theme.type === "free") {
+      showToast("무료 테마는 장바구니에 담을 수 없어요.", {
+        type: "info",
+      });
+      return false;
+    }
+
+    const cartTargetItems = user
+      ? getNewPurchaseItems(status.purchasedItems, items)
+      : items;
+
+    const hasOwnedItems = user && cartTargetItems.length !== items.length;
+
+    if (user && cartTargetItems.length === 0) {
+      showToast("선택한 구성은 이미 보유 중이에요.", {
+        type: "info",
+      });
+      return false;
+    }
+
+    let addedCount = 0;
+    let duplicateCount = 0;
+    let invalidCount = 0;
+
+    cartTargetItems.forEach((item) => {
+      const result = addItem(mapLineItemToCartItem(theme, item));
+
+      if (result.success) {
+        addedCount += 1;
+        return;
+      }
+
+      if (result.reason === "duplicate") {
+        duplicateCount += 1;
+        return;
+      }
+
+      invalidCount += 1;
+    });
+
+    if (addedCount > 0 && duplicateCount === 0) {
+      showToast(
+        hasOwnedItems
+          ? "보유 중인 구성을 제외하고 장바구니에 담았어요!"
+          : "장바구니에 담았어요!",
+        {
+          type: "success",
+        },
+      );
+      return true;
+    }
+
+    if (addedCount > 0 && duplicateCount > 0) {
+      showToast(
+        hasOwnedItems
+          ? "새 구성만 장바구니에 담았고, 이미 담긴 항목과 보유 항목은 제외했어요!"
+          : "새 구성만 장바구니에 담았어요. 이미 담긴 항목은 제외됐어요!",
+        {
+          type: "info",
+        },
+      );
+      return true;
+    }
+
+    if (addedCount === 0 && duplicateCount > 0) {
+      showToast("이미 장바구니에 담긴 구성이에요!", {
+        type: "info",
+      });
+      return false;
+    }
+
+    if (invalidCount > 0) {
+      showToast("장바구니에 담지 못한 항목이 있어요.", {
+        type: "error",
+      });
+      return false;
+    }
+
+    showToast("장바구니에 담지 못했어요.", {
+      type: "error",
+    });
+    return false;
+  };
+
   return (
     <ThemePurchaseBox
       theme={theme}
       onPrimaryAction={handlePrimaryAction}
+      onAddToCart={handleAddToCart}
       purchasedItemKeys={purchasedItemKeys}
       downloadedItemKeys={downloadedItemKeys}
       isDisabled={isStatusLoading}

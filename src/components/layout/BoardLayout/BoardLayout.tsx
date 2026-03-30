@@ -9,6 +9,7 @@ import ScrollToTopButton from "@/components/common/ScrollToTopButton/ScrollToTop
 import SideTabs from "@/components/layout/SideTabs/SideTabs";
 import useAuthUser from "@/hooks/useAuthUser";
 import { signOutUser } from "@/lib/auth/signOutUser";
+import { useCart } from "@/providers/CartProvider";
 import useOuterScrollbar from "./useOuterScrollbar";
 import styles from "./BoardLayout.module.css";
 
@@ -31,6 +32,7 @@ export default function BoardLayout({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { user } = useAuthUser();
+  const { itemCount } = useCart();
 
   const {
     scrollRef,
@@ -131,6 +133,12 @@ export default function BoardLayout({
             title="장바구니"
           >
             <ShoppingCart className={styles.menuIconSvg} aria-hidden="true" />
+
+            {itemCount > 0 ? (
+              <span className={styles.cartCountBadge} aria-hidden="true">
+                {itemCount > 99 ? "99+" : itemCount}
+              </span>
+            ) : null}
           </button>
         </div>
 

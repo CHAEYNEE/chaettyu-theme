@@ -22,6 +22,7 @@ type ThemePurchaseBoxProps = {
   onPrimaryAction?: (
     items: ThemePurchaseLineItem[],
   ) => boolean | Promise<boolean>;
+  onAddToCart?: (items: ThemePurchaseLineItem[]) => boolean | Promise<boolean>;
   purchasedItemKeys?: string[];
   downloadedItemKeys?: string[];
   isDisabled?: boolean;
@@ -35,6 +36,7 @@ const platformLabelMap: Record<ThemePlatform, string> = {
 export default function ThemePurchaseBox({
   theme,
   onPrimaryAction,
+  onAddToCart,
   purchasedItemKeys = [],
   downloadedItemKeys = [],
   isDisabled = false,
@@ -185,6 +187,7 @@ export default function ThemePurchaseBox({
   ]);
 
   const isPrimaryDisabled = selectedItems.length === 0;
+  const isSecondaryDisabled = selectedItems.length === 0;
 
   const createSetItem = (platform: ThemePlatform): ThemePurchaseLineItem => {
     const subtitle = isFree
@@ -396,6 +399,26 @@ export default function ThemePurchaseBox({
     }
   };
 
+  const handleAddToCart = async () => {
+    if (isFree || isSecondaryDisabled || isDisabled || isSubmitting) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      const isSuccess = await Promise.resolve(
+        onAddToCart?.(selectedItems) ?? false,
+      );
+
+      if (isSuccess) {
+        resetSelections();
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className={styles.box}>
       <div className={styles.selectArea}>
@@ -539,14 +562,36 @@ export default function ThemePurchaseBox({
         </div>
       )}
 
-      <button
-        type="button"
-        className={styles.primaryButton}
-        onClick={handlePrimaryAction}
-        disabled={isPrimaryDisabled || isDisabled || isSubmitting}
-      >
-        {isSubmitting ? "처리 중..." : primaryButtonLabel}
-      </button>
+      {!isFree ? (
+        <div className={styles.actionButtons}>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={handleAddToCart}
+            disabled={isSecondaryDisabled || isDisabled || isSubmitting}
+          >
+            {isSubmitting ? "처리 중..." : "장바구니 담기"}
+          </button>
+
+          <button
+            type="button"
+            className={styles.primaryButton}
+            onClick={handlePrimaryAction}
+            disabled={isPrimaryDisabled || isDisabled || isSubmitting}
+          >
+            {isSubmitting ? "처리 중..." : primaryButtonLabel}
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className={styles.primaryButton}
+          onClick={handlePrimaryAction}
+          disabled={isPrimaryDisabled || isDisabled || isSubmitting}
+        >
+          {isSubmitting ? "처리 중..." : primaryButtonLabel}
+        </button>
+      )}
     </div>
   );
 }

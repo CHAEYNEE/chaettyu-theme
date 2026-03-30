@@ -190,16 +190,18 @@
   text-align: right;
 }
 
-.primaryButton {
+.actionButtons {
+  display: flex;
+  gap: 10px;
+}
+
+.primaryButton,
+.secondaryButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-width: 180px;
   padding: 13px 18px;
-  border: none;
-  border-radius: 999px;
-  background: var(--color-text);
-  color: #fff;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
@@ -208,13 +210,35 @@
     transform 0.2s ease;
 }
 
-.primaryButton:hover:not(:disabled) {
+.primaryButton {
+  border: none;
+  border-radius: 999px;
+  background: var(--color-text);
+  color: #fff;
+}
+
+.secondaryButton {
+  border: 2px solid var(--color-text);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-text);
+}
+
+.primaryButton:hover:not(:disabled),
+.secondaryButton:hover:not(:disabled) {
   transform: translateY(-1px);
 }
 
-.primaryButton:disabled {
+.primaryButton:disabled,
+.secondaryButton:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+.actionButtons .primaryButton,
+.actionButtons .secondaryButton {
+  flex: 1;
+  width: auto;
 }
 
 .freeItemBadge {
@@ -282,7 +306,12 @@
     text-align: left;
   }
 
-  .primaryButton {
+  .actionButtons {
+    flex-direction: column;
+  }
+
+  .primaryButton,
+  .secondaryButton {
     width: 100%;
   }
 

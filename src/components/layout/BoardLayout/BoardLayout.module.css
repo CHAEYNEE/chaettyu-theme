@@ -67,6 +67,7 @@
 }
 
 .pillIconButton {
+  position: relative;
   min-width: 0;
   height: 100%;
   border: none;
@@ -91,6 +92,26 @@
   height: 18px;
   flex-shrink: 0;
   stroke-width: 2.2;
+}
+
+.cartCountBadge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-text);
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .boardArea {

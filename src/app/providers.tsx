@@ -3,11 +3,16 @@
 import type { ReactNode } from "react";
 
 import ToastProvider from "@/components/common/Toast/ToastProvider";
+import { CartProvider } from "@/providers/CartProvider";
 
 type ProvidersProps = {
   children: ReactNode;
 };
 
 export default function Providers({ children }: ProvidersProps) {
-  return <ToastProvider>{children}</ToastProvider>;
+  return (
+    <ToastProvider>
+      <CartProvider>{children}</CartProvider>
+    </ToastProvider>
+  );
 }
