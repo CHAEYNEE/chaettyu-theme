@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -84,6 +84,9 @@ export default function CartPage() {
   const [purchasingItemId, setPurchasingItemId] = useState<string | null>(null);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
 
+  const selectAllCheckboxRef = useRef<HTMLInputElement | null>(null);
+  const selectAllCheckboxId = "cart-select-all";
+
   useEffect(() => {
     setSelectedItemIds((prev) =>
       prev.filter((itemId) => items.some((item) => item.id === itemId)),
@@ -119,12 +122,22 @@ export default function CartPage() {
   const isEmpty = items.length === 0;
   const hasSelectedItems = selectedCount > 0;
   const isAllSelected = items.length > 0 && selectedCount === items.length;
+  const isPartiallySelected =
+    items.length > 0 && selectedCount > 0 && selectedCount < items.length;
   const isActionLocked = isPurchasing || Boolean(purchasingItemId);
 
   const payablePrice = hasSelectedItems ? selectedTotalPrice : totalPrice;
   const payableLabel = hasSelectedItems
     ? "선택 구매 예정 금액"
     : "전체 구매 예정 금액";
+
+  useEffect(() => {
+    if (!selectAllCheckboxRef.current) {
+      return;
+    }
+
+    selectAllCheckboxRef.current.indeterminate = isPartiallySelected;
+  }, [isPartiallySelected]);
 
   const handleToggleSelectItem = (itemId: string) => {
     if (isActionLocked) {
@@ -358,9 +371,6 @@ export default function CartPage() {
           <div className={styles.titleGroup}>
             <p className={styles.eyebrow}>Cart</p>
             <h1 className={styles.title}>장바구니</h1>
-            <p className={styles.description}>
-              담아둔 시그니처 테마를 한 번에 정리하고 바로 구매할 수 있어요.
-            </p>
           </div>
 
           {!isEmpty ? (
@@ -381,12 +391,12 @@ export default function CartPage() {
               아직 담긴 테마가 없어요
             </strong>
             <p className={styles.emptyDescription}>
-              마음에 드는 시그니처 테마를 담아두고 한 번에 모아보자구.
+              마음에 드는 유료 테마를 담아보세요 ✨
             </p>
 
             <div className={styles.emptyActions}>
               <Link href="/themes/signature" className={styles.primaryLink}>
-                시그니처 테마 보러가기
+                유료 테마 보러가기
               </Link>
               <Link href="/" className={styles.secondaryLink}>
                 홈으로 가기
@@ -398,15 +408,21 @@ export default function CartPage() {
             <section className={styles.listSection}>
               <div className={styles.selectionToolbar}>
                 <div className={styles.selectionLeft}>
-                  <label className={styles.selectAllLabel}>
-                    <input
-                      type="checkbox"
-                      className={styles.selectCheckbox}
-                      checked={isAllSelected}
-                      onChange={handleToggleSelectAll}
-                      disabled={isActionLocked}
-                    />
-                    <span>전체 선택</span>
+                  <input
+                    ref={selectAllCheckboxRef}
+                    id={selectAllCheckboxId}
+                    type="checkbox"
+                    className={styles.checkboxInput}
+                    checked={isAllSelected}
+                    onChange={handleToggleSelectAll}
+                    disabled={isActionLocked}
+                  />
+                  <label
+                    htmlFor={selectAllCheckboxId}
+                    className={styles.selectAllLabel}
+                  >
+                    <span className={styles.checkboxBox} aria-hidden="true" />
+                    <span className={styles.checkboxText}>전체 선택</span>
                   </label>
 
                   <span className={styles.selectionInfo}>
@@ -423,16 +439,27 @@ export default function CartPage() {
                 {items.map((item) => {
                   const isSinglePurchasing = purchasingItemId === item.id;
                   const isChecked = selectedItemIdSet.has(item.id);
+                  const checkboxId = `cart-item-${item.id}`;
 
                   return (
                     <li key={item.id} className={styles.card}>
-                      <label className={styles.cardCheckLabel}>
-                        <input
-                          type="checkbox"
-                          className={styles.selectCheckbox}
-                          checked={isChecked}
-                          onChange={() => handleToggleSelectItem(item.id)}
-                          disabled={isActionLocked}
+                      <input
+                        id={checkboxId}
+                        type="checkbox"
+                        className={styles.checkboxInput}
+                        checked={isChecked}
+                        onChange={() => handleToggleSelectItem(item.id)}
+                        disabled={isActionLocked}
+                        aria-label={`${item.title} 선택`}
+                      />
+
+                      <label
+                        htmlFor={checkboxId}
+                        className={styles.cardCheckLabel}
+                      >
+                        <span
+                          className={styles.checkboxBox}
+                          aria-hidden="true"
                         />
                       </label>
 

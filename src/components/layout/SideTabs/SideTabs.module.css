@@ -2,9 +2,11 @@
   position: absolute;
   top: 70px;
   left: 0;
-  z-index: 2;
+  z-index: 1;
   isolation: isolate;
   overflow: visible;
+  width: 0;
+  pointer-events: none;
 }
 
 .list {
@@ -14,10 +16,13 @@
   margin: 0;
   padding: 0;
   list-style: none;
+  width: max-content;
+  pointer-events: none;
 }
 
 .item {
   position: relative;
+  pointer-events: none;
 }
 
 .tab {
@@ -37,6 +42,7 @@
     background 0.2s ease,
     color 0.2s ease,
     padding 0.2s ease;
+  pointer-events: auto;
 }
 
 .tabText {
@@ -68,7 +74,9 @@
 @media (max-width: 900px) {
   .wrapper {
     position: static;
+    width: auto;
     margin: 0 auto 14px;
+    pointer-events: auto;
   }
 
   .list {
@@ -76,6 +84,12 @@
     justify-content: center;
     flex-wrap: wrap;
     gap: 8px;
+    width: auto;
+    pointer-events: auto;
+  }
+
+  .item {
+    pointer-events: auto;
   }
 
   .tab {

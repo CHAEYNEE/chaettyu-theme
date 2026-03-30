@@ -163,6 +163,7 @@
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  user-select: none;
 }
 
 .cardCheckLabel {
@@ -170,13 +171,87 @@
   padding-top: 2px;
 }
 
-.selectCheckbox {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  accent-color: var(--color-accent);
-  cursor: pointer;
+.checkboxInput {
+  position: absolute;
+  opacity: 0;
+}
+
+.checkboxBox,
+.checkboxText {
+  pointer-events: none;
+}
+
+.checkboxBox {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--color-accent-strong);
+  background: #fffdf6;
+  box-shadow: 3px 3px 0 rgba(244, 119, 127, 0.18);
   flex-shrink: 0;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background-color 0.12s ease,
+    opacity 0.12s ease;
+}
+
+.checkboxText {
+  line-height: 1;
+}
+
+.checkboxInput:checked + .selectAllLabel .checkboxBox,
+.checkboxInput:checked + .cardCheckLabel .checkboxBox {
+  background: var(--color-accent);
+}
+
+.checkboxInput:checked + .selectAllLabel .checkboxBox::after,
+.checkboxInput:checked + .cardCheckLabel .checkboxBox::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 5px;
+  height: 10px;
+  border-right: 3px solid var(--color-text);
+  border-bottom: 3px solid var(--color-text);
+  transform: rotate(45deg);
+}
+
+.checkboxInput:indeterminate + .selectAllLabel .checkboxBox {
+  background: #ffe8c7;
+}
+
+.checkboxInput:indeterminate + .selectAllLabel .checkboxBox::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 7px;
+  width: 8px;
+  height: 3px;
+  background: var(--color-text);
+  transform: none;
+}
+
+.checkboxInput:focus-visible + .selectAllLabel .checkboxBox,
+.checkboxInput:focus-visible + .cardCheckLabel .checkboxBox {
+  outline: 2px solid var(--color-accent-strong);
+  outline-offset: 2px;
+}
+
+.selectAllLabel:hover .checkboxBox,
+.cardCheckLabel:hover .checkboxBox {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 rgba(244, 119, 127, 0.18);
+}
+
+.checkboxInput:disabled + .selectAllLabel .checkboxBox,
+.checkboxInput:disabled + .cardCheckLabel .checkboxBox {
+  opacity: 0.55;
+}
+
+.checkboxInput:disabled + .selectAllLabel .checkboxText {
+  opacity: 0.55;
 }
 
 .selectionInfo {
@@ -669,6 +744,26 @@
   .secondaryLink {
     min-height: 38px;
     font-size: 12px;
+  }
+
+  .checkboxBox {
+    width: 18px;
+    height: 18px;
+  }
+
+  .checkboxInput:checked + .selectAllLabel .checkboxBox::after,
+  .checkboxInput:checked + .cardCheckLabel .checkboxBox::after {
+    left: 4px;
+    top: 1px;
+    width: 4px;
+    height: 9px;
+  }
+
+  .checkboxInput:indeterminate + .selectAllLabel .checkboxBox::after {
+    left: 3px;
+    top: 6px;
+    width: 7px;
+    height: 3px;
   }
 
   .card {
