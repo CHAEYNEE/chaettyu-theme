@@ -2,16 +2,19 @@ import Link from "next/link";
 
 import ThemeCard from "@/components/theme/ThemeCard/ThemeCard";
 import { ROUTES } from "@/constants/routes";
-import { themes } from "@/data/themes";
+import type { ThemeItem } from "@/types/theme";
 
 import styles from "./HomeBoard.module.css";
 
-const freeThemes = themes.filter((theme) => theme.type === "free").slice(0, 4);
-const signatureThemes = themes
-  .filter((theme) => theme.type === "signature")
-  .slice(0, 4);
+type HomeBoardProps = {
+  freeThemes: ThemeItem[];
+  signatureThemes: ThemeItem[];
+};
 
-export default function HomeBoard() {
+export default function HomeBoard({
+  freeThemes,
+  signatureThemes,
+}: HomeBoardProps) {
   return (
     <>
       <div className={styles.hero}>

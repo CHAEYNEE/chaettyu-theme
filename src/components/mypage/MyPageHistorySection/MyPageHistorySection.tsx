@@ -85,14 +85,9 @@ function HistoryItemChips({
                 disabled={isDownloading}
               >
                 <span className={styles.itemTitle}>{item.title}</span>
-
-                {item.subtitle ? (
-                  <span className={styles.itemSub}>{item.subtitle}</span>
-                ) : null}
-
-                {item.versionValue ? (
-                  <span className={styles.itemMeta}>{item.versionValue}</span>
-                ) : null}
+                <span className={styles.itemSub}>
+                  {isDownloading ? "다운로드 중..." : "다운로드"}
+                </span>
               </button>
             ) : (
               <div className={styles.itemChip}>

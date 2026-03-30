@@ -105,24 +105,32 @@
   min-height: 34px;
   padding: 0 12px;
   border: 2px solid #83615c;
-  background: #fffdf6;
   color: #83615c;
   font-size: 13px;
+  box-sizing: border-box;
+}
+
+.itemChip {
+  background: #fffdf6;
   flex-wrap: wrap;
 }
 
 .itemChipButton {
+  background: #fff3df;
   font: inherit;
   cursor: pointer;
+  white-space: nowrap;
   transition:
     transform 0.15s ease,
     background-color 0.15s ease,
+    box-shadow 0.15s ease,
     opacity 0.15s ease;
 }
 
 .itemChipButton:hover:not(:disabled) {
   transform: translate(-1px, -1px);
-  background: #fff3df;
+  background: #ffe8dc;
+  box-shadow: 2px 2px 0 rgba(131, 97, 92, 0.1);
 }
 
 .itemChipButton:disabled {
@@ -132,9 +140,25 @@
 
 .itemTitle {
   font-weight: 700;
+  line-height: 1;
 }
 
-.itemSub,
+.itemChipButton .itemSub {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border: 2px solid #83615c;
+  background: #fbd2cc;
+  color: #83615c;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.itemChip .itemSub,
 .itemMeta {
   color: #9a756e;
 }
@@ -264,5 +288,9 @@
 
   .actionButton {
     min-width: 120px;
+  }
+
+  .itemChipButton {
+    white-space: normal;
   }
 }
