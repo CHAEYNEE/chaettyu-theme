@@ -9,7 +9,7 @@ export default async function SignatureThemesPage() {
     <BoardLayout>
       <ThemeListSection
         title="유료 테마"
-        description="조금 더 특별하고 완성도 높은 시그니처 테마를 만나보세요."
+        description="조금 더 특별하고 완성도 높은 채뜌 시그니처 테마를 만나보세요✨"
         type="signature"
         items={signatureThemes}
       />

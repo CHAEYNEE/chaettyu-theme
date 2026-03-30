@@ -61,36 +61,36 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 20px;
-  padding: 0 6px;
+  min-height: 22px;
+  padding: 0 8px;
+  border: 2px solid var(--color-text);
+  border-radius: 0;
+  color: var(--color-text);
   font-size: 10px;
-  letter-spacing: 0.02em;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1;
+  box-shadow: 2px 2px 0 rgba(131, 97, 92, 0.12);
 }
 
 .freeChip {
-  background: #bedab3;
-  color: #ffffff;
+  background: #d6f0c8;
 }
 
 .signatureChip {
-  background: #ed8687;
-  color: #ffffff;
+  background: #f3a1a3;
 }
 
 .iosChip {
-  background: #ffa58a;
-  color: #ffffff;
+  background: #ffb396;
 }
 
 .androidChip {
-  background: #ffd35b;
-  color: #ffffff;
+  background: #ffeba9;
 }
 
 .badgeChip {
-  border: 1px solid #4fbcdd;
-  background: #fff;
-  color: #4fbcdd;
+  background: #ebfaff;
 }
 
 .title {
