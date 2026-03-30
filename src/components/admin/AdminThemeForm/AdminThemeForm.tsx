@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
+import ThemeContentEditor from "@/components/admin/ThemeContentEditor/ThemeContentEditor";
 import CustomDropdown, {
   type DropdownOption,
 } from "@/components/common/CustomDropdown/CustomDropdown";
@@ -722,7 +723,7 @@ export default function AdminThemeForm({
       hasSetDownloadFile &&
       !form.setPrice.trim()
     ) {
-      return "세트 파일을 등록한 경우 세트 가격도 입력해 주세요.";
+      return "세트 파일을 등록한 경우 세트 가격도 꼭 입력해 주세요.";
     }
 
     if (
@@ -790,6 +791,7 @@ export default function AdminThemeForm({
     setIsSubmitting(true);
 
     const requestBody = buildRequestBody();
+
     const endpoint = isEditMode
       ? `/api/admin/themes/${requestBody.id}`
       : "/api/admin/themes";
@@ -1419,18 +1421,21 @@ export default function AdminThemeForm({
             <span className={styles.hint}>쉼표(,)로 구분</span>
           </label>
 
-          <label className={styles.field}>
-            <span className={styles.label}>상세 HTML</span>
-            <textarea
-              className={`${styles.textarea} ${styles.largeTextarea}`}
-              value={form.detailHtml}
-              onChange={(event) => {
+          <div className={styles.field}>
+            <span className={styles.label}>상세 내용</span>
+
+            <ThemeContentEditor
+              initialHtml={form.detailHtml}
+              onChange={({ detailHtml }) => {
                 resetError();
-                handleChange("detailHtml", event.target.value);
+                handleChange("detailHtml", detailHtml);
               }}
-              placeholder="<p>테마 소개를 입력해 주세요.</p>"
             />
-          </label>
+
+            <span className={styles.hint}>
+              에디터에서 작성한 내용이 HTML로 저장돼요.
+            </span>
+          </div>
         </div>
       </section>
 
