@@ -130,7 +130,7 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
   const router = useRouter();
   const { user } = useAuthUser();
   const { showToast } = useToast();
-  const { addItem } = useCart();
+  const { addItems } = useCart();
 
   const [status, setStatus] = useState<ThemeHistoryStatus>(EMPTY_STATUS);
   const [isStatusLoading, setIsStatusLoading] = useState(false);
@@ -328,27 +328,11 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
       return false;
     }
 
-    let addedCount = 0;
-    let duplicateCount = 0;
-    let invalidCount = 0;
+    const result = addItems(
+      cartTargetItems.map((item) => mapLineItemToCartItem(theme, item)),
+    );
 
-    cartTargetItems.forEach((item) => {
-      const result = addItem(mapLineItemToCartItem(theme, item));
-
-      if (result.success) {
-        addedCount += 1;
-        return;
-      }
-
-      if (result.reason === "duplicate") {
-        duplicateCount += 1;
-        return;
-      }
-
-      invalidCount += 1;
-    });
-
-    if (addedCount > 0 && duplicateCount === 0) {
+    if (result.addedCount > 0 && result.duplicateCount === 0) {
       showToast(
         hasOwnedItems
           ? "보유 중인 구성을 제외하고 장바구니에 담았어요!"
@@ -360,7 +344,7 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
       return true;
     }
 
-    if (addedCount > 0 && duplicateCount > 0) {
+    if (result.addedCount > 0 && result.duplicateCount > 0) {
       showToast(
         hasOwnedItems
           ? "새 구성만 장바구니에 담았고, 이미 담긴 항목과 보유 항목은 제외했어요!"
@@ -372,14 +356,14 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
       return true;
     }
 
-    if (addedCount === 0 && duplicateCount > 0) {
+    if (result.addedCount === 0 && result.duplicateCount > 0) {
       showToast("이미 장바구니에 담긴 구성이에요!", {
         type: "info",
       });
       return false;
     }
 
-    if (invalidCount > 0) {
+    if (result.invalidCount > 0) {
       showToast("장바구니에 담지 못한 항목이 있어요.", {
         type: "error",
       });

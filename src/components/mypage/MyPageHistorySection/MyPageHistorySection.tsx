@@ -23,57 +23,93 @@ type MyPageHistorySectionProps = {
   emptyText: string;
 };
 
-type DownloadTarget = {
-  fileUrl: string;
-};
-
 function formatPrice(price: number) {
   return new Intl.NumberFormat("ko-KR").format(price);
 }
 
-function getDownloadTargets(record: MyPageRecord): DownloadTarget[] {
-  return record.items.map((item) => {
-    const fileUrl = buildThemeDownloadUrl({
-      themeId: record.themeId,
-      platform: item.platform,
-      purchaseMode: item.purchaseMode,
-      versionValue: item.versionValue,
-    });
-
-    return { fileUrl };
+function getItemDownloadUrl(record: MyPageRecord, item: ThemePurchaseLineItem) {
+  return buildThemeDownloadUrl({
+    themeId: record.themeId,
+    platform: item.platform,
+    purchaseMode: item.purchaseMode,
+    versionValue: item.versionValue,
   });
 }
 
-function startDownloads(files: DownloadTarget[]) {
-  files.forEach((file, index) => {
-    window.setTimeout(() => {
-      const link = document.createElement("a");
-      link.href = file.fileUrl;
-      link.rel = "noopener";
+function getItemDownloadFileName(
+  record: MyPageRecord,
+  item: ThemePurchaseLineItem,
+) {
+  if (item.purchaseMode === "set") {
+    return `${record.themeId}-${item.platform}-set`;
+  }
 
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }, index * 120);
-  });
+  return `${record.themeId}-${item.platform}-${item.versionValue ?? "default"}`;
 }
 
-function HistoryItemChips({ items }: { items: ThemePurchaseLineItem[] }) {
+function startDownload(fileUrl: string, fileName: string) {
+  const link = document.createElement("a");
+  link.href = fileUrl;
+  link.rel = "noopener";
+  link.download = fileName;
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function HistoryItemChips({
+  record,
+  isPurchase,
+  downloadingKey,
+  onDownload,
+}: {
+  record: MyPageRecord;
+  isPurchase: boolean;
+  downloadingKey: string | null;
+  onDownload: (record: MyPageRecord, item: ThemePurchaseLineItem) => void;
+}) {
   return (
     <ul className={styles.itemList}>
-      {items.map((item) => (
-        <li key={item.key} className={styles.itemChip}>
-          <span className={styles.itemTitle}>{item.title}</span>
+      {record.items.map((item) => {
+        const itemKey = `${record.id}:${item.key}`;
+        const isDownloading = downloadingKey === itemKey;
 
-          {item.subtitle ? (
-            <span className={styles.itemSub}>{item.subtitle}</span>
-          ) : null}
+        return (
+          <li key={item.key}>
+            {isPurchase ? (
+              <button
+                type="button"
+                className={styles.itemChipButton}
+                onClick={() => onDownload(record, item)}
+                disabled={isDownloading}
+              >
+                <span className={styles.itemTitle}>{item.title}</span>
 
-          {item.versionValue ? (
-            <span className={styles.itemMeta}>{item.versionValue}</span>
-          ) : null}
-        </li>
-      ))}
+                {item.subtitle ? (
+                  <span className={styles.itemSub}>{item.subtitle}</span>
+                ) : null}
+
+                {item.versionValue ? (
+                  <span className={styles.itemMeta}>{item.versionValue}</span>
+                ) : null}
+              </button>
+            ) : (
+              <div className={styles.itemChip}>
+                <span className={styles.itemTitle}>{item.title}</span>
+
+                {item.subtitle ? (
+                  <span className={styles.itemSub}>{item.subtitle}</span>
+                ) : null}
+
+                {item.versionValue ? (
+                  <span className={styles.itemMeta}>{item.versionValue}</span>
+                ) : null}
+              </div>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -84,40 +120,26 @@ export default function MyPageHistorySection({
   emptyText,
 }: MyPageHistorySectionProps) {
   const { showToast } = useToast();
-  const [downloadingRecordId, setDownloadingRecordId] = useState<string | null>(
-    null,
-  );
+  const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
 
-  const handleRecordDownload = (record: MyPageRecord) => {
-    if (record.items.length === 0) {
-      showToast("다운로드할 구성을 찾지 못했어요.", {
-        type: "error",
-      });
-      return;
-    }
+  const handleItemDownload = (
+    record: MyPageRecord,
+    item: ThemePurchaseLineItem,
+  ) => {
+    const fileUrl = getItemDownloadUrl(record, item);
+    const fileName = getItemDownloadFileName(record, item);
+    const itemKey = `${record.id}:${item.key}`;
 
-    const files = getDownloadTargets(record);
+    setDownloadingKey(itemKey);
+    startDownload(fileUrl, fileName);
 
-    if (files.length === 0) {
-      showToast("다운로드할 파일을 찾지 못했어요.", {
-        type: "error",
-      });
-      return;
-    }
-
-    setDownloadingRecordId(record.id);
-    startDownloads(files);
-
-    showToast("다운로드를 시작했어요!", {
+    showToast(`${item.title} 다운로드를 시작했어요!`, {
       type: "success",
     });
 
-    window.setTimeout(
-      () => {
-        setDownloadingRecordId(null);
-      },
-      files.length * 120 + 200,
-    );
+    window.setTimeout(() => {
+      setDownloadingKey((prev) => (prev === itemKey ? null : prev));
+    }, 500);
   };
 
   if (records.length === 0) {
@@ -140,7 +162,6 @@ export default function MyPageHistorySection({
         const dateText = formatDate(
           isPurchase ? record.purchasedAt : record.downloadedAt,
         );
-        const isDownloading = downloadingRecordId === record.id;
 
         return (
           <li key={record.id}>
@@ -172,7 +193,12 @@ export default function MyPageHistorySection({
                     {record.themeTitle}
                   </Link>
 
-                  <HistoryItemChips items={record.items} />
+                  <HistoryItemChips
+                    record={record}
+                    isPurchase={isPurchase}
+                    downloadingKey={downloadingKey}
+                    onDownload={handleItemDownload}
+                  />
                 </div>
 
                 <div className={styles.recordSide}>
@@ -181,15 +207,6 @@ export default function MyPageHistorySection({
                       <p className={styles.priceText}>
                         {formatPrice(record.totalPrice)}원
                       </p>
-
-                      <button
-                        type="button"
-                        className={styles.actionButton}
-                        onClick={() => handleRecordDownload(record)}
-                        disabled={isDownloading}
-                      >
-                        {isDownloading ? "다운로드 중..." : "다운로드"}
-                      </button>
                     </div>
                   ) : (
                     <div className={styles.sideStack}>

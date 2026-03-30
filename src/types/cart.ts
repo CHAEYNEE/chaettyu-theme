@@ -32,6 +32,12 @@ export type AddCartItemResult =
       item?: CartItem;
     };
 
+export type AddCartItemsResult = {
+  addedCount: number;
+  duplicateCount: number;
+  invalidCount: number;
+};
+
 export type RemoveCartItemResult =
   | {
       success: true;
@@ -56,6 +62,7 @@ export type CartContextValue = {
   totalQuantity: number;
   totalPrice: number;
   addItem: (input: AddCartItemInput) => AddCartItemResult;
+  addItems: (inputs: AddCartItemInput[]) => AddCartItemsResult;
   removeItem: (itemId: string) => RemoveCartItemResult;
   removeItems: (itemIds: string[]) => RemoveCartItemsResult;
   clearCart: () => void;

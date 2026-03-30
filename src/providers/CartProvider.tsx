@@ -19,6 +19,7 @@ import {
 import type {
   AddCartItemInput,
   AddCartItemResult,
+  AddCartItemsResult,
   CartContextValue,
   CartItem,
   CartItemIdentity,
@@ -107,20 +108,81 @@ export function CartProvider({ children }: CartProviderProps) {
     [items],
   );
 
+  const addItems = useCallback(
+    (inputs: AddCartItemInput[]): AddCartItemsResult => {
+      if (inputs.length === 0) {
+        return {
+          addedCount: 0,
+          duplicateCount: 0,
+          invalidCount: 0,
+        };
+      }
+
+      const currentItems = readCartItems();
+      const nextItems = [...currentItems];
+
+      let addedCount = 0;
+      let duplicateCount = 0;
+      let invalidCount = 0;
+
+      inputs.forEach((input) => {
+        const nextItem = createCartItem(input);
+
+        if (!nextItem) {
+          invalidCount += 1;
+          return;
+        }
+
+        const alreadyExists = nextItems.some((item) => item.id === nextItem.id);
+
+        if (alreadyExists) {
+          duplicateCount += 1;
+          return;
+        }
+
+        nextItems.push(nextItem);
+        addedCount += 1;
+      });
+
+      if (addedCount > 0) {
+        writeCartItems(nextItems);
+      }
+
+      return {
+        addedCount,
+        duplicateCount,
+        invalidCount,
+      };
+    },
+    [],
+  );
+
   const addItem = useCallback(
     (input: AddCartItemInput): AddCartItemResult => {
-      const nextItem = createCartItem(input);
+      const createdItem = createCartItem(input);
 
-      if (!nextItem) {
+      if (!createdItem) {
         return {
           success: false,
           reason: "invalid",
         };
       }
 
-      const duplicatedItem = items.find((item) => item.id === nextItem.id);
+      const result = addItems([input]);
 
-      if (duplicatedItem) {
+      if (result.addedCount > 0) {
+        return {
+          success: true,
+          reason: "added",
+          item: createdItem,
+        };
+      }
+
+      if (result.duplicateCount > 0) {
+        const duplicatedItem = readCartItems().find(
+          (item) => item.id === createdItem.id,
+        );
+
         return {
           success: false,
           reason: "duplicate",
@@ -128,39 +190,34 @@ export function CartProvider({ children }: CartProviderProps) {
         };
       }
 
-      writeCartItems([...items, nextItem]);
-
       return {
-        success: true,
-        reason: "added",
-        item: nextItem,
+        success: false,
+        reason: "invalid",
       };
     },
-    [items],
+    [addItems],
   );
 
-  const removeItem = useCallback(
-    (itemId: string): RemoveCartItemResult => {
-      const exists = items.some((item) => item.id === itemId);
+  const removeItem = useCallback((itemId: string): RemoveCartItemResult => {
+    const currentItems = readCartItems();
+    const exists = currentItems.some((item) => item.id === itemId);
 
-      if (!exists) {
-        return {
-          success: false,
-          reason: "not-found",
-          itemId,
-        };
-      }
-
-      writeCartItems(items.filter((item) => item.id !== itemId));
-
+    if (!exists) {
       return {
-        success: true,
-        reason: "removed",
+        success: false,
+        reason: "not-found",
         itemId,
       };
-    },
-    [items],
-  );
+    }
+
+    writeCartItems(currentItems.filter((item) => item.id !== itemId));
+
+    return {
+      success: true,
+      reason: "removed",
+      itemId,
+    };
+  }, []);
 
   const removeItems = useCallback(
     (itemIds: string[]): RemoveCartItemsResult => {
@@ -171,9 +228,10 @@ export function CartProvider({ children }: CartProviderProps) {
         };
       }
 
+      const currentItems = readCartItems();
       const itemIdSet = new Set(itemIds);
-      const nextItems = items.filter((item) => !itemIdSet.has(item.id));
-      const removedCount = items.length - nextItems.length;
+      const nextItems = currentItems.filter((item) => !itemIdSet.has(item.id));
+      const removedCount = currentItems.length - nextItems.length;
 
       if (removedCount > 0) {
         writeCartItems(nextItems);
@@ -184,7 +242,7 @@ export function CartProvider({ children }: CartProviderProps) {
         removedCount,
       };
     },
-    [items],
+    [],
   );
 
   const clearCart = useCallback(() => {
@@ -209,6 +267,7 @@ export function CartProvider({ children }: CartProviderProps) {
       totalQuantity,
       totalPrice,
       addItem,
+      addItems,
       removeItem,
       removeItems,
       clearCart,
@@ -222,6 +281,7 @@ export function CartProvider({ children }: CartProviderProps) {
       totalQuantity,
       totalPrice,
       addItem,
+      addItems,
       removeItem,
       removeItems,
       clearCart,

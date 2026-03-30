@@ -320,10 +320,6 @@ export default function CartPage() {
                   </strong>
                 </div>
 
-                <p className={styles.summaryHelper}>
-                  이미 보유한 구성은 자동으로 제외하고 새 구성만 구매해요.
-                </p>
-
                 <div className={styles.summaryActions}>
                   <button
                     type="button"
