@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { requireAdminApi } from "@/lib/auth/requireAdminApi";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -26,6 +27,12 @@ function sanitizeFileName(fileName: string) {
 
 export async function POST(request: Request) {
   try {
+    const adminGuard = await requireAdminApi();
+
+    if (!adminGuard.ok) {
+      return adminGuard.response;
+    }
+
     const formData = await request.formData();
     const file = formData.get("file");
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-
+import { requireAdminApi } from "@/lib/auth/requireAdminApi";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
+import { sanitizeThemeDetailHtml } from "@/lib/theme/sanitizeThemeDetailHtml";
 import type {
   PurchaseMode,
   ThemePlatform,
@@ -162,6 +163,12 @@ function parsePayload(body: unknown): UpdateThemeRequest | null {
 
 export async function PATCH(request: Request, context: RouteContext) {
   try {
+    const adminGuard = await requireAdminApi();
+
+    if (!adminGuard.ok) {
+      return adminGuard.response;
+    }
+
     const { id: routeId } = await context.params;
     const normalizedRouteId = normalizeId(routeId);
 
@@ -182,7 +189,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       .map((item) => item.trim())
       .filter(Boolean);
     const tags = payload.tags.map((item) => item.trim()).filter(Boolean);
-    const detailHtml = payload.detailHtml.trim();
+    const detailHtml = sanitizeThemeDetailHtml(payload.detailHtml);
     const detailJson = payload.detailJson ?? null;
     const versions = (payload.versions ?? [])
       .map((version) => ({

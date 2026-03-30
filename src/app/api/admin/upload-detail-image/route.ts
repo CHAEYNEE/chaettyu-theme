@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { requireAdminApi } from "@/lib/auth/requireAdminApi";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -36,7 +36,11 @@ function normalizeThemeId(value: string) {
 
 export async function POST(request: Request) {
   try {
-    await requireAdmin();
+    const adminGuard = await requireAdminApi();
+
+    if (!adminGuard.ok) {
+      return adminGuard.response;
+    }
 
     const supabaseAdmin = createSupabaseAdmin();
 

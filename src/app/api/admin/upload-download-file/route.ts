@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { requireAdminApi } from "@/lib/auth/requireAdminApi";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import type { PurchaseMode, ThemePlatform } from "@/types/theme";
 
@@ -35,6 +36,12 @@ function isValidPurchaseMode(value: unknown): value is PurchaseMode {
 
 export async function POST(request: Request) {
   try {
+    const adminGuard = await requireAdminApi();
+
+    if (!adminGuard.ok) {
+      return adminGuard.response;
+    }
+
     const formData = await request.formData();
 
     const file = formData.get("file");
