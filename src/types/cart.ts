@@ -44,6 +44,11 @@ export type RemoveCartItemResult =
       itemId: string;
     };
 
+export type RemoveCartItemsResult = {
+  success: boolean;
+  removedCount: number;
+};
+
 export type CartContextValue = {
   items: CartItem[];
   isHydrated: boolean;
@@ -52,6 +57,7 @@ export type CartContextValue = {
   totalPrice: number;
   addItem: (input: AddCartItemInput) => AddCartItemResult;
   removeItem: (itemId: string) => RemoveCartItemResult;
+  removeItems: (itemIds: string[]) => RemoveCartItemsResult;
   clearCart: () => void;
   hasItem: (identity: CartItemIdentity) => boolean;
   getItemByIdentity: (identity: CartItemIdentity) => CartItem | undefined;

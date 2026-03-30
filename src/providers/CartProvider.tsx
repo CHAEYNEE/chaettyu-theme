@@ -23,6 +23,7 @@ import type {
   CartItem,
   CartItemIdentity,
   RemoveCartItemResult,
+  RemoveCartItemsResult,
 } from "@/types/cart";
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -161,6 +162,31 @@ export function CartProvider({ children }: CartProviderProps) {
     [items],
   );
 
+  const removeItems = useCallback(
+    (itemIds: string[]): RemoveCartItemsResult => {
+      if (itemIds.length === 0) {
+        return {
+          success: true,
+          removedCount: 0,
+        };
+      }
+
+      const itemIdSet = new Set(itemIds);
+      const nextItems = items.filter((item) => !itemIdSet.has(item.id));
+      const removedCount = items.length - nextItems.length;
+
+      if (removedCount > 0) {
+        writeCartItems(nextItems);
+      }
+
+      return {
+        success: removedCount > 0,
+        removedCount,
+      };
+    },
+    [items],
+  );
+
   const clearCart = useCallback(() => {
     clearCartItems();
   }, []);
@@ -184,6 +210,7 @@ export function CartProvider({ children }: CartProviderProps) {
       totalPrice,
       addItem,
       removeItem,
+      removeItems,
       clearCart,
       hasItem,
       getItemByIdentity,
@@ -196,6 +223,7 @@ export function CartProvider({ children }: CartProviderProps) {
       totalPrice,
       addItem,
       removeItem,
+      removeItems,
       clearCart,
       hasItem,
       getItemByIdentity,
