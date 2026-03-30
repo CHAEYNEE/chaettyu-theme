@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
@@ -28,6 +29,7 @@ type ThemeRow = {
   type: ThemeType;
   title: string;
   thumbnail_url: string;
+  download_count: number | null;
 };
 
 function isValidPlatform(value: string | null): value is ThemePlatform {
@@ -88,6 +90,7 @@ export async function GET(request: Request, context: RouteContext) {
     const platform = searchParams.get("platform");
     const purchaseMode = searchParams.get("purchaseMode");
     const versionValue = searchParams.get("versionValue");
+    const responseType = searchParams.get("responseType");
 
     if (!isValidPlatform(platform)) {
       return NextResponse.json(
@@ -119,7 +122,7 @@ export async function GET(request: Request, context: RouteContext) {
 
     const { data: themeData, error: themeError } = await supabase
       .from("themes")
-      .select("id, is_published, type, title, thumbnail_url")
+      .select("id, is_published, type, title, thumbnail_url, download_count")
       .eq("id", id)
       .eq("is_published", true)
       .maybeSingle<ThemeRow>();
@@ -255,6 +258,25 @@ export async function GET(request: Request, context: RouteContext) {
       }
     }
 
+    if (themeData.type === "free") {
+      const nextDownloadCount = (themeData.download_count ?? 0) + 1;
+
+      const { error: incrementError } = await supabase
+        .from("themes")
+        .update({
+          download_count: nextDownloadCount,
+        })
+        .eq("id", id);
+
+      if (incrementError) {
+        console.error("Theme download count increment error:", incrementError);
+      } else {
+        revalidatePath("/", "page");
+        revalidatePath("/themes/free", "page");
+        revalidatePath(`/themes/${id}`, "page");
+      }
+    }
+
     const { data: signedUrlData, error: signedUrlError } =
       await supabase.storage
         .from(downloadFile.storage_bucket)
@@ -269,6 +291,13 @@ export async function GET(request: Request, context: RouteContext) {
 
     const signedUrl = new URL(signedUrlData.signedUrl);
     signedUrl.searchParams.set("download", downloadFile.file_name);
+
+    if (responseType === "json") {
+      return NextResponse.json({
+        downloadUrl: signedUrl.toString(),
+        fileName: downloadFile.file_name,
+      });
+    }
 
     return NextResponse.redirect(signedUrl.toString(), 307);
   } catch (error) {

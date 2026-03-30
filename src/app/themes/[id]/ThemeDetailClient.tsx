@@ -78,6 +78,39 @@ function getDownloadTargets(
   });
 }
 
+async function resolveDownloadTargets(
+  files: DownloadTarget[],
+): Promise<DownloadTarget[]> {
+  const resolvedFiles = await Promise.all(
+    files.map(async (file) => {
+      const requestUrl = new URL(file.fileUrl, window.location.origin);
+      requestUrl.searchParams.set("responseType", "json");
+
+      const response = await fetch(requestUrl.toString(), {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      const data = (await response.json()) as {
+        downloadUrl?: string;
+        fileName?: string;
+        error?: string;
+      };
+
+      if (!response.ok || !data.downloadUrl) {
+        throw new Error(data.error || "다운로드 링크를 준비하지 못했어요.");
+      }
+
+      return {
+        fileUrl: data.downloadUrl,
+        fileName: data.fileName ?? file.fileName,
+      };
+    }),
+  );
+
+  return resolvedFiles;
+}
+
 function startDownloads(files: DownloadTarget[]) {
   files.forEach((file, index) => {
     window.setTimeout(() => {
@@ -201,31 +234,48 @@ export default function ThemeDetailClient({ theme }: ThemeDetailClientProps) {
       ? hasDownloadedAllSelectedItems(status.downloadedItems, items)
       : false;
 
-    startDownloads(files);
+    try {
+      const resolvedFiles = await resolveDownloadTargets(files);
 
-    if (user) {
-      const mergedDownloadedItems = mergeUniqueLineItems(
-        status.downloadedItems,
-        items,
+      startDownloads(resolvedFiles);
+
+      if (user) {
+        const mergedDownloadedItems = mergeUniqueLineItems(
+          status.downloadedItems,
+          items,
+        );
+
+        setStatus((prev) => ({
+          ...prev,
+          downloadedItems: mergedDownloadedItems,
+          downloadedItemKeys: mergedDownloadedItems.map((item) => item.key),
+        }));
+      }
+
+      showToast(
+        isRedownload
+          ? "이미 받은 구성이에요. 다시 다운로드를 시작했어요!"
+          : "다운로드를 시작했어요!",
+        {
+          type: "success",
+        },
       );
 
-      setStatus((prev) => ({
-        ...prev,
-        downloadedItems: mergedDownloadedItems,
-        downloadedItemKeys: mergedDownloadedItems.map((item) => item.key),
-      }));
+      if (theme.type === "free") {
+        router.refresh();
+      }
+
+      return true;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "다운로드 중 문제가 생겼어요.";
+
+      showToast(message, {
+        type: "error",
+      });
+
+      return false;
     }
-
-    showToast(
-      isRedownload
-        ? "이미 받은 구성이에요. 다시 다운로드를 시작했어요!"
-        : "다운로드를 시작했어요!",
-      {
-        type: "success",
-      },
-    );
-
-    return true;
   };
 
   const handlePrimaryAction = async (items: ThemePurchaseLineItem[]) => {
