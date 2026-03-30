@@ -2,45 +2,79 @@ import AdminDashboardPanel from "@/components/admin/AdminDashboardPanel/AdminDas
 import AdminDashboardSummary from "@/components/admin/AdminDashboardSummary/AdminDashboardSummary";
 import AdminPageSection from "@/components/admin/AdminPageSection/AdminPageSection";
 import AdminQuickActions from "@/components/admin/AdminQuickActions/AdminQuickActions";
-import { themes } from "@/data/themes";
+import { createSupabaseAdmin } from "@/lib/supabase/admin";
 
 import styles from "./page.module.css";
+
+type DbThemeRow = {
+  id: string;
+  title: string;
+  type: "free" | "signature";
+  is_published: boolean;
+  price: number;
+  download_count: number | null;
+  purchase_count: number | null;
+  created_at: string;
+};
 
 function formatPrice(value: number) {
   return `₩${value.toLocaleString("ko-KR")}`;
 }
 
-export default function AdminPage() {
+function formatDate(dateString: string) {
+  return new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(dateString));
+}
+
+export default async function AdminPage() {
+  const supabase = createSupabaseAdmin();
+
+  const { data, error } = await supabase
+    .from("themes")
+    .select(
+      "id, title, type, is_published, price, download_count, purchase_count, created_at",
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Failed to fetch admin dashboard themes:", error);
+  }
+
+  const themes = (data ?? []) as DbThemeRow[];
+
   const totalThemeCount = themes.length;
   const publishedThemeCount = themes.filter(
-    (theme) => theme.isPublished,
+    (theme) => theme.is_published,
   ).length;
 
   const totalPurchaseCount = themes.reduce(
-    (sum, theme) => sum + (theme.purchaseCount ?? 0),
+    (sum, theme) => sum + (theme.purchase_count ?? 0),
     0,
   );
 
   const totalRevenue = themes.reduce(
-    (sum, theme) => sum + theme.price * (theme.purchaseCount ?? 0),
+    (sum, theme) => sum + theme.price * (theme.purchase_count ?? 0),
     0,
   );
 
   const recentThemes = [...themes]
     .sort(
       (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     )
     .slice(0, 3);
 
   const popularFreeThemes = [...themes]
     .filter((theme) => theme.type === "free")
-    .sort((a, b) => (b.downloadCount ?? 0) - (a.downloadCount ?? 0))
+    .sort((a, b) => (b.download_count ?? 0) - (a.download_count ?? 0))
     .slice(0, 3);
 
   const popularSignatureThemes = [...themes]
     .filter((theme) => theme.type === "signature")
-    .sort((a, b) => (b.purchaseCount ?? 0) - (a.purchaseCount ?? 0))
+    .sort((a, b) => (b.purchase_count ?? 0) - (a.purchase_count ?? 0))
     .slice(0, 3);
 
   const dashboardSummary = [
@@ -69,7 +103,7 @@ export default function AdminPage() {
   const recentActivities = recentThemes.map((theme) => ({
     id: theme.id,
     title: theme.title,
-    createdAt: theme.createdAt,
+    createdAt: formatDate(theme.created_at),
   }));
 
   const quickActions = [
@@ -89,12 +123,16 @@ export default function AdminPage() {
 
       <div className={styles.panelGrid}>
         <AdminDashboardPanel title="최근 등록 테마">
-          {recentActivities.map((item) => (
-            <p key={item.id} className={styles.panelText}>
-              <span className={styles.themeName}>{item.title}</span> 테마가{" "}
-              {item.createdAt}에 등록되었어요.
-            </p>
-          ))}
+          {recentActivities.length > 0 ? (
+            recentActivities.map((item) => (
+              <p key={item.id} className={styles.panelText}>
+                <span className={styles.themeName}>{item.title}</span> 테마가{" "}
+                {item.createdAt}에 등록되었어요.
+              </p>
+            ))
+          ) : (
+            <p className={styles.panelText}>아직 등록된 테마가 없어요.</p>
+          )}
         </AdminDashboardPanel>
 
         <AdminDashboardPanel title="빠른 작업">
@@ -104,37 +142,45 @@ export default function AdminPage() {
 
       <div className={styles.panelGrid}>
         <AdminDashboardPanel title="인기 무료 테마 TOP 3">
-          {popularFreeThemes.map((theme, index) => (
-            <div key={theme.id} className={styles.rankRow}>
-              <span className={styles.rankBadge}>{index + 1}</span>
-              <div className={styles.rankContent}>
-                <strong className={styles.rankTitle}>{theme.title}</strong>
-                <p className={styles.rankMeta}>
-                  다운로드{" "}
-                  <span className={styles.countText}>
-                    {(theme.downloadCount ?? 0).toLocaleString("ko-KR")}회
-                  </span>
-                </p>
+          {popularFreeThemes.length > 0 ? (
+            popularFreeThemes.map((theme, index) => (
+              <div key={theme.id} className={styles.rankRow}>
+                <span className={styles.rankBadge}>{index + 1}</span>
+                <div className={styles.rankContent}>
+                  <strong className={styles.rankTitle}>{theme.title}</strong>
+                  <p className={styles.rankMeta}>
+                    다운로드{" "}
+                    <span className={styles.countText}>
+                      {(theme.download_count ?? 0).toLocaleString("ko-KR")}회
+                    </span>
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className={styles.panelText}>무료 테마 데이터가 아직 없어요.</p>
+          )}
         </AdminDashboardPanel>
 
         <AdminDashboardPanel title="인기 유료 테마 TOP 3">
-          {popularSignatureThemes.map((theme, index) => (
-            <div key={theme.id} className={styles.rankRow}>
-              <span className={styles.rankBadge}>{index + 1}</span>
-              <div className={styles.rankContent}>
-                <strong className={styles.rankTitle}>{theme.title}</strong>
-                <p className={styles.rankMeta}>
-                  구매{" "}
-                  <span className={styles.countText}>
-                    {(theme.purchaseCount ?? 0).toLocaleString("ko-KR")}건
-                  </span>
-                </p>
+          {popularSignatureThemes.length > 0 ? (
+            popularSignatureThemes.map((theme, index) => (
+              <div key={theme.id} className={styles.rankRow}>
+                <span className={styles.rankBadge}>{index + 1}</span>
+                <div className={styles.rankContent}>
+                  <strong className={styles.rankTitle}>{theme.title}</strong>
+                  <p className={styles.rankMeta}>
+                    구매{" "}
+                    <span className={styles.countText}>
+                      {(theme.purchase_count ?? 0).toLocaleString("ko-KR")}건
+                    </span>
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className={styles.panelText}>유료 테마 데이터가 아직 없어요.</p>
+          )}
         </AdminDashboardPanel>
       </div>
     </AdminPageSection>
