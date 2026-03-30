@@ -117,9 +117,8 @@ export default function CartPage() {
   }, [selectedItems]);
 
   const isEmpty = items.length === 0;
-  const isAllSelected =
-    items.length > 0 && selectedItemIds.length === items.length;
-  const hasSelectedItems = selectedItemIds.length > 0;
+  const hasSelectedItems = selectedCount > 0;
+  const isAllSelected = items.length > 0 && selectedCount === items.length;
   const isActionLocked = isPurchasing || Boolean(purchasingItemId);
 
   const payablePrice = hasSelectedItems ? selectedTotalPrice : totalPrice;
