@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/requireAdminApi";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { sanitizeThemeDetailHtml } from "@/lib/theme/sanitizeThemeDetailHtml";
+import { cleanupThemeDetailImages } from "@/lib/theme/cleanupThemeDetailImages";
 import type {
   PurchaseMode,
   ThemePlatform,
@@ -445,6 +446,18 @@ export async function POST(request: Request) {
           { status: 500 },
         );
       }
+    }
+
+    try {
+      await cleanupThemeDetailImages({
+        themeId: normalizedId,
+        detailHtml,
+      });
+    } catch (error) {
+      console.error(
+        "Failed to cleanup theme detail images after create:",
+        error,
+      );
     }
 
     return NextResponse.json(
