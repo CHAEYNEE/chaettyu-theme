@@ -31,6 +31,7 @@ type UpdateThemeRequest = {
   downloadFileName?: string;
   platforms: ThemePlatform[];
   detailHtml: string;
+  detailJson?: Record<string, unknown> | null;
   badge?: string;
   versions?: ThemeVersion[];
   downloadFiles?: ThemeDownloadFilePayload[];
@@ -101,6 +102,10 @@ function isValidDownloadFileArray(
   );
 }
 
+function isJsonObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function hasDuplicateVersionValues(versions: ThemeVersion[]) {
   const values = versions.map((version) => version.value).filter(Boolean);
 
@@ -140,6 +145,9 @@ function parsePayload(body: unknown): UpdateThemeRequest | null {
     typeof payload.isPublished !== "boolean" ||
     !isValidPlatformArray(payload.platforms) ||
     typeof payload.detailHtml !== "string" ||
+    (payload.detailJson !== undefined &&
+      payload.detailJson !== null &&
+      !isJsonObject(payload.detailJson)) ||
     (payload.badge !== undefined && typeof payload.badge !== "string") ||
     (payload.versions !== undefined &&
       !isValidVersionArray(payload.versions)) ||
@@ -175,6 +183,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       .filter(Boolean);
     const tags = payload.tags.map((item) => item.trim()).filter(Boolean);
     const detailHtml = payload.detailHtml.trim();
+    const detailJson = payload.detailJson ?? null;
     const versions = (payload.versions ?? [])
       .map((version) => ({
         label: version.label.trim(),
@@ -365,7 +374,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         download_file_name: payload.downloadFileName ?? null,
         platforms: payload.platforms,
         detail_html: detailHtml,
-        detail_json: null,
+        detail_json: detailJson,
         badge: payload.badge?.trim() || null,
       })
       .eq("id", normalizedRouteId);

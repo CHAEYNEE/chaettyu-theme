@@ -14,6 +14,7 @@ import styles from "./ThemeContentEditor.module.css";
 type ThemeContentEditorProps = {
   themeId?: string;
   initialHtml?: string;
+  initialJson?: Record<string, unknown> | null;
   onChange: (payload: {
     detailHtml: string;
     detailJson: Record<string, unknown> | null;
@@ -32,6 +33,7 @@ function normalizeThemeId(value: string) {
 export default function ThemeContentEditor({
   themeId = "",
   initialHtml = "",
+  initialJson = null,
   onChange,
 }: ThemeContentEditorProps) {
   const { showToast } = useToast();
@@ -53,7 +55,7 @@ export default function ThemeContentEditor({
         emptyEditorClass: "is-editor-empty",
       }),
     ],
-    content: initialHtml || "<p></p>",
+    content: (initialJson ?? initialHtml) || "<p></p>",
     immediatelyRender: false,
     onCreate: ({ editor }) => {
       onChange({

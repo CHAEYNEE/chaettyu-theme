@@ -40,6 +40,7 @@ export type AdminThemeFormInitialValues = {
   tags: string[];
   badge?: string | null;
   detailHtml: string;
+  detailJson?: Record<string, unknown> | null;
   platforms: ThemePlatform[];
   isPublished: boolean;
   versions: ThemeVersion[];
@@ -70,6 +71,7 @@ type FormState = {
   tags: string;
   badge: string;
   detailHtml: string;
+  detailJson: Record<string, unknown> | null;
   platforms: ThemePlatform[];
   isPublished: boolean;
   versions: VersionFormItem[];
@@ -212,6 +214,7 @@ function createEmptyFormState(): FormState {
     tags: "",
     badge: "",
     detailHtml: "",
+    detailJson: null,
     platforms: ["ios"],
     isPublished: true,
     versions: [],
@@ -242,6 +245,7 @@ function createInitialFormState(
     tags: (initialValues.tags ?? []).join(", "),
     badge: initialValues.badge ?? "",
     detailHtml: initialValues.detailHtml ?? "",
+    detailJson: initialValues.detailJson ?? null,
     platforms:
       initialValues.platforms.length > 0 ? initialValues.platforms : ["ios"],
     isPublished: initialValues.isPublished,
@@ -682,6 +686,7 @@ export default function AdminThemeForm({
       downloadFileName: undefined,
       platforms: form.platforms,
       detailHtml: form.detailHtml.trim(),
+      detailJson: form.detailJson,
       badge: form.badge.trim() || undefined,
       versions: getSanitizedVersions(form.versions),
       downloadFiles: getSanitizedDownloadFiles(form.downloadFiles),
@@ -1427,9 +1432,14 @@ export default function AdminThemeForm({
             <ThemeContentEditor
               themeId={form.id}
               initialHtml={form.detailHtml}
-              onChange={({ detailHtml }) => {
+              initialJson={form.detailJson}
+              onChange={({ detailHtml, detailJson }) => {
                 resetError();
-                handleChange("detailHtml", detailHtml);
+                setForm((prev) => ({
+                  ...prev,
+                  detailHtml,
+                  detailJson,
+                }));
               }}
             />
 
