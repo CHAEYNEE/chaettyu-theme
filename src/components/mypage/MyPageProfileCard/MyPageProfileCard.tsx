@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
-import { clearStoredAuthUser } from "@/lib/auth/authStorage";
+import { signOutUser } from "@/lib/auth/signOutUser";
 import type { AuthUser } from "@/types/authUser";
 import { formatDate } from "@/utils/formatDate";
 
@@ -21,8 +22,16 @@ export default function MyPageProfileCard({
   ownedThemeCount,
   latestActivity,
 }: MyPageProfileCardProps) {
-  const handleLogout = () => {
-    clearStoredAuthUser();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await signOutUser();
+      router.replace("/");
+      router.refresh();
+    } catch (error) {
+      console.error("logout failed:", error);
+    }
   };
 
   return (

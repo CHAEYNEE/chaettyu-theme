@@ -8,7 +8,7 @@ import { LogIn, LogOut, ShoppingCart, UserRound } from "lucide-react";
 import ScrollToTopButton from "@/components/common/ScrollToTopButton/ScrollToTopButton";
 import SideTabs from "@/components/layout/SideTabs/SideTabs";
 import useAuthUser from "@/hooks/useAuthUser";
-import { clearStoredAuthUser } from "@/lib/auth/authStorage";
+import { signOutUser } from "@/lib/auth/signOutUser";
 import useOuterScrollbar from "./useOuterScrollbar";
 import styles from "./BoardLayout.module.css";
 
@@ -68,9 +68,14 @@ export default function BoardLayout({
     router.push("/cart");
   };
 
-  const handleLogoutClick = () => {
-    clearStoredAuthUser();
-    router.refresh();
+  const handleLogoutClick = async () => {
+    try {
+      await signOutUser();
+      router.replace("/");
+      router.refresh();
+    } catch (error) {
+      console.error("logout failed:", error);
+    }
   };
 
   return (
