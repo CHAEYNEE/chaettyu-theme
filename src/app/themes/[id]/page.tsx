@@ -40,9 +40,11 @@ export default async function ThemeDetailPage({
 
   const hasSetPrice = !isFree && typeof setPrice === "number";
 
+  const totalSetThemeCount = versionCount + setBonusCount;
+
   const originalSetPrice =
-    !isFree && hasSetPrice && versionCount > 0
-      ? unitPrice * (versionCount + setBonusCount)
+    !isFree && hasSetPrice && totalSetThemeCount > 0
+      ? unitPrice * totalSetThemeCount
       : undefined;
 
   const discountPercent =
@@ -51,6 +53,13 @@ export default async function ThemeDetailPage({
     originalSetPrice > setPrice
       ? Math.round(((originalSetPrice - setPrice) / originalSetPrice) * 100)
       : 0;
+
+  const setGiftLabel =
+    versionCount > 0
+      ? setBonusCount > 0
+        ? `${versionCount}종+${setBonusCount}종 증정`
+        : `${versionCount}종 구매`
+      : null;
 
   return (
     <BoardLayout>
@@ -131,12 +140,9 @@ export default async function ThemeDetailPage({
                           <span className={styles.metaPriceUnit}>원</span>
                         </span>
 
-                        {versionCount > 0 && (
+                        {setGiftLabel && (
                           <span className={styles.metaGiftText}>
-                            {versionCount}종 구매
-                            {setBonusCount > 0
-                              ? ` + 증정 ${setBonusCount}종`
-                              : ""}
+                            {setGiftLabel}
                           </span>
                         )}
                       </div>
@@ -163,7 +169,7 @@ export default async function ThemeDetailPage({
                 </div>
               )}
 
-              {typeof theme.downloadCount === "number" && (
+              {isFree && typeof theme.downloadCount === "number" && (
                 <div className={styles.metaItem}>
                   <dt>다운로드</dt>
                   <dd>{theme.downloadCount.toLocaleString()}</dd>

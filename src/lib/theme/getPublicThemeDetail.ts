@@ -175,7 +175,12 @@ export async function getPublicThemeDetail(
     type: theme.type,
     price: theme.price ?? 0,
     setPrice: theme.set_price ?? undefined,
-    setBonusCount: theme.set_bonus_count ?? undefined,
+    setBonusCount:
+      theme.type !== "free" && theme.set_price != null
+        ? theme.set_bonus_count && theme.set_bonus_count > 0
+          ? theme.set_bonus_count
+          : 1
+        : undefined,
     thumbnail: theme.thumbnail_url ?? "",
     previewImages,
     tags: theme.tags ?? [],

@@ -192,9 +192,9 @@ export default function ThemePurchaseBox({
   const createSetItem = (platform: ThemePlatform): ThemePurchaseLineItem => {
     const subtitle = isFree
       ? `${resolvedVersions.length}종 전체 다운로드`
-      : `${resolvedVersions.length}종 구매${
-          theme.setBonusCount ? ` + 증정 ${theme.setBonusCount}종` : ""
-        }`;
+      : theme.setBonusCount && theme.setBonusCount > 0
+        ? `${resolvedVersions.length}종+${theme.setBonusCount}종 증정`
+        : `${resolvedVersions.length}종 구매`;
 
     return {
       key: `${platform}-set`,
@@ -427,6 +427,7 @@ export default function ThemePurchaseBox({
           placeholder="사용 기종"
           options={platformOptions}
           onChange={handlePlatformChange}
+          variant="form"
         />
 
         <CustomDropdown
@@ -435,6 +436,7 @@ export default function ThemePurchaseBox({
           options={purchaseModeOptions}
           onChange={handlePurchaseModeChange}
           disabled={!selectedPlatform}
+          variant="form"
         />
 
         {purchaseMode === "single" && (
@@ -444,6 +446,7 @@ export default function ThemePurchaseBox({
             options={versionOptions}
             onChange={handleVersionChange}
             disabled={!selectedPlatform}
+            variant="form"
           />
         )}
       </div>
