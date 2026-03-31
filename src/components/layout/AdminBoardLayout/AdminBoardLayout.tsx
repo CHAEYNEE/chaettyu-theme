@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties, ReactNode } from "react";
+import { Suspense, type CSSProperties, type ReactNode } from "react";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { LogIn, LogOut, ShoppingCart, UserRound } from "lucide-react";
@@ -22,7 +22,7 @@ type AdminBoardLayoutProps = {
 
 const KNOB_SIZE = 18;
 
-export default function AdminBoardLayout({
+function AdminBoardLayoutInner({
   children,
   badgeText = "채뜌",
   profileSrc = "/images/profile.jpg",
@@ -54,7 +54,7 @@ export default function AdminBoardLayout({
 
   const resolvedBadgeText = user?.nickname?.slice(0, 2) || badgeText;
 
-  const queryString = searchParams?.toString();
+  const queryString = searchParams.toString();
   const currentPath = queryString ? `${pathname}?${queryString}` : pathname;
 
   const handleLoginClick = () => {
@@ -174,5 +174,13 @@ export default function AdminBoardLayout({
         </div>
       </div>
     </section>
+  );
+}
+
+export default function AdminBoardLayout(props: AdminBoardLayoutProps) {
+  return (
+    <Suspense fallback={null}>
+      <AdminBoardLayoutInner {...props} />
+    </Suspense>
   );
 }
