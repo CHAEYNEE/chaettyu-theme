@@ -9,10 +9,20 @@ import { adminTabs } from "./adminTabs";
 export default function AdminSideTabs() {
   const pathname = usePathname();
 
+  const extendedTabs = [
+    {
+      href: "/",
+      label: "홈",
+      fullLabel: "홈으로 이동",
+      match: (currentPath: string) => currentPath === "/",
+    },
+    ...adminTabs,
+  ];
+
   return (
     <nav className={styles.wrapper} aria-label="관리자 사이드 탭">
       <ul className={styles.list}>
-        {adminTabs.map((tab) => {
+        {extendedTabs.map((tab) => {
           const isActive = tab.match(pathname);
 
           return (
