@@ -9,6 +9,7 @@ import CustomDropdown, {
   type DropdownOption,
 } from "@/components/common/CustomDropdown/CustomDropdown";
 import { useToast } from "@/components/common/Toast/ToastProvider";
+import { supabaseClient } from "@/lib/supabase/client";
 import type {
   PurchaseMode,
   ThemePlatform,
@@ -601,38 +602,50 @@ export default function AdminThemeForm({
     setUploadingDownloadFileId(formId);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("themeId", normalizedThemeId);
-      formData.append("platform", targetDownloadFile.platform);
-      formData.append("purchaseMode", targetDownloadFile.purchaseMode);
-
-      if (
-        targetDownloadFile.purchaseMode === "single" &&
-        targetDownloadFile.versionValue
-      ) {
-        formData.append("versionValue", targetDownloadFile.versionValue);
-      }
-
       const response = await fetch("/api/admin/upload-download-file", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fileName: file.name,
+          themeId: normalizedThemeId,
+          platform: targetDownloadFile.platform,
+          purchaseMode: targetDownloadFile.purchaseMode,
+          versionValue:
+            targetDownloadFile.purchaseMode === "single"
+              ? targetDownloadFile.versionValue
+              : undefined,
+        }),
       });
 
       const result = (await response.json()) as {
         fileName?: string;
         storageBucket?: string;
         storagePath?: string;
+        uploadToken?: string;
         error?: string;
       };
 
       if (
         !response.ok ||
-        !result.fileName ||
         !result.storageBucket ||
-        !result.storagePath
+        !result.storagePath ||
+        !result.uploadToken
       ) {
-        throw new Error(result.error || "다운로드 파일 업로드에 실패했어요.");
+        throw new Error(
+          result.error || "다운로드 파일 업로드 준비에 실패했어요.",
+        );
+      }
+
+      const { error: uploadError } = await supabaseClient.storage
+        .from(result.storageBucket)
+        .uploadToSignedUrl(result.storagePath, result.uploadToken, file, {
+          contentType: file.type || "application/octet-stream",
+        });
+
+      if (uploadError) {
+        throw new Error("다운로드 파일 업로드에 실패했어요.");
       }
 
       setForm((prev) => ({
@@ -641,7 +654,7 @@ export default function AdminThemeForm({
           downloadFile.formId === formId
             ? {
                 ...downloadFile,
-                fileName: result.fileName ?? "",
+                fileName: result.fileName ?? file.name,
                 storageBucket: result.storageBucket ?? "",
                 storagePath: result.storagePath ?? "",
               }

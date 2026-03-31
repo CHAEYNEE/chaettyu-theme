@@ -34,6 +34,14 @@ function isValidPurchaseMode(value: unknown): value is PurchaseMode {
   return value === "single" || value === "set";
 }
 
+type CreateUploadUrlBody = {
+  fileName?: string;
+  themeId?: string;
+  platform?: ThemePlatform;
+  purchaseMode?: PurchaseMode;
+  versionValue?: string;
+};
+
 export async function POST(request: Request) {
   try {
     const adminGuard = await requireAdminApi();
@@ -42,19 +50,17 @@ export async function POST(request: Request) {
       return adminGuard.response;
     }
 
-    const formData = await request.formData();
+    const body = (await request.json()) as CreateUploadUrlBody;
 
-    const file = formData.get("file");
-    const themeId = normalizeSegment(String(formData.get("themeId") || ""));
-    const platform = formData.get("platform");
-    const purchaseMode = formData.get("purchaseMode");
-    const versionValue = normalizeSegment(
-      String(formData.get("versionValue") || ""),
-    );
+    const fileName = String(body.fileName || "");
+    const themeId = normalizeSegment(String(body.themeId || ""));
+    const platform = body.platform;
+    const purchaseMode = body.purchaseMode;
+    const versionValue = normalizeSegment(String(body.versionValue || ""));
 
-    if (!(file instanceof File)) {
+    if (!fileName) {
       return NextResponse.json(
-        { error: "업로드할 파일을 선택해 주세요." },
+        { error: "업로드할 파일 이름이 필요해요." },
         { status: 400 },
       );
     }
@@ -87,7 +93,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const safeFileName = sanitizeFileName(file.name || "download-file");
+    const safeFileName = sanitizeFileName(fileName);
     const versionSegment = purchaseMode === "single" ? versionValue : "set";
     const storagePath = [
       themeId,
@@ -99,26 +105,24 @@ export async function POST(request: Request) {
 
     const supabase = createSupabaseAdmin();
 
-    const { error: uploadError } = await supabase.storage
+    const { data, error } = await supabase.storage
       .from(DOWNLOAD_BUCKET)
-      .upload(storagePath, file, {
-        contentType: file.type || "application/octet-stream",
-        upsert: false,
-      });
+      .createSignedUploadUrl(storagePath);
 
-    if (uploadError) {
+    if (error || !data?.token) {
       return NextResponse.json(
-        { error: "다운로드 파일 업로드에 실패했어요." },
+        { error: "업로드 URL 발급에 실패했어요." },
         { status: 500 },
       );
     }
 
     return NextResponse.json(
       {
-        message: "다운로드 파일 업로드가 완료되었어요.",
-        fileName: file.name,
+        message: "업로드 URL 발급이 완료되었어요.",
+        fileName,
         storageBucket: DOWNLOAD_BUCKET,
         storagePath,
+        uploadToken: data.token,
       },
       { status: 201 },
     );
