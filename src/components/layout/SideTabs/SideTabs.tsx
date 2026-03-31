@@ -3,16 +3,32 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import useAuthUser from "@/hooks/useAuthUser";
+
 import styles from "./SideTabs.module.css";
 import { tabs } from "./tabs";
 
 export default function SideTabs() {
   const pathname = usePathname();
+  const { user } = useAuthUser();
+
+  const extendedTabs =
+    user?.role === "admin"
+      ? [
+          ...tabs,
+          {
+            href: "/admin",
+            label: "관리자",
+            fullLabel: "관리자 페이지",
+            match: (currentPath: string) => currentPath.startsWith("/admin"),
+          },
+        ]
+      : tabs;
 
   return (
     <nav className={styles.wrapper} aria-label="홈 사이드 탭">
       <ul className={styles.list}>
-        {tabs.map((tab) => {
+        {extendedTabs.map((tab) => {
           const isActive = tab.match(pathname);
 
           return (
