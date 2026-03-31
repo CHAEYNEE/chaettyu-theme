@@ -105,8 +105,12 @@ export default function LoginPageClient({ redirect }: LoginPageClientProps) {
             <span className={styles.formBadge}>LOGIN</span>
 
             <div className={styles.testAccountList}>
+              <p className={styles.testAccount}>테스트용 관리자 계정</p>
               <p className={styles.testAccount}>
-                회원가입한 아이디와 비밀번호로 로그인해 주세요.
+                아이디 : <strong>chaettyu</strong>
+              </p>
+              <p className={styles.testAccount}>
+                비밀번호 : <strong>123456</strong>
               </p>
             </div>
           </div>
