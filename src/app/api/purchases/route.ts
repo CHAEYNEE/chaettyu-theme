@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -25,6 +26,7 @@ type ThemeRow = {
   type: ThemeType;
   thumbnail_url: string;
   is_published: boolean;
+  purchase_count: number | null;
 };
 
 function isValidPlatform(value: unknown): value is ThemePlatform {
@@ -107,7 +109,7 @@ export async function POST(request: Request) {
 
     const { data: themeRow, error: themeError } = await supabase
       .from("themes")
-      .select("id, title, type, thumbnail_url, is_published")
+      .select("id, title, type, thumbnail_url, is_published, purchase_count")
       .eq("id", body.themeId)
       .eq("is_published", true)
       .maybeSingle<ThemeRow>();
@@ -222,6 +224,31 @@ export async function POST(request: Request) {
         { status: 500 },
       );
     }
+
+    const nextPurchaseCount = (themeRow.purchase_count ?? 0) + newItems.length;
+
+    const { error: purchaseCountUpdateError } = await supabase
+      .from("themes")
+      .update({
+        purchase_count: nextPurchaseCount,
+      })
+      .eq("id", themeRow.id);
+
+    if (purchaseCountUpdateError) {
+      console.error(
+        "purchases route purchase_count update error:",
+        purchaseCountUpdateError,
+      );
+
+      return NextResponse.json(
+        { message: "구매 건수 반영에 실패했어요." },
+        { status: 500 },
+      );
+    }
+
+    revalidatePath("/", "page");
+    revalidatePath("/themes/signature", "page");
+    revalidatePath(`/themes/${themeRow.id}`, "page");
 
     return NextResponse.json({
       success: true,
