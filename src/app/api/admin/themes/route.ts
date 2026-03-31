@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { requireAdminApi } from "@/lib/auth/requireAdminApi";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { sanitizeThemeDetailHtml } from "@/lib/theme/sanitizeThemeDetailHtml";
@@ -459,6 +460,11 @@ export async function POST(request: Request) {
         error,
       );
     }
+
+    revalidatePath("/", "page");
+    revalidatePath("/themes/free", "page");
+    revalidatePath("/themes/signature", "page");
+    revalidatePath(`/themes/${normalizedId}`, "page");
 
     return NextResponse.json(
       {
